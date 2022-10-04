@@ -14,7 +14,7 @@ type CcaRealmClaims struct {
 	InitialMeasurements    *[]byte    `cbor:"44238,keyasint" json:"cca-realm-initial-measurement"`
 	ExtensibleMeasurements *[][]byte  `cbor:"44239,keyasint" json:"cca-realm-extensible-measurements"`
 	HashAlgID              *string    `cbor:"44236,keyasint" json:"cca-realm-hash-algo-id"`
-	PubicKey               *[]byte    `cbor:"44237,keyasint" json:"cca-realm-public-key"`
+	PublicKey              *[]byte    `cbor:"44237,keyasint" json:"cca-realm-public-key"`
 	PublickeyHashAlgID     *string    `cbor:"44240,keyasint" json:"cca-realm-public-key-hash-algo-id"`
 }
 
@@ -75,7 +75,7 @@ func (c *CcaRealmClaims) SetPubKey(v []byte) error {
 		return err
 	}
 
-	c.PubicKey = &v
+	c.PublicKey = &v
 	return nil
 }
 
@@ -156,7 +156,7 @@ func (c CcaRealmClaims) GetHashAlgID() (string, error) {
 }
 
 func (c CcaRealmClaims) GetPubKey() ([]byte, error) {
-	v := c.PubicKey
+	v := c.PublicKey
 
 	if v == nil {
 		return nil, ErrMandatoryClaimMissing
