@@ -18,7 +18,7 @@ func mustBuildValidCcaRealmClaims(t *testing.T) IClaims {
 	err = c.SetPersonalizationValue(testPersonalizationVal)
 	require.NoError(t, err)
 
-	err = c.SetInitialMeasurements(testInitMeas)
+	err = c.SetInitialMeasurement(testInitMeas)
 	require.NoError(t, err)
 
 	err = c.SetExtensibleMeasurements(testExtensibleMeas)
@@ -36,14 +36,14 @@ func mustBuildValidCcaRealmClaims(t *testing.T) IClaims {
 	return c
 }
 
-func Test_NewCca_Realm_Claims_ok(t *testing.T) {
+func Test_NewCcaRealmClaims_ok(t *testing.T) {
 	c := mustBuildValidCcaRealmClaims(t)
 
 	err := c.Validate()
 	assert.NoError(t, err)
 }
 
-func Test_Cca_Realm_Claims_Set_nok(t *testing.T) {
+func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 	c, err := NewClaims()
 	require.NoError(t, err)
 
@@ -55,16 +55,16 @@ func Test_Cca_Realm_Claims_Set_nok(t *testing.T) {
 	expectedErr = "wrong syntax for claim: length 18 (cca-personalization-value MUST be 64 bytes)"
 	assert.EqualError(t, err, expectedErr)
 
-	err = c.SetInitialMeasurements([]byte("random"))
+	err = c.SetInitialMeasurement([]byte("random"))
 	expectedErr = "wrong syntax for claim: length 6 (cca-realm-measurement MUST be 32, 48 or 64 bytes)"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetExtensibleMeasurements([][]byte{})
-	expectedErr = "missing mandatory claim cca-realm-extended-measurements:"
+	expectedErr = "missing mandatory claim cca-realm-extended-measurements"
 	assert.EqualError(t, err, expectedErr)
 
-	err = c.SetHashAlgID("blank")
-	expectedErr = "wrong syntax for claim: wrong syntax"
+	err = c.SetHashAlgID("")
+	expectedErr = "wrong syntax for claim: empty string"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetPubKey([]byte("random-key"))
@@ -72,22 +72,22 @@ func Test_Cca_Realm_Claims_Set_nok(t *testing.T) {
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetPubKeyHashAlgID("")
-	expectedErr = "invalid null string set for cca-realm-pubkey-hash-alg-id"
+	expectedErr = "invalid null string set for cca-realm-pubkey-hash-algo-id"
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_Cca_Realm_Claims_ToCBOR_invalid(t *testing.T) {
+func Test_CcaRealmClaims_ToCBOR_invalid(t *testing.T) {
 	c, err := NewClaims()
 	require.NoError(t, err)
 
-	expectedErr := `validation of CCA realm claims failed: validating cca-realm-challege claim : missing mandatory claim`
+	expectedErr := `validation of CCA realm claims failed: validating cca-realm-challege claim: missing mandatory claim`
 
 	_, err = c.ToCBOR()
 
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_Cca_Realm_Claims_ToCBOR_all_claims(t *testing.T) {
+func Test_CcaRealmClaims_ToCBOR_all_claims(t *testing.T) {
 	c := mustBuildValidCcaRealmClaims(t)
 
 	expected := mustHexDecode(t, testEncodedCcaRealmClaimsAll)
@@ -98,7 +98,7 @@ func Test_Cca_Realm_Claims_ToCBOR_all_claims(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func Test_Cca_Realm_Claims_FromCBOR_ok(t *testing.T) {
+func Test_CcaRealmClaims_FromCBOR_ok(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaRealmClaimsAll)
 
 	var c CcaRealmClaims
@@ -117,7 +117,7 @@ func Test_Cca_Realm_Claims_FromCBOR_ok(t *testing.T) {
 	assert.Equal(t, expectedPersonalizationVal, actualPersonalizationVal)
 
 	expectedInitMeas := testInitMeas
-	actualInitMeas, err := c.GetInitialMeasurements()
+	actualInitMeas, err := c.GetInitialMeasurement()
 	assert.NoError(t, err)
 	assert.Equal(t, expectedInitMeas, actualInitMeas)
 
@@ -138,7 +138,7 @@ func Test_Cca_Realm_Claims_FromCBOR_ok(t *testing.T) {
 
 }
 
-func Test_Cca_Realm_Claims_FromCBOR_bad_input(t *testing.T) {
+func Test_CcaRealmClaims_FromCBOR_bad_input(t *testing.T) {
 	buf := mustHexDecode(t, testNotCBOR)
 
 	expectedErr := "CBOR decoding of CCA realm claims failed: unexpected EOF"
@@ -149,10 +149,10 @@ func Test_Cca_Realm_Claims_FromCBOR_bad_input(t *testing.T) {
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_Cca_Realm_Claims_FromCBOR_missing_mandatory_claims(t *testing.T) {
+func Test_CcaRealmClaims_FromCBOR_missing_mandatory_claims(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaRealmClaimsMissingMandNonce)
 
-	expectedErr := "validation of CCA realm claims failed: validating cca-realm-challege claim : missing mandatory claim"
+	expectedErr := "validation of CCA realm claims failed: validating cca-realm-challege claim: missing mandatory claim"
 
 	var c CcaRealmClaims
 	err := c.FromCBOR(buf)
@@ -160,28 +160,28 @@ func Test_Cca_Realm_Claims_FromCBOR_missing_mandatory_claims(t *testing.T) {
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandInitialMeas)
 
-	expectedErr = "validation of CCA realm claims failed: validating cca-realm-initial-measurements claim : missing mandatory claim"
+	expectedErr = "validation of CCA realm claims failed: validating cca-realm-initial-measurements claim: missing mandatory claim"
 	c = CcaRealmClaims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandHashAlgID)
 
-	expectedErr = "validation of CCA realm claims failed: validating cca-realm-hash-alg-id claim : missing mandatory claim"
+	expectedErr = "validation of CCA realm claims failed: validating cca-realm-hash-alg-id claim: missing mandatory claim"
 	c = CcaRealmClaims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandPubKey)
 
-	expectedErr = "validation of CCA realm claims failed: validating cca-realm-public-key claim : missing mandatory claim"
+	expectedErr = "validation of CCA realm claims failed: validating cca-realm-public-key claim: missing mandatory claim"
 	c = CcaRealmClaims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandExtendedMeas)
 
-	expectedErr = "validation of CCA realm claims failed: validating cca-realm-extended-measurements claim : missing mandatory claim"
+	expectedErr = "validation of CCA realm claims failed: validating cca-realm-extended-measurements claim: missing mandatory claim"
 	c = CcaRealmClaims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
@@ -211,7 +211,7 @@ func Test_CcaRealm_Claims_ToJSON_ok(t *testing.T) {
 	assert.JSONEq(t, expected, string(actual))
 }
 
-func Test_Cca_Realm_Claims_FromJSON_ok(t *testing.T) {
+func Test_CcaRealmClaims_FromJSON_ok(t *testing.T) {
 	tv := `{
   "cca-realm-challenge": "QUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQg==",
   "cca-realm-personalization-value": "QURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBRA==",
@@ -234,7 +234,7 @@ func Test_Cca_Realm_Claims_FromJSON_ok(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_Cca_Realm_Claims_FromJSON_invalid_json(t *testing.T) {
+func Test_CcaRealmClaims_FromJSON_invalid_json(t *testing.T) {
 	tv := testNotJSON
 
 	expectedErr := `JSON decoding of CCA realm claims failed: unexpected end of JSON input`
@@ -245,12 +245,12 @@ func Test_Cca_Realm_Claims_FromJSON_invalid_json(t *testing.T) {
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_Cca_Realm_Cliams_FromJSON_negatives(t *testing.T) {
+func Test_CcaRealmClaims_FromJSON_negatives(t *testing.T) {
 	tvs := []string{
 		/* 0 */ "testvectors/json/test-invalid-nonce.json",
 		/* 1 */ "testvectors/json/test-invalid-extended-meas.json",
 		/* 2 */ "testvectors/json/test-invalid-initial-meas.json",
-		/* 3 */ "testvectors/json/test-invalid-hash-alg-id.json",
+		/* 3 */ "testvectors/json/test-invalid-public-key.json",
 		/* 4 */ "testvectors/json/test-invalid-personalization-val.json",
 		/* 5 */ "testvectors/json/test-missing-nonce.json",
 		/* 6 */ "testvectors/json/test-missing-hash-alg-id.json",
@@ -259,7 +259,6 @@ func Test_Cca_Realm_Cliams_FromJSON_negatives(t *testing.T) {
 		/* 9 */ "testvectors/json/test-missing-extended-meas.json",
 		/* 10 */ "testvectors/json/test-missing-public-key.json",
 		/* 11 */ "testvectors/json/test-missing-public-key-alg-id.json",
-		/* 12 */ "testvectors/json/test-invalid-public-key.json",
 	}
 	for i, fn := range tvs {
 		buf, err := os.ReadFile(fn)

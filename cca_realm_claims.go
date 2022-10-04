@@ -11,7 +11,7 @@ import (
 type CcaRealmClaims struct {
 	Challenge              *eat.Nonce `cbor:"10,keyasint" json:"cca-realm-challenge"`
 	PersonalizationValue   *[]byte    `cbor:"44235,keyasint" json:"cca-realm-personalization-value"`
-	InitialMeasurements    *[]byte    `cbor:"44238,keyasint" json:"cca-realm-initial-measurement"`
+	InitialMeasurement     *[]byte    `cbor:"44238,keyasint" json:"cca-realm-initial-measurement"`
 	ExtensibleMeasurements *[][]byte  `cbor:"44239,keyasint" json:"cca-realm-extensible-measurements"`
 	HashAlgID              *string    `cbor:"44236,keyasint" json:"cca-realm-hash-algo-id"`
 	PublicKey              *[]byte    `cbor:"44237,keyasint" json:"cca-realm-public-key"`
@@ -43,12 +43,12 @@ func (c *CcaRealmClaims) SetPersonalizationValue(v []byte) error {
 	return nil
 }
 
-func (c *CcaRealmClaims) SetInitialMeasurements(v []byte) error {
+func (c *CcaRealmClaims) SetInitialMeasurement(v []byte) error {
 	if err := isValidRealmMeas(v); err != nil {
 		return err
 	}
 
-	c.InitialMeasurements = &v
+	c.InitialMeasurement = &v
 	return nil
 }
 
@@ -81,7 +81,7 @@ func (c *CcaRealmClaims) SetPubKey(v []byte) error {
 
 func (c *CcaRealmClaims) SetPubKeyHashAlgID(v string) error {
 	if v == "" {
-		return fmt.Errorf("invalid null string set for cca-realm-pubkey-hash-alg-id")
+		return fmt.Errorf("invalid null string set for cca-realm-pubkey-hash-algo-id")
 	}
 
 	c.PublickeyHashAlgID = &v
@@ -121,9 +121,9 @@ func (c CcaRealmClaims) GetPersonalizationValue() ([]byte, error) {
 	return *v, nil
 }
 
-func (c CcaRealmClaims) GetInitialMeasurements() ([]byte, error) {
+func (c CcaRealmClaims) GetInitialMeasurement() ([]byte, error) {
 
-	v := c.InitialMeasurements
+	v := c.InitialMeasurement
 	if v == nil {
 		return nil, ErrMandatoryClaimMissing
 	}
