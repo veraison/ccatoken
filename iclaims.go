@@ -12,7 +12,7 @@ type IClaims interface {
 	// Getters
 	GetChallenge() ([]byte, error)
 	GetPersonalizationValue() ([]byte, error)
-	GetInitialMeasurements() ([]byte, error)
+	GetInitialMeasurement() ([]byte, error)
 	GetExtensibleMeasurements() ([][]byte, error)
 	GetHashAlgID() (string, error)
 	GetPubKey() ([]byte, error)
@@ -21,7 +21,7 @@ type IClaims interface {
 	// Setters
 	SetChallenge([]byte) error
 	SetPersonalizationValue([]byte) error
-	SetInitialMeasurements([]byte) error
+	SetInitialMeasurement([]byte) error
 	SetExtensibleMeasurements([][]byte) error
 	SetHashAlgID(string) error
 	SetPubKey([]byte) error
@@ -64,42 +64,41 @@ func DecodeJSONClaims(buf []byte) (IClaims, error) {
 }
 
 func validate(c IClaims) error {
-
 	// realm challenge
 	_, err := c.GetChallenge()
 	if err != nil {
-		return fmt.Errorf("validating cca-realm-challege claim : %w", err)
+		return fmt.Errorf("validating cca-realm-challege claim: %w", err)
 	}
 
 	// cca personalization value
 	_, err = c.GetPersonalizationValue()
 	if err != nil {
-		return fmt.Errorf("validating cca-realm-personalization value claim : %w", err)
+		return fmt.Errorf("validating cca-realm-personalization value claim: %w", err)
 	}
 
 	// initial measurements
-	if _, err := c.GetInitialMeasurements(); err != nil {
-		return fmt.Errorf("validating cca-realm-initial-measurements claim : %w", err)
+	if _, err := c.GetInitialMeasurement(); err != nil {
+		return fmt.Errorf("validating cca-realm-initial-measurements claim: %w", err)
 	}
 
 	// extensible measurements
 	if _, err := c.GetExtensibleMeasurements(); err != nil {
-		return fmt.Errorf("validating cca-realm-extended-measurements claim : %w", err)
+		return fmt.Errorf("validating cca-realm-extended-measurements claim: %w", err)
 	}
 
 	// hash algorim id
 	if _, err := c.GetHashAlgID(); err != nil {
-		return fmt.Errorf("validating cca-realm-hash-alg-id claim : %w", err)
+		return fmt.Errorf("validating cca-realm-hash-alg-id claim: %w", err)
 	}
 
 	// public key
 	if _, err := c.GetPubKey(); err != nil {
-		return fmt.Errorf("validating cca-realm-public-key claim : %w", err)
+		return fmt.Errorf("validating cca-realm-public-key claim: %w", err)
 	}
 
 	// hash algorithm id for public key
 	if _, err := c.GetPubKeyHashAlgID(); err != nil {
-		return fmt.Errorf("validating cca-realm-public-key-hash-alg-id claim : %w", err)
+		return fmt.Errorf("validating cca-realm-public-key-hash-alg-id claim: %w", err)
 	}
 	return nil
 }
