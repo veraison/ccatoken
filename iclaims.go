@@ -67,7 +67,7 @@ func validate(c IClaims) error {
 	// realm challenge
 	_, err := c.GetChallenge()
 	if err != nil {
-		return fmt.Errorf("validating cca-realm-challege claim: %w", err)
+		return fmt.Errorf("validating cca-realm-challenge claim: %w", err)
 	}
 
 	// cca personalization value

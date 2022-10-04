@@ -80,7 +80,7 @@ func Test_CcaRealmClaims_ToCBOR_invalid(t *testing.T) {
 	c, err := NewClaims()
 	require.NoError(t, err)
 
-	expectedErr := `validation of CCA realm claims failed: validating cca-realm-challege claim: missing mandatory claim`
+	expectedErr := `validation of CCA realm claims failed: validating cca-realm-challenge claim: missing mandatory claim`
 
 	_, err = c.ToCBOR()
 
@@ -152,7 +152,7 @@ func Test_CcaRealmClaims_FromCBOR_bad_input(t *testing.T) {
 func Test_CcaRealmClaims_FromCBOR_missing_mandatory_claims(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaRealmClaimsMissingMandNonce)
 
-	expectedErr := "validation of CCA realm claims failed: validating cca-realm-challege claim: missing mandatory claim"
+	expectedErr := "validation of CCA realm claims failed: validating cca-realm-challenge claim: missing mandatory claim"
 
 	var c CcaRealmClaims
 	err := c.FromCBOR(buf)
