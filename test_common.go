@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"encoding/hex"
-	"fmt"
 	"reflect"
 	"regexp"
 	"testing"
@@ -203,6 +202,5 @@ func getJwkKeyFromPemKey(testKey []byte) (jwk.Key, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("received key = %s", key)
 	return key, nil
 }
