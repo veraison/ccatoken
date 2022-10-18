@@ -2,7 +2,7 @@
 
 This repository is an implementation of the Confidential Computing Architecture (CCA) Attestation Token Library.
 
-This work is based on the Attestation Token as detailed by the [Realm Management Monitor Specificiation (RMM)](https://developer.arm.com/documentation/den0137/latest)
+This work is based on the Attestation Token as detailed by the [Realm Management Monitor (RMM) Specification](https://developer.arm.com/documentation/den0137/latest)
 
 The package allows to:
 

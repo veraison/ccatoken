@@ -54,6 +54,9 @@ func (e *CcaEvidence) SetCcaRealmClaims(c IClaims) error {
 // Sign signs the given evidence using the supplied Platform and Realm Signer
 // and returns the complete CCA token as CBOR bytes
 func (e *CcaEvidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error) {
+	if e.message == nil {
+		e.message = &CcaToken{}
+	}
 
 	if e.CcaPlatformClaims == nil {
 		return nil, fmt.Errorf("missing platform claims in evidence")
@@ -63,13 +66,18 @@ func (e *CcaEvidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, er
 		return nil, fmt.Errorf("missing realm claims in evidence")
 	}
 
-	if err := e.signClaims(PlatformClaims, pSigner); err != nil {
+	ptoken, err := e.signClaims(PlatformClaims, pSigner)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := e.signClaims(RealmClaims, rSigner); err != nil {
+	rtoken, err := e.signClaims(RealmClaims, rSigner)
+	if err != nil {
 		return nil, err
 	}
+
+	e.message.CcaPlatformToken = &ptoken
+	e.message.CcaRealmToken = &rtoken
 
 	// We do now have CcaPlatform and Realm Token setup correctly.
 	buf, err := em.Marshal(e.message)
@@ -80,64 +88,55 @@ func (e *CcaEvidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, er
 	return buf, nil
 }
 
-func (e *CcaEvidence) signClaims(cl claimsType, signer cose.Signer) error {
+func (e *CcaEvidence) signClaims(cl claimsType, signer cose.Signer) ([]byte, error) {
 	var err error
 
 	message := cose.NewSign1Message()
 	if cl == PlatformClaims {
 		message.Payload, err = e.CcaPlatformClaims.ToCBOR()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else if cl == RealmClaims {
 		message.Payload, err = e.CcaRealmClaims.ToCBOR()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
-		return fmt.Errorf("invalid claimsType %d: for signing", cl)
+		return nil, fmt.Errorf("invalid claimsType %d: for signing", cl)
 	}
 
 	alg := signer.Algorithm()
 
 	if strings.Contains(alg.String(), "unknown algorithm value") {
-		return errors.New("signer has no algorithm")
+		return nil, errors.New("signer has no algorithm")
 	}
 
 	message.Headers.Protected.SetAlgorithm(alg)
 
 	err = message.Sign(rand.Reader, []byte(""), signer)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	wrap, err := message.MarshalCBOR()
 	if err != nil {
-		return fmt.Errorf("unable to MarshalCBOR %d claimsType = %w", cl, err)
-	}
-	if e.message == nil {
-		ccaToken := CcaToken{}
-		e.message = &ccaToken
+		return nil, fmt.Errorf("unable to MarshalCBOR %d claimsType = %w", cl, err)
 	}
 
-	if cl == PlatformClaims {
-		e.message.CcaPlatformToken = &wrap
-	} else {
-		e.message.CcaRealmToken = &wrap
-	}
-	return nil
+	return wrap, nil
 }
 
 // Syntactic validation, of CCA token
-func (e CcaEvidence) validateToken() error {
+func (e CcaToken) validateToken() error {
 
 	// At this point we just check that the both the
 	// Platform and Realm tokens are set correctly.
-	if e.message.CcaPlatformToken == nil {
+	if e.CcaPlatformToken == nil {
 		return fmt.Errorf("cca platform token not set")
 	}
 
-	if e.message.CcaRealmToken == nil {
+	if e.CcaRealmToken == nil {
 		return fmt.Errorf("cca realm token not set")
 	}
 
@@ -155,7 +154,7 @@ func (e *CcaEvidence) FromCBOR(buf []byte) error {
 		return fmt.Errorf("cbor decoding of CCA evidence failed: %w", err)
 	}
 
-	err = e.validateToken()
+	err = e.message.validateToken()
 	if err != nil {
 		return fmt.Errorf("validation of CCA evidence failed: %w", err)
 	}
@@ -260,6 +259,16 @@ func (e *CcaEvidence) GetInstanceID() *[]byte {
 		return nil
 	}
 	return &instID
+}
+
+// GetImplementationID returns the ImplementationID from CCA platform token
+// or a nil pointer if no suitable ImplementationID could be located.
+func (e *CcaEvidence) GetImplementationID() *[]byte {
+	implID, err := e.CcaPlatformClaims.GetImplID()
+	if err != nil {
+		return nil
+	}
+	return &implID
 }
 
 // GetRealmPublicKey returns the RMM Public Key

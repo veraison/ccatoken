@@ -211,6 +211,16 @@ func TestEvidence_GetInstanceID_ok(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestEvidence_GetImplementationID_ok(t *testing.T) {
+	var EvidenceIn CcaEvidence
+	err := EvidenceIn.SetCcaPlatformClaims(mustBuildValidCcaPlatformClaims(t, true))
+	require.NoError(t, err)
+
+	expected := &testImplementationID
+	actual := EvidenceIn.GetImplementationID()
+	assert.Equal(t, expected, actual)
+}
+
 func TestEvidence_GetRealmPubKey_ok(t *testing.T) {
 	var EvidenceIn CcaEvidence
 	err := EvidenceIn.SetCcaRealmClaims(mustBuildValidCcaRealmClaims(t))
