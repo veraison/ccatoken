@@ -73,12 +73,12 @@ func validate(c IClaims) error {
 	// cca personalization value
 	_, err = c.GetPersonalizationValue()
 	if err != nil {
-		return fmt.Errorf("validating cca-realm-personalization value claim: %w", err)
+		return fmt.Errorf("validating cca-realm-personalization-value claim: %w", err)
 	}
 
-	// initial measurements
+	// initial measurement
 	if _, err := c.GetInitialMeasurement(); err != nil {
-		return fmt.Errorf("validating cca-realm-initial-measurements claim: %w", err)
+		return fmt.Errorf("validating cca-realm-initial-measurement claim: %w", err)
 	}
 
 	// extensible measurements
@@ -86,9 +86,9 @@ func validate(c IClaims) error {
 		return fmt.Errorf("validating cca-realm-extended-measurements claim: %w", err)
 	}
 
-	// hash algorim id
+	// hash algorithm id
 	if _, err := c.GetHashAlgID(); err != nil {
-		return fmt.Errorf("validating cca-realm-hash-alg-id claim: %w", err)
+		return fmt.Errorf("validating cca-realm-hash-algo-id claim: %w", err)
 	}
 
 	// public key
@@ -98,7 +98,8 @@ func validate(c IClaims) error {
 
 	// hash algorithm id for public key
 	if _, err := c.GetPubKeyHashAlgID(); err != nil {
-		return fmt.Errorf("validating cca-realm-public-key-hash-alg-id claim: %w", err)
+		return fmt.Errorf("validating cca-realm-public-key-hash-algo-id claim: %w", err)
 	}
+
 	return nil
 }

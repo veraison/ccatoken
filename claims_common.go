@@ -11,7 +11,7 @@ func isCcaHashType(b []byte) error {
 
 	if l != 64 {
 		return fmt.Errorf(
-			"%w: length %d (cca-hash-type MUST be 64 bytes)",
+			"%w: length %d (CCA hash type MUST be 64 bytes)",
 			ErrWrongClaimSyntax, l,
 		)
 	}
@@ -32,7 +32,7 @@ func isValidPersonalizationValue(b []byte) error {
 
 	if l != 64 {
 		return fmt.Errorf(
-			"%w: length %d (cca-personalization-value MUST be 64 bytes)",
+			"%w: length %d (cca-realm-personalization-value MUST be 64 bytes)",
 			ErrWrongClaimSyntax, l,
 		)
 	}
@@ -55,7 +55,7 @@ func isValidRealmMeas(b []byte) error {
 
 	if l != 32 && l != 48 && l != 64 {
 		return fmt.Errorf(
-			"%w: length %d (cca-realm-measurement MUST be 32, 48 or 64 bytes)",
+			"%w: length %d (CCA realm measurement MUST be 32, 48 or 64 bytes)",
 			ErrWrongClaimSyntax, l,
 		)
 	}
@@ -73,10 +73,12 @@ func isValidExtensibleMeas(v [][]byte) error {
 	if len(v) == 0 {
 		return fmt.Errorf("%w cca-realm-extended-measurements", ErrMandatoryClaimMissing)
 	}
+
 	for i, meas := range v {
 		if err := isValidRealmMeas(meas); err != nil {
-			return fmt.Errorf("incorrect cca-realm-extended-measurement at index %d: %w", i, err)
+			return fmt.Errorf("incorrect CCA realm extended measurement at index %d: %w", i, err)
 		}
 	}
+
 	return nil
 }

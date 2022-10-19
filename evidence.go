@@ -66,12 +66,12 @@ func (e *CcaEvidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, er
 		return nil, fmt.Errorf("missing realm claims in evidence")
 	}
 
-	ptoken, err := e.signClaims(PlatformClaims, pSigner)
+	ptoken, err := signClaims(e.CcaPlatformClaims, pSigner)
 	if err != nil {
 		return nil, err
 	}
 
-	rtoken, err := e.signClaims(RealmClaims, rSigner)
+	rtoken, err := signClaims(e.CcaRealmClaims, rSigner)
 	if err != nil {
 		return nil, err
 	}
@@ -88,22 +88,17 @@ func (e *CcaEvidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, er
 	return buf, nil
 }
 
-func (e *CcaEvidence) signClaims(cl claimsType, signer cose.Signer) ([]byte, error) {
+type CBORClaimer interface {
+	ToCBOR() ([]byte, error)
+}
+
+func signClaims(claimer CBORClaimer, signer cose.Signer) ([]byte, error) {
 	var err error
 
 	message := cose.NewSign1Message()
-	if cl == PlatformClaims {
-		message.Payload, err = e.CcaPlatformClaims.ToCBOR()
-		if err != nil {
-			return nil, err
-		}
-	} else if cl == RealmClaims {
-		message.Payload, err = e.CcaRealmClaims.ToCBOR()
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, fmt.Errorf("invalid claimsType %d: for signing", cl)
+	message.Payload, err = claimer.ToCBOR()
+	if err != nil {
+		return nil, err
 	}
 
 	alg := signer.Algorithm()
@@ -121,15 +116,14 @@ func (e *CcaEvidence) signClaims(cl claimsType, signer cose.Signer) ([]byte, err
 
 	wrap, err := message.MarshalCBOR()
 	if err != nil {
-		return nil, fmt.Errorf("unable to MarshalCBOR %d claimsType = %w", cl, err)
+		return nil, fmt.Errorf("unable to MarshalCBOR for %v = %w", claimer, err)
 	}
 
 	return wrap, nil
 }
 
-// Syntactic validation, of CCA token
+// Syntactic validation of CCA token
 func (e CcaToken) validateToken() error {
-
 	// At this point we just check that the both the
 	// Platform and Realm tokens are set correctly.
 	if e.CcaPlatformToken == nil {
@@ -159,42 +153,39 @@ func (e *CcaEvidence) FromCBOR(buf []byte) error {
 		return fmt.Errorf("validation of CCA evidence failed: %w", err)
 	}
 
-	// This will set the byte array for Cca Platform Token
-	if err = e.decodeClaims(PlatformClaims); err != nil {
-		return fmt.Errorf("unable to decode platform claims %w", err)
+	// This will decode both platform and realm claims
+	err = e.decodeClaims()
+	if err != nil {
+		return fmt.Errorf("decoding of CCA evidence failed: %w", err)
 	}
 
-	// This will set the byte array for Cca Realm Token
-	if err = e.decodeClaims(RealmClaims); err != nil {
-		return fmt.Errorf("unable to decode platform claims %w", err)
-	}
 	return nil
 }
 
-func (e *CcaEvidence) decodeClaims(cl claimsType) error {
+func (e *CcaEvidence) decodeClaims() error {
 	// This will set the byte array for Cca Realm and Platform Token
 	message := cose.NewSign1Message()
 
-	if cl == PlatformClaims {
-		if err := message.UnmarshalCBOR(*e.message.CcaPlatformToken); err != nil {
-			return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
-		}
-
-		pclaims, err := psatoken.DecodeClaims(message.Payload)
-		if err != nil {
-			return fmt.Errorf("failed CBOR decoding of CCA platform claims: %w", err)
-		}
-		e.CcaPlatformClaims = pclaims
-	} else {
-		if err := message.UnmarshalCBOR(*e.message.CcaRealmToken); err != nil {
-			return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
-		}
-		rclaims, err := DecodeClaims(message.Payload)
-		if err != nil {
-			return fmt.Errorf("failed CBOR decoding of CCA realm claim: %w", err)
-		}
-		e.CcaRealmClaims = rclaims
+	if err := message.UnmarshalCBOR(*e.message.CcaPlatformToken); err != nil {
+		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
 	}
+
+	pclaims, err := psatoken.DecodeClaims(message.Payload)
+	if err != nil {
+		return fmt.Errorf("failed CBOR decoding of CCA platform claims: %w", err)
+	}
+	e.CcaPlatformClaims = pclaims
+
+	if err = message.UnmarshalCBOR(*e.message.CcaRealmToken); err != nil {
+		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
+	}
+
+	rclaims, err := DecodeClaims(message.Payload)
+	if err != nil {
+		return fmt.Errorf("failed CBOR decoding of CCA realm claim: %w", err)
+	}
+	e.CcaRealmClaims = rclaims
+
 	return nil
 }
 

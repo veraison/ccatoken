@@ -48,15 +48,15 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 	require.NoError(t, err)
 
 	err = c.SetChallenge([]byte("123"))
-	expectedErr := "wrong syntax for claim: length 3 (cca-hash-type MUST be 64 bytes)"
+	expectedErr := "wrong syntax for claim: length 3 (CCA hash type MUST be 64 bytes)"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetPersonalizationValue([]byte("personalizationVal"))
-	expectedErr = "wrong syntax for claim: length 18 (cca-personalization-value MUST be 64 bytes)"
+	expectedErr = "wrong syntax for claim: length 18 (cca-realm-personalization-value MUST be 64 bytes)"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetInitialMeasurement([]byte("random"))
-	expectedErr = "wrong syntax for claim: length 6 (cca-realm-measurement MUST be 32, 48 or 64 bytes)"
+	expectedErr = "wrong syntax for claim: length 6 (CCA realm measurement MUST be 32, 48 or 64 bytes)"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetExtensibleMeasurements([][]byte{})
@@ -72,7 +72,7 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetPubKeyHashAlgID("")
-	expectedErr = "invalid null string set for cca-realm-pubkey-hash-algo-id"
+	expectedErr = "invalid null string set for cca-realm-public-key-hash-algo-id"
 	assert.EqualError(t, err, expectedErr)
 }
 
@@ -160,14 +160,14 @@ func Test_CcaRealmClaims_FromCBOR_missing_mandatory_claims(t *testing.T) {
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandInitialMeas)
 
-	expectedErr = "validation of CCA realm claims failed: validating cca-realm-initial-measurements claim: missing mandatory claim"
+	expectedErr = "validation of CCA realm claims failed: validating cca-realm-initial-measurement claim: missing mandatory claim"
 	c = CcaRealmClaims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandHashAlgID)
 
-	expectedErr = "validation of CCA realm claims failed: validating cca-realm-hash-alg-id claim: missing mandatory claim"
+	expectedErr = "validation of CCA realm claims failed: validating cca-realm-hash-algo-id claim: missing mandatory claim"
 	c = CcaRealmClaims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
