@@ -1,5 +1,15 @@
 # ccatoken
 
-This repository is a Work In Progress implementation of Confidential Computing Architecture (CCA) Attestation Token Library.
+This repository is an implementation of the Confidential Computing Architecture (CCA) Attestation Token Library.
 
-This work is based on the Attestation Token as detailed in Realm Management Monitor Specificiation [RMM Spec](https://developer.arm.com/documentation/den0137/a/?lang=en)
+This work is based on the Attestation Token as detailed by the [Realm Management Monitor (RMM) Specification](https://developer.arm.com/documentation/den0137/latest)
+
+The package allows to:
+
+* Construct CCA Evidence by separately setting the CCA platform and Realm claims.
+
+* Sign and serialise the CCA token to CBOR
+
+* Decode a CBOR-encoded CCA token
+
+* Verify the CCA token

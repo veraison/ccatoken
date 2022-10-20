@@ -31,6 +31,6 @@ jobs:
     - name: Go Coverage
       run: |
         go version
-        make GOTEST_ARGS="-short -cover" test | grep -o "coverage:.*of statements$" | python scripts/cov.py
+        make test-cover | grep -o "coverage:.*of statements$" | python scripts/cov.py
 
       shell: bash
