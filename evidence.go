@@ -11,15 +11,6 @@ import (
 	"github.com/veraison/psatoken"
 )
 
-// claimsType to hold the value of claim
-
-type claimsType int
-
-const (
-	PlatformClaims claimsType = iota + 1
-	RealmClaims
-)
-
 type CcaToken struct {
 	CcaPlatformToken *[]byte `cbor:"44234,keyasint" json:"cca-platform-token"`
 	CcaRealmToken    *[]byte `cbor:"44241,keyasint" json:"cca-realm-delegated-token"`
