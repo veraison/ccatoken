@@ -39,12 +39,12 @@ type IClaims interface {
 	Validate() error
 }
 
-func NewClaims() (IClaims, error) {
-	return &CcaRealmClaims{}, nil
+func NewClaims() IClaims {
+	return &RealmClaims{}
 }
 
 func DecodeClaims(buf []byte) (IClaims, error) {
-	cl := &CcaRealmClaims{}
+	cl := &RealmClaims{}
 
 	if err := cl.FromCBOR(buf); err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func DecodeClaims(buf []byte) (IClaims, error) {
 }
 
 func DecodeJSONClaims(buf []byte) (IClaims, error) {
-	cl := &CcaRealmClaims{}
+	cl := &RealmClaims{}
 
 	if err := cl.FromJSON(buf); err != nil {
 		return nil, err

@@ -2,6 +2,8 @@ package ccatoken
 
 import (
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -11,19 +13,19 @@ import (
 	"github.com/veraison/psatoken"
 )
 
-type CcaToken struct {
+type Token struct {
 	CcaPlatformToken *[]byte `cbor:"44234,keyasint" json:"cca-platform-token"`
 	CcaRealmToken    *[]byte `cbor:"44241,keyasint" json:"cca-realm-delegated-token"`
 }
 
-// CcaEvidence is a wrapper around CcaToken
-type CcaEvidence struct {
+// Evidence is a wrapper around CcaToken
+type Evidence struct {
 	CcaPlatformClaims psatoken.IClaims
 	CcaRealmClaims    IClaims
-	message           *CcaToken
+	message           *Token
 }
 
-func (e *CcaEvidence) SetCcaPlatformClaims(c psatoken.IClaims) error {
+func (e *Evidence) SetCcaPlatformClaims(c psatoken.IClaims) error {
 	if err := c.Validate(); err != nil {
 		return fmt.Errorf("validation of cca-platform-claims failed: %w", err)
 	}
@@ -33,7 +35,7 @@ func (e *CcaEvidence) SetCcaPlatformClaims(c psatoken.IClaims) error {
 	return nil
 }
 
-func (e *CcaEvidence) SetCcaRealmClaims(c IClaims) error {
+func (e *Evidence) SetCcaRealmClaims(c IClaims) error {
 	if err := c.Validate(); err != nil {
 		return fmt.Errorf("validation of cca-realm-claims failed: %w", err)
 	}
@@ -44,9 +46,9 @@ func (e *CcaEvidence) SetCcaRealmClaims(c IClaims) error {
 
 // Sign signs the given evidence using the supplied Platform and Realm Signer
 // and returns the complete CCA token as CBOR bytes
-func (e *CcaEvidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error) {
+func (e *Evidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error) {
 	if e.message == nil {
-		e.message = &CcaToken{}
+		e.message = &Token{}
 	}
 
 	if e.CcaPlatformClaims == nil {
@@ -114,7 +116,7 @@ func signClaims(claimer CBORClaimer, signer cose.Signer) ([]byte, error) {
 }
 
 // Syntactic validation of CCA token
-func (e CcaToken) validateToken() error {
+func (e Token) validateToken() error {
 	// At this point we just check that the both the
 	// Platform and Realm tokens are set correctly.
 	if e.CcaPlatformToken == nil {
@@ -130,8 +132,8 @@ func (e CcaToken) validateToken() error {
 
 // FromCBOR extracts the message to get the Realm and Platform Token
 // and then set the Platform and Realm claims after checking validity
-func (e *CcaEvidence) FromCBOR(buf []byte) error {
-	ccaToken := CcaToken{}
+func (e *Evidence) FromCBOR(buf []byte) error {
+	ccaToken := Token{}
 	e.message = &ccaToken
 
 	err := dm.Unmarshal(buf, e.message)
@@ -153,7 +155,7 @@ func (e *CcaEvidence) FromCBOR(buf []byte) error {
 	return nil
 }
 
-func (e *CcaEvidence) decodeClaims() error {
+func (e *Evidence) decodeClaims() error {
 	// This will set the byte array for Cca Realm and Platform Token
 	message := cose.NewSign1Message()
 
@@ -180,7 +182,7 @@ func (e *CcaEvidence) decodeClaims() error {
 	return nil
 }
 
-func (e *CcaEvidence) Verify(iak crypto.PublicKey, rpk crypto.PublicKey) error {
+func (e *Evidence) Verify(iak crypto.PublicKey) error {
 	if e.message == nil {
 		return fmt.Errorf("no message found")
 	}
@@ -200,15 +202,28 @@ func (e *CcaEvidence) Verify(iak crypto.PublicKey, rpk crypto.PublicKey) error {
 		return fmt.Errorf("missing CCA realm Token")
 	}
 
+	//	var rpk crypto.PublicKey
+
+	// extract RAK from the realm token
+	rawRAK, err := e.CcaRealmClaims.GetPubKey()
+	if err != nil {
+		return fmt.Errorf("extracting RAK from the realm token: %w", err)
+	}
+
+	rak, err := ecdsaPKeyFromRaw(rawRAK)
+	if err != nil {
+		return fmt.Errorf("decoding RAK: %w", err)
+	}
+
 	// Next verify the realm token
-	if err := e.verifyCOSEToken(*e.message.CcaRealmToken, rpk); err != nil {
+	if err := e.verifyCOSEToken(*e.message.CcaRealmToken, rak); err != nil {
 		return fmt.Errorf("unable to verify realm token: %w", err)
 	}
+
 	return nil
 }
 
-func (e *CcaEvidence) verifyCOSEToken(token []byte, pk crypto.PublicKey) error {
-
+func (e *Evidence) verifyCOSEToken(token []byte, pk crypto.PublicKey) error {
 	message := cose.NewSign1Message()
 	if err := message.UnmarshalCBOR(token); err != nil {
 		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
@@ -235,7 +250,7 @@ func (e *CcaEvidence) verifyCOSEToken(token []byte, pk crypto.PublicKey) error {
 
 // GetInstanceID returns the InstanceID from CCA platform token
 // or a nil pointer if no suitable InstanceID could be located.
-func (e *CcaEvidence) GetInstanceID() *[]byte {
+func (e *Evidence) GetInstanceID() *[]byte {
 	instID, err := e.CcaPlatformClaims.GetInstID()
 	if err != nil {
 		return nil
@@ -245,7 +260,7 @@ func (e *CcaEvidence) GetInstanceID() *[]byte {
 
 // GetImplementationID returns the ImplementationID from CCA platform token
 // or a nil pointer if no suitable ImplementationID could be located.
-func (e *CcaEvidence) GetImplementationID() *[]byte {
+func (e *Evidence) GetImplementationID() *[]byte {
 	implID, err := e.CcaPlatformClaims.GetImplID()
 	if err != nil {
 		return nil
@@ -255,10 +270,23 @@ func (e *CcaEvidence) GetImplementationID() *[]byte {
 
 // GetRealmPublicKey returns the RMM Public Key
 // RMM Public Key is used to verify the signature on the Realm Token
-func (e *CcaEvidence) GetRealmPublicKey() *[]byte {
+func (e *Evidence) GetRealmPublicKey() *[]byte {
 	pubKey, err := e.CcaRealmClaims.GetPubKey()
 	if err != nil {
 		return nil
 	}
 	return &pubKey
+}
+
+func ecdsaPKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
+	x, y := elliptic.Unmarshal(elliptic.P384(), data)
+	if x == nil {
+		return nil, errors.New("failed to unmarshal elliptic curve point")
+	}
+
+	return &ecdsa.PublicKey{
+		Curve: elliptic.P384(),
+		X:     x,
+		Y:     y,
+	}, nil
 }
