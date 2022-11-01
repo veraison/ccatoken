@@ -8,19 +8,19 @@ import (
 	"github.com/veraison/eat"
 )
 
-type CcaRealmClaims struct {
+type RealmClaims struct {
 	Challenge              *eat.Nonce `cbor:"10,keyasint" json:"cca-realm-challenge"`
 	PersonalizationValue   *[]byte    `cbor:"44235,keyasint" json:"cca-realm-personalization-value"`
 	InitialMeasurement     *[]byte    `cbor:"44238,keyasint" json:"cca-realm-initial-measurement"`
 	ExtensibleMeasurements *[][]byte  `cbor:"44239,keyasint" json:"cca-realm-extensible-measurements"`
 	HashAlgID              *string    `cbor:"44236,keyasint" json:"cca-realm-hash-algo-id"`
 	PublicKey              *[]byte    `cbor:"44237,keyasint" json:"cca-realm-public-key"`
-	PublickeyHashAlgID     *string    `cbor:"44240,keyasint" json:"cca-realm-public-key-hash-algo-id"`
+	PublicKeyHashAlgID     *string    `cbor:"44240,keyasint" json:"cca-realm-public-key-hash-algo-id"`
 }
 
 // Setters
 
-func (c *CcaRealmClaims) SetChallenge(v []byte) error {
+func (c *RealmClaims) SetChallenge(v []byte) error {
 	if err := isValidChallenge(v); err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (c *CcaRealmClaims) SetChallenge(v []byte) error {
 	return nil
 }
 
-func (c *CcaRealmClaims) SetPersonalizationValue(v []byte) error {
+func (c *RealmClaims) SetPersonalizationValue(v []byte) error {
 	if err := isValidPersonalizationValue(v); err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (c *CcaRealmClaims) SetPersonalizationValue(v []byte) error {
 	return nil
 }
 
-func (c *CcaRealmClaims) SetInitialMeasurement(v []byte) error {
+func (c *RealmClaims) SetInitialMeasurement(v []byte) error {
 	if err := isValidRealmMeas(v); err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (c *CcaRealmClaims) SetInitialMeasurement(v []byte) error {
 	return nil
 }
 
-func (c *CcaRealmClaims) SetExtensibleMeasurements(v [][]byte) error {
+func (c *RealmClaims) SetExtensibleMeasurements(v [][]byte) error {
 	if err := isValidExtensibleMeas(v); err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (c *CcaRealmClaims) SetExtensibleMeasurements(v [][]byte) error {
 	return nil
 }
 
-func (c *CcaRealmClaims) SetHashAlgID(v string) error {
+func (c *RealmClaims) SetHashAlgID(v string) error {
 	if err := isValidHashAlgID(v); err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (c *CcaRealmClaims) SetHashAlgID(v string) error {
 	return nil
 }
 
-func (c *CcaRealmClaims) SetPubKey(v []byte) error {
+func (c *RealmClaims) SetPubKey(v []byte) error {
 	if err := isValidRealmPubKey(v); err != nil {
 		return err
 	}
@@ -79,17 +79,17 @@ func (c *CcaRealmClaims) SetPubKey(v []byte) error {
 	return nil
 }
 
-func (c *CcaRealmClaims) SetPubKeyHashAlgID(v string) error {
+func (c *RealmClaims) SetPubKeyHashAlgID(v string) error {
 	if v == "" {
 		return fmt.Errorf("invalid null string set for cca-realm-pubkey-hash-algo-id")
 	}
 
-	c.PublickeyHashAlgID = &v
+	c.PublicKeyHashAlgID = &v
 	return nil
 }
 
 // Getters
-func (c CcaRealmClaims) GetChallenge() ([]byte, error) {
+func (c RealmClaims) GetChallenge() ([]byte, error) {
 	v := c.Challenge
 
 	if v == nil {
@@ -109,7 +109,7 @@ func (c CcaRealmClaims) GetChallenge() ([]byte, error) {
 	return n, nil
 }
 
-func (c CcaRealmClaims) GetPersonalizationValue() ([]byte, error) {
+func (c RealmClaims) GetPersonalizationValue() ([]byte, error) {
 	v := c.PersonalizationValue
 
 	if v == nil {
@@ -121,7 +121,7 @@ func (c CcaRealmClaims) GetPersonalizationValue() ([]byte, error) {
 	return *v, nil
 }
 
-func (c CcaRealmClaims) GetInitialMeasurement() ([]byte, error) {
+func (c RealmClaims) GetInitialMeasurement() ([]byte, error) {
 
 	v := c.InitialMeasurement
 	if v == nil {
@@ -133,7 +133,7 @@ func (c CcaRealmClaims) GetInitialMeasurement() ([]byte, error) {
 	return *v, nil
 }
 
-func (c CcaRealmClaims) GetExtensibleMeasurements() ([][]byte, error) {
+func (c RealmClaims) GetExtensibleMeasurements() ([][]byte, error) {
 	v := c.ExtensibleMeasurements
 	if v == nil {
 		return nil, ErrMandatoryClaimMissing
@@ -144,7 +144,7 @@ func (c CcaRealmClaims) GetExtensibleMeasurements() ([][]byte, error) {
 	return *v, nil
 }
 
-func (c CcaRealmClaims) GetHashAlgID() (string, error) {
+func (c RealmClaims) GetHashAlgID() (string, error) {
 	v := c.HashAlgID
 	if v == nil {
 		return "", ErrMandatoryClaimMissing
@@ -155,7 +155,7 @@ func (c CcaRealmClaims) GetHashAlgID() (string, error) {
 	return *v, nil
 }
 
-func (c CcaRealmClaims) GetPubKey() ([]byte, error) {
+func (c RealmClaims) GetPubKey() ([]byte, error) {
 	v := c.PublicKey
 
 	if v == nil {
@@ -169,8 +169,8 @@ func (c CcaRealmClaims) GetPubKey() ([]byte, error) {
 	return *v, nil
 }
 
-func (c CcaRealmClaims) GetPubKeyHashAlgID() (string, error) {
-	v := c.PublickeyHashAlgID
+func (c RealmClaims) GetPubKeyHashAlgID() (string, error) {
+	v := c.PublicKeyHashAlgID
 
 	if v == nil {
 		return "", ErrMandatoryClaimMissing
@@ -179,13 +179,13 @@ func (c CcaRealmClaims) GetPubKeyHashAlgID() (string, error) {
 }
 
 // Semantic validation
-func (c CcaRealmClaims) Validate() error {
+func (c RealmClaims) Validate() error {
 	return validate(&c)
 }
 
 // Codecs
 
-func (c *CcaRealmClaims) FromCBOR(buf []byte) error {
+func (c *RealmClaims) FromCBOR(buf []byte) error {
 	err := dm.Unmarshal(buf, c)
 	if err != nil {
 		return fmt.Errorf("CBOR decoding of CCA realm claims failed: %w", err)
@@ -199,7 +199,7 @@ func (c *CcaRealmClaims) FromCBOR(buf []byte) error {
 	return nil
 }
 
-func (c CcaRealmClaims) ToCBOR() ([]byte, error) {
+func (c RealmClaims) ToCBOR() ([]byte, error) {
 	err := c.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("validation of CCA realm claims failed: %w", err)
@@ -213,7 +213,7 @@ func (c CcaRealmClaims) ToCBOR() ([]byte, error) {
 	return buf, nil
 }
 
-func (c *CcaRealmClaims) FromJSON(buf []byte) error {
+func (c *RealmClaims) FromJSON(buf []byte) error {
 	err := json.Unmarshal(buf, c)
 	if err != nil {
 		return fmt.Errorf("JSON decoding of CCA realm claims failed: %w", err)
@@ -227,7 +227,7 @@ func (c *CcaRealmClaims) FromJSON(buf []byte) error {
 	return nil
 }
 
-func (c CcaRealmClaims) ToJSON() ([]byte, error) {
+func (c RealmClaims) ToJSON() ([]byte, error) {
 	err := c.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("validation of CCA realm claims failed: %w", err)

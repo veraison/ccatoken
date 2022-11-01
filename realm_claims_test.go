@@ -9,10 +9,9 @@ import (
 )
 
 func mustBuildValidCcaRealmClaims(t *testing.T) IClaims {
-	c, err := NewClaims()
-	require.NoError(t, err)
+	c := NewClaims()
 
-	err = c.SetChallenge(testChallenge)
+	err := c.SetChallenge(testChallenge)
 	require.NoError(t, err)
 
 	err = c.SetPersonalizationValue(testPersonalizationVal)
@@ -27,7 +26,7 @@ func mustBuildValidCcaRealmClaims(t *testing.T) IClaims {
 	err = c.SetHashAlgID(testHashAlgID)
 	require.NoError(t, err)
 
-	err = c.SetPubKey(testPubKey)
+	err = c.SetPubKey(testRAKPubRaw)
 	require.NoError(t, err)
 
 	err = c.SetPubKeyHashAlgID(testPubKeyHashAlgID)
@@ -44,10 +43,9 @@ func Test_NewCcaRealmClaims_ok(t *testing.T) {
 }
 
 func Test_CcaRealmClaims_Set_nok(t *testing.T) {
-	c, err := NewClaims()
-	require.NoError(t, err)
+	c := NewClaims()
 
-	err = c.SetChallenge([]byte("123"))
+	err := c.SetChallenge([]byte("123"))
 	expectedErr := "wrong syntax for claim: length 3 (cca-hash-type MUST be 64 bytes)"
 	assert.EqualError(t, err, expectedErr)
 
@@ -67,8 +65,22 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 	expectedErr = "wrong syntax for claim: empty string"
 	assert.EqualError(t, err, expectedErr)
 
-	err = c.SetPubKey([]byte("random-key"))
-	expectedErr = "wrong syntax for claim: length 10 (cca-realm-public-key MUST be 97 bytes)"
+	err = c.SetPubKey([]byte("not-a-valid-point"))
+	expectedErr = "wrong syntax for claim: length 17 (cca-realm-public-key MUST be 97 bytes)"
+	assert.EqualError(t, err, expectedErr)
+
+	err = c.SetPubKey([]byte{
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0xff,
+	})
+	expectedErr = "wrong syntax for claim: checking raw public key coordinates are on curve P-384: failed to unmarshal elliptic curve point"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetPubKeyHashAlgID("")
@@ -77,13 +89,10 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 }
 
 func Test_CcaRealmClaims_ToCBOR_invalid(t *testing.T) {
-	c, err := NewClaims()
-	require.NoError(t, err)
+	c := NewClaims()
 
+	_, err := c.ToCBOR()
 	expectedErr := `validation of CCA realm claims failed: validating cca-realm-challenge claim: missing mandatory claim`
-
-	_, err = c.ToCBOR()
-
 	assert.EqualError(t, err, expectedErr)
 }
 
@@ -101,7 +110,7 @@ func Test_CcaRealmClaims_ToCBOR_all_claims(t *testing.T) {
 func Test_CcaRealmClaims_FromCBOR_ok(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaRealmClaimsAll)
 
-	var c CcaRealmClaims
+	var c RealmClaims
 	err := c.FromCBOR(buf)
 	assert.NoError(t, err)
 
@@ -131,11 +140,10 @@ func Test_CcaRealmClaims_FromCBOR_ok(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedHashAlgID, actualHashAlgID)
 
-	expectedPubKey := testPubKey
+	expectedPubKey := testRAKPubRaw
 	actualPubKey, err := c.GetPubKey()
 	assert.NoError(t, err)
 	assert.Equal(t, expectedPubKey, actualPubKey)
-
 }
 
 func Test_CcaRealmClaims_FromCBOR_bad_input(t *testing.T) {
@@ -143,7 +151,7 @@ func Test_CcaRealmClaims_FromCBOR_bad_input(t *testing.T) {
 
 	expectedErr := "CBOR decoding of CCA realm claims failed: unexpected EOF"
 
-	var c CcaRealmClaims
+	var c RealmClaims
 	err := c.FromCBOR(buf)
 
 	assert.EqualError(t, err, expectedErr)
@@ -154,35 +162,35 @@ func Test_CcaRealmClaims_FromCBOR_missing_mandatory_claims(t *testing.T) {
 
 	expectedErr := "validation of CCA realm claims failed: validating cca-realm-challenge claim: missing mandatory claim"
 
-	var c CcaRealmClaims
+	var c RealmClaims
 	err := c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandInitialMeas)
 
 	expectedErr = "validation of CCA realm claims failed: validating cca-realm-initial-measurements claim: missing mandatory claim"
-	c = CcaRealmClaims{}
+	c = RealmClaims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandHashAlgID)
 
 	expectedErr = "validation of CCA realm claims failed: validating cca-realm-hash-alg-id claim: missing mandatory claim"
-	c = CcaRealmClaims{}
+	c = RealmClaims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandPubKey)
 
 	expectedErr = "validation of CCA realm claims failed: validating cca-realm-public-key claim: missing mandatory claim"
-	c = CcaRealmClaims{}
+	c = RealmClaims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandExtendedMeas)
 
 	expectedErr = "validation of CCA realm claims failed: validating cca-realm-extended-measurements claim: missing mandatory claim"
-	c = CcaRealmClaims{}
+	c = RealmClaims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
@@ -203,7 +211,7 @@ func Test_CcaRealm_Claims_ToJSON_ok(t *testing.T) {
   ]
   ,
   "cca-realm-hash-algo-id": "sha-256",
-  "cca-realm-public-key": "WUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWQ==",
+  "cca-realm-public-key": "BIEZWICiIH+5VgMqPLl/XaWvcm/8txXuFkeEp/sWwGCWvdlGKjJlCykSqFUVcNbqHzstH32oonX6ADMPAHhhi8PhSVScgXDTLsVYkKf57HifHxiukusV0iKvlx2XHJZa8Q==",
   "cca-realm-public-key-hash-algo-id": "sha-512"
 }`
 	actual, err := c.ToJSON()
@@ -224,13 +232,12 @@ func Test_CcaRealmClaims_FromJSON_ok(t *testing.T) {
   ]
   ,
   "cca-realm-hash-algo-id": "sha-256",
-  "cca-realm-public-key": "WUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWUJZQllCWQ==",
+  "cca-realm-public-key": "BIEZWICiIH+5VgMqPLl/XaWvcm/8txXuFkeEp/sWwGCWvdlGKjJlCykSqFUVcNbqHzstH32oonX6ADMPAHhhi8PhSVScgXDTLsVYkKf57HifHxiukusV0iKvlx2XHJZa8Q==",
   "cca-realm-public-key-hash-algo-id": "sha-512"
 }`
-
-	var c CcaRealmClaims
-
+	var c RealmClaims
 	err := c.FromJSON([]byte(tv))
+
 	assert.NoError(t, err)
 }
 
@@ -239,9 +246,9 @@ func Test_CcaRealmClaims_FromJSON_invalid_json(t *testing.T) {
 
 	expectedErr := `JSON decoding of CCA realm claims failed: unexpected end of JSON input`
 
-	var c CcaRealmClaims
-
+	var c RealmClaims
 	err := c.FromJSON(tv)
+
 	assert.EqualError(t, err, expectedErr)
 }
 
@@ -264,7 +271,7 @@ func Test_CcaRealmClaims_FromJSON_negatives(t *testing.T) {
 		buf, err := os.ReadFile(fn)
 		require.NoError(t, err)
 
-		var claimsSet CcaRealmClaims
+		var claimsSet RealmClaims
 
 		err = claimsSet.FromJSON(buf)
 		assert.Error(t, err, "test vector %d failed", i)

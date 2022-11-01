@@ -22,7 +22,7 @@ func ccaTags() cbor.TagSet {
 
 	tags := cbor.NewTagSet()
 
-	if err := tags.Add(opts, reflect.TypeOf(CcaToken{}), 399); err != nil {
+	if err := tags.Add(opts, reflect.TypeOf(Token{}), 399); err != nil {
 		panic(err)
 	}
 
