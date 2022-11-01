@@ -49,7 +49,7 @@ func isValidRealmPubKey(b []byte) error {
 		)
 	}
 
-	if _, err := ecdsaPKeyFromRaw(b); err != nil {
+	if _, err := ecdsaPublicKeyFromRaw(b); err != nil {
 		return fmt.Errorf(
 			"%w: checking raw public key coordinates are on curve P-384: %v",
 			ErrWrongClaimSyntax, err,
