@@ -202,15 +202,13 @@ func (e *Evidence) Verify(iak crypto.PublicKey) error {
 		return fmt.Errorf("missing CCA realm Token")
 	}
 
-	//	var rpk crypto.PublicKey
-
 	// extract RAK from the realm token
 	rawRAK, err := e.CcaRealmClaims.GetPubKey()
 	if err != nil {
 		return fmt.Errorf("extracting RAK from the realm token: %w", err)
 	}
 
-	rak, err := ecdsaPKeyFromRaw(rawRAK)
+	rak, err := ecdsaPublicKeyFromRaw(rawRAK)
 	if err != nil {
 		return fmt.Errorf("decoding RAK: %w", err)
 	}
@@ -278,7 +276,7 @@ func (e *Evidence) GetRealmPublicKey() *[]byte {
 	return &pubKey
 }
 
-func ecdsaPKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
+func ecdsaPublicKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
 	x, y := elliptic.Unmarshal(elliptic.P384(), data)
 	if x == nil {
 		return nil, errors.New("failed to unmarshal elliptic curve point")
