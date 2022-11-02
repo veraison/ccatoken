@@ -108,6 +108,43 @@ func TestEvidence_sign_and_verify_platform_key_mismatch(t *testing.T) {
 	assert.EqualError(t, err, "unable to verify platform token: verification error")
 }
 
+func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
+	rSigner := signerFromJWK(t, testRAK)
+	pSigner := signerFromJWK(t, testIAK)
+
+	var EvidenceIn Evidence
+
+	err := EvidenceIn.SetCcaPlatformClaims(
+		mustBuildValidCcaPlatformClaims(t, true),
+	)
+	assert.NoError(t, err)
+
+	err = EvidenceIn.SetCcaRealmClaims(
+		mustBuildValidCcaRealmClaims(t),
+	)
+	assert.NoError(t, err)
+
+	// now set a different key from the one which is going to be used for
+	// signing
+	err = EvidenceIn.CcaRealmClaims.SetPubKey(testAltRAKPubRaw)
+	assert.NoError(t, err)
+
+	ccaToken, err := EvidenceIn.Sign(pSigner, rSigner)
+	assert.NoError(t, err, "signing failed")
+
+	fmt.Printf("CCA evidence : %x\n", ccaToken)
+
+	var EvidenceOut Evidence
+
+	err = EvidenceOut.FromCBOR(ccaToken)
+	assert.NoError(t, err, "CCA token decoding failed")
+
+	mismatchedVerifier := pubKeyFromJWK(t, testIAK)
+
+	err = EvidenceOut.Verify(mismatchedVerifier)
+	assert.EqualError(t, err, "unable to verify realm token: verification error")
+}
+
 func TestEvidence_GetInstanceID_ok(t *testing.T) {
 	var EvidenceIn Evidence
 	err := EvidenceIn.SetCcaPlatformClaims(mustBuildValidCcaPlatformClaims(t, true))

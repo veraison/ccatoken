@@ -2,8 +2,6 @@ package ccatoken
 
 import (
 	"crypto"
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -182,6 +180,10 @@ func (e *Evidence) decodeClaims() error {
 	return nil
 }
 
+// Verify verifies the CCA evidence using the supplied platform public key.
+// The integrity of the realm token is checked by extracting the inlined realm
+// public key.  (Note that at present the chaining between platform and realm
+// tokens is not checked.  See https://github.com/veraison/ccatoken/issues/9)
 func (e *Evidence) Verify(iak crypto.PublicKey) error {
 	if e.message == nil {
 		return fmt.Errorf("no message found")
@@ -274,17 +276,4 @@ func (e *Evidence) GetRealmPublicKey() *[]byte {
 		return nil
 	}
 	return &pubKey
-}
-
-func ecdsaPublicKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
-	x, y := elliptic.Unmarshal(elliptic.P384(), data)
-	if x == nil {
-		return nil, errors.New("failed to unmarshal elliptic curve point")
-	}
-
-	return &ecdsa.PublicKey{
-		Curve: elliptic.P384(),
-		X:     x,
-		Y:     y,
-	}, nil
 }
