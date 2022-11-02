@@ -259,7 +259,7 @@ func TestEvidence_UnmarshalJSON_syntax_error(t *testing.T) {
 
 	expectedErr := "unmarshaling CCA claims: unexpected end of JSON input"
 
-	err := e.UnmarshalJSON([]byte(testNotJSON))
+	err := e.UnmarshalJSON(testNotJSON)
 	assert.EqualError(t, err, expectedErr)
 }
 
