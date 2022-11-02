@@ -3,77 +3,85 @@ package ccatoken
 import (
 	"crypto"
 	"crypto/rand"
+	"crypto/sha256"
+	"crypto/sha512"
 	"errors"
 	"fmt"
+	"hash"
+	"reflect"
 	"strings"
 
 	cose "github.com/veraison/go-cose"
 	"github.com/veraison/psatoken"
 )
 
-type Token struct {
-	CcaPlatformToken *[]byte `cbor:"44234,keyasint" json:"cca-platform-token"`
-	CcaRealmToken    *[]byte `cbor:"44241,keyasint" json:"cca-realm-delegated-token"`
+type Collection struct {
+	PlatformToken *[]byte `cbor:"44234,keyasint" json:"cca-platform-token"`
+	RealmToken    *[]byte `cbor:"44241,keyasint" json:"cca-realm-delegated-token"`
 }
 
 // Evidence is a wrapper around CcaToken
 type Evidence struct {
-	CcaPlatformClaims psatoken.IClaims
-	CcaRealmClaims    IClaims
-	message           *Token
+	platformClaims psatoken.IClaims
+	realmClaims    IClaims
+	collection     *Collection
 }
 
-func (e *Evidence) SetCcaPlatformClaims(c psatoken.IClaims) error {
-	if err := c.Validate(); err != nil {
+func (e *Evidence) SetClaims(p psatoken.IClaims, r IClaims) error {
+	if p == nil || r == nil {
+		return errors.New("nil claims supplied")
+	}
+
+	e.realmClaims = r
+	e.platformClaims = p
+
+	// This call will set the nonce in the platform claims based on the RAK and
+	// hash algorithm in the realm claims.
+	if err := e.bind(); err != nil {
+		return fmt.Errorf("tokens binding failed: %w", err)
+	}
+
+	if err := p.Validate(); err != nil {
 		return fmt.Errorf("validation of cca-platform-claims failed: %w", err)
 	}
 
-	e.CcaPlatformClaims = c
-
-	return nil
-}
-
-func (e *Evidence) SetCcaRealmClaims(c IClaims) error {
-	if err := c.Validate(); err != nil {
+	if err := r.Validate(); err != nil {
 		return fmt.Errorf("validation of cca-realm-claims failed: %w", err)
 	}
 
-	e.CcaRealmClaims = c
 	return nil
 }
 
 // Sign signs the given evidence using the supplied Platform and Realm Signer
 // and returns the complete CCA token as CBOR bytes
 func (e *Evidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error) {
-	if e.message == nil {
-		e.message = &Token{}
+	if e.platformClaims == nil || e.realmClaims == nil {
+		return nil, fmt.Errorf("claims not set in evidence")
 	}
 
-	if e.CcaPlatformClaims == nil {
-		return nil, fmt.Errorf("missing platform claims in evidence")
+	if pSigner == nil || rSigner == nil {
+		return nil, fmt.Errorf("nil signer(s) supplied")
 	}
 
-	if e.CcaRealmClaims == nil {
-		return nil, fmt.Errorf("missing realm claims in evidence")
-	}
-
-	ptoken, err := signClaims(e.CcaPlatformClaims, pSigner)
+	platformToken, err := signClaims(e.platformClaims, pSigner)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("signing platform claims: %w", err)
 	}
 
-	rtoken, err := signClaims(e.CcaRealmClaims, rSigner)
+	realmToken, err := signClaims(e.realmClaims, rSigner)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("signing realm claims: %w", err)
 	}
 
-	e.message.CcaPlatformToken = &ptoken
-	e.message.CcaRealmToken = &rtoken
+	e.collection = &Collection{
+		PlatformToken: &platformToken,
+		RealmToken:    &realmToken,
+	}
 
 	// We do now have CcaPlatform and Realm Token setup correctly.
-	buf, err := em.Marshal(e.message)
+	buf, err := em.Marshal(e.collection)
 	if err != nil {
-		return nil, fmt.Errorf("cbor encoding of CCA token failed: %w", err)
+		return nil, fmt.Errorf("CBOR encoding of CCA token failed: %w", err)
 	}
 
 	return buf, nil
@@ -84,64 +92,50 @@ type CBORClaimer interface {
 }
 
 func signClaims(claimer CBORClaimer, signer cose.Signer) ([]byte, error) {
-	var err error
-
-	message := cose.NewSign1Message()
-	message.Payload, err = claimer.ToCBOR()
-	if err != nil {
-		return nil, err
-	}
-
 	alg := signer.Algorithm()
-
 	if strings.Contains(alg.String(), "unknown algorithm value") {
 		return nil, errors.New("signer has no algorithm")
 	}
 
+	claimSet, err := claimer.ToCBOR()
+	if err != nil {
+		return nil, fmt.Errorf("CBOR encoding the payload: %w", err)
+	}
+
+	message := cose.NewSign1Message()
+	message.Payload = claimSet
 	message.Headers.Protected.SetAlgorithm(alg)
 
 	err = message.Sign(rand.Reader, []byte(""), signer)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("COSE Sign1 failed: %w", err)
 	}
 
-	wrap, err := message.MarshalCBOR()
+	sign1, err := message.MarshalCBOR()
 	if err != nil {
-		return nil, fmt.Errorf("unable to MarshalCBOR for %v = %w", claimer, err)
+		return nil, fmt.Errorf("CBOR encoding the COSE Sign1: %w", err)
 	}
 
-	return wrap, nil
+	return sign1, nil
 }
 
-// Syntactic validation of CCA token
-func (e Token) validateToken() error {
-	// At this point we just check that the both the
-	// Platform and Realm tokens are set correctly.
-	if e.CcaPlatformToken == nil {
-		return fmt.Errorf("cca platform token not set")
-	}
-
-	if e.CcaRealmToken == nil {
-		return fmt.Errorf("cca realm token not set")
-	}
-
-	return nil
-}
-
-// FromCBOR extracts the message to get the Realm and Platform Token
-// and then set the Platform and Realm claims after checking validity
+// FromCBOR extracts and validates the realm and platform tokens from the
+// serialized collection.
 func (e *Evidence) FromCBOR(buf []byte) error {
-	ccaToken := Token{}
-	e.message = &ccaToken
+	ccaToken := Collection{}
+	e.collection = &ccaToken
 
-	err := dm.Unmarshal(buf, e.message)
+	err := dm.Unmarshal(buf, e.collection)
 	if err != nil {
 		return fmt.Errorf("cbor decoding of CCA evidence failed: %w", err)
 	}
 
-	err = e.message.validateToken()
-	if err != nil {
-		return fmt.Errorf("validation of CCA evidence failed: %w", err)
+	if e.collection.PlatformToken == nil {
+		return fmt.Errorf("CCA platform token not set")
+	}
+
+	if e.collection.RealmToken == nil {
+		return fmt.Errorf("CCA realm token not set")
 	}
 
 	// This will decode both platform and realm claims
@@ -154,58 +148,61 @@ func (e *Evidence) FromCBOR(buf []byte) error {
 }
 
 func (e *Evidence) decodeClaims() error {
-	// This will set the byte array for Cca Realm and Platform Token
-	message := cose.NewSign1Message()
+	// decode platform
+	pSign1 := cose.NewSign1Message()
 
-	if err := message.UnmarshalCBOR(*e.message.CcaPlatformToken); err != nil {
+	if err := pSign1.UnmarshalCBOR(*e.collection.PlatformToken); err != nil {
 		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
 	}
 
-	pclaims, err := psatoken.DecodeClaims(message.Payload)
+	platformClaims, err := psatoken.DecodeClaims(pSign1.Payload)
 	if err != nil {
 		return fmt.Errorf("failed CBOR decoding of CCA platform claims: %w", err)
 	}
-	e.CcaPlatformClaims = pclaims
+	e.platformClaims = platformClaims
 
-	if err = message.UnmarshalCBOR(*e.message.CcaRealmToken); err != nil {
+	// decode realm
+	rSign1 := cose.NewSign1Message()
+
+	if err = rSign1.UnmarshalCBOR(*e.collection.RealmToken); err != nil {
 		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
 	}
 
-	rclaims, err := DecodeClaims(message.Payload)
+	realmClaims, err := DecodeClaims(rSign1.Payload)
 	if err != nil {
-		return fmt.Errorf("failed CBOR decoding of CCA realm claim: %w", err)
+		return fmt.Errorf("failed CBOR decoding of CCA realm claims: %w", err)
 	}
-	e.CcaRealmClaims = rclaims
+	e.realmClaims = realmClaims
 
 	return nil
 }
 
 // Verify verifies the CCA evidence using the supplied platform public key.
 // The integrity of the realm token is checked by extracting the inlined realm
-// public key.  (Note that at present the chaining between platform and realm
-// tokens is not checked.  See https://github.com/veraison/ccatoken/issues/9)
+// public key.  This also checks the correctness of the chaining between
+// platform and realm tokens.
 func (e *Evidence) Verify(iak crypto.PublicKey) error {
-	if e.message == nil {
+	if e.collection == nil {
 		return fmt.Errorf("no message found")
 	}
 
 	// Check CCA Platform Token
-	if e.message.CcaPlatformToken == nil {
+	if e.collection.PlatformToken == nil {
 		return fmt.Errorf("missing CCA platform Token")
 	}
 
 	// First verify the platform token
-	if err := e.verifyCOSEToken(*e.message.CcaPlatformToken, iak); err != nil {
+	if err := e.verifyCOSEToken(*e.collection.PlatformToken, iak); err != nil {
 		return fmt.Errorf("unable to verify platform token: %w", err)
 	}
 
 	// Check CCA Realm Token
-	if e.message.CcaRealmToken == nil {
+	if e.collection.RealmToken == nil {
 		return fmt.Errorf("missing CCA realm Token")
 	}
 
 	// extract RAK from the realm token
-	rawRAK, err := e.CcaRealmClaims.GetPubKey()
+	rawRAK, err := e.realmClaims.GetPubKey()
 	if err != nil {
 		return fmt.Errorf("extracting RAK from the realm token: %w", err)
 	}
@@ -216,11 +213,88 @@ func (e *Evidence) Verify(iak crypto.PublicKey) error {
 	}
 
 	// Next verify the realm token
-	if err := e.verifyCOSEToken(*e.message.CcaRealmToken, rak); err != nil {
+	if err := e.verifyCOSEToken(*e.collection.RealmToken, rak); err != nil {
 		return fmt.Errorf("unable to verify realm token: %w", err)
 	}
 
+	// check the collection binding
+	if err := e.checkBinding(); err != nil {
+		return fmt.Errorf("binding verification failed: %w", err)
+	}
+
 	return nil
+}
+
+func (e *Evidence) bind() error {
+	binder, err := e.computeBinder()
+	if err != nil {
+		return fmt.Errorf("computing binder value: %w", err)
+	}
+
+	if err := e.platformClaims.SetNonce(binder); err != nil {
+		return fmt.Errorf("setting binder value: %w", err)
+	}
+
+	return nil
+}
+
+func (e *Evidence) checkBinding() error {
+	binder, err := e.computeBinder()
+	if err != nil {
+		return fmt.Errorf("computing binder: %w", err)
+	}
+
+	// extract platform nonce
+	pNonce, err := e.platformClaims.GetNonce()
+	if err != nil {
+		return fmt.Errorf("extracting nonce from the platform token: %w", err)
+	}
+
+	// compare expected against actual binder value
+	if !reflect.DeepEqual(binder, pNonce) {
+		return errors.New("platform nonce does not match RAK hash")
+	}
+
+	return nil
+}
+
+func (e *Evidence) computeBinder() ([]byte, error) {
+	// extract rak from realm token
+	rak, err := e.realmClaims.GetPubKey()
+	if err != nil {
+		return nil, fmt.Errorf("extracting RAK from the realm token: %w", err)
+	}
+
+	// extract rak hash alg from realm token
+	alg, err := e.realmClaims.GetPubKeyHashAlgID()
+	if err != nil {
+		return nil, fmt.Errorf("extracting RAK hash algorithm from the realm token: %w", err)
+	}
+
+	// map hash alg string to hash function
+	h, err := hashStringToID(alg)
+	if err != nil {
+		return nil, fmt.Errorf("mapping RAK hash algorithm: %w", err)
+	}
+
+	// compute the expected binder value
+	h.Write(rak)
+
+	return h.Sum(nil), nil
+}
+
+func hashStringToID(s string) (hash.Hash, error) {
+	switch s {
+	case "sha-224":
+		return sha256.New224(), nil
+	case "sha-256":
+		return sha256.New(), nil
+	case "sha-384":
+		return sha512.New384(), nil
+	case "sha-512":
+		return sha512.New(), nil
+	}
+	return nil, fmt.Errorf("hash algorithm %q not known", s)
 }
 
 func (e *Evidence) verifyCOSEToken(token []byte, pk crypto.PublicKey) error {
@@ -251,7 +325,7 @@ func (e *Evidence) verifyCOSEToken(token []byte, pk crypto.PublicKey) error {
 // GetInstanceID returns the InstanceID from CCA platform token
 // or a nil pointer if no suitable InstanceID could be located.
 func (e *Evidence) GetInstanceID() *[]byte {
-	instID, err := e.CcaPlatformClaims.GetInstID()
+	instID, err := e.platformClaims.GetInstID()
 	if err != nil {
 		return nil
 	}
@@ -261,7 +335,7 @@ func (e *Evidence) GetInstanceID() *[]byte {
 // GetImplementationID returns the ImplementationID from CCA platform token
 // or a nil pointer if no suitable ImplementationID could be located.
 func (e *Evidence) GetImplementationID() *[]byte {
-	implID, err := e.CcaPlatformClaims.GetImplID()
+	implID, err := e.platformClaims.GetImplID()
 	if err != nil {
 		return nil
 	}
@@ -271,7 +345,7 @@ func (e *Evidence) GetImplementationID() *[]byte {
 // GetRealmPublicKey returns the RMM Public Key
 // RMM Public Key is used to verify the signature on the Realm Token
 func (e *Evidence) GetRealmPublicKey() *[]byte {
-	pubKey, err := e.CcaRealmClaims.GetPubKey()
+	pubKey, err := e.realmClaims.GetPubKey()
 	if err != nil {
 		return nil
 	}

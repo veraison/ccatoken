@@ -22,8 +22,7 @@ var (
 		"kty": "EC",
 		"x": "gRlYgKIgf7lWAyo8uX9dpa9yb_y3Fe4WR4Sn-xbAYJa92UYqMmULKRKoVRVw1uof",
 		"y": "Oy0ffaiidfoAMw8AeGGLw-FJVJyBcNMuxViQp_nseJ8fGK6S6xXSIq-XHZccllrx"
-	  }`
-
+	}`
 	testRAKPubRaw = []byte{
 		0x04, 0x81, 0x19, 0x58, 0x80, 0xa2, 0x20, 0x7f, 0xb9, 0x56, 0x03, 0x2a,
 		0x3c, 0xb9, 0x7f, 0x5d, 0xa5, 0xaf, 0x72, 0x6f, 0xfc, 0xb7, 0x15, 0xee,
@@ -47,11 +46,11 @@ var (
 		0x24,
 	}
 	testIAK = `{
-	  "kty": "EC",
-	  "crv": "P-256",
-	  "x": "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
-	  "y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
-	  "d": "870MB6gfuTJ4HtUnUvYMyJpr5eUZNP4Bk43bVdj3eAE"
+		"kty": "EC",
+		"crv": "P-256",
+		"x": "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
+		"y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
+		"d": "870MB6gfuTJ4HtUnUvYMyJpr5eUZNP4Bk43bVdj3eAE"
 	}`
 	testAltIAK = `{
 		"kty": "EC",
@@ -59,7 +58,7 @@ var (
 		"x": "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqx7D4",
 		"y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
 		"d": "870MB6gfuTJ4HtUnUvYMyJpr5eUZNP4Bk43bVdj3eAE"
-	  }`
+	}`
 )
 
 var (
@@ -84,12 +83,6 @@ var (
 		0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,
-	}
-	testNonce = []byte{
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
 	}
 	testInstID = []byte{
 		0x01, // RAND

@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	cose "github.com/veraison/go-cose"
+	"github.com/veraison/go-cose"
 	"github.com/veraison/psatoken"
 )
 
@@ -19,9 +19,6 @@ func mustBuildValidCcaPlatformClaims(t *testing.T, includeOptional bool) psatoke
 	require.NoError(t, err)
 
 	err = c.SetImplID(testImplementationID)
-	require.NoError(t, err)
-
-	err = c.SetNonce(testNonce)
 	require.NoError(t, err)
 
 	err = c.SetInstID(testInstID)
@@ -50,12 +47,8 @@ func TestEvidence_sign_and_verify_ok(t *testing.T) {
 
 	var EvidenceIn Evidence
 
-	err := EvidenceIn.SetCcaPlatformClaims(
+	err := EvidenceIn.SetClaims(
 		mustBuildValidCcaPlatformClaims(t, true),
-	)
-	assert.NoError(t, err)
-
-	err = EvidenceIn.SetCcaRealmClaims(
 		mustBuildValidCcaRealmClaims(t),
 	)
 	assert.NoError(t, err)
@@ -76,18 +69,46 @@ func TestEvidence_sign_and_verify_ok(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestEvidence_sign_and_verify_bad_binder(t *testing.T) {
+	rSigner := signerFromJWK(t, testRAK)
+	pSigner := signerFromJWK(t, testIAK)
+
+	var EvidenceIn Evidence
+
+	err := EvidenceIn.SetClaims(
+		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidCcaRealmClaims(t),
+	)
+	assert.NoError(t, err)
+
+	// tamper with the binder value
+	err = EvidenceIn.platformClaims.SetNonce([]byte("tampered binder!tampered binder!"))
+	require.NoError(t, err, "overriding binder")
+
+	ccaToken, err := EvidenceIn.Sign(pSigner, rSigner)
+	assert.NoError(t, err, "signing failed")
+
+	fmt.Printf("CCA evidence : %x\n", ccaToken)
+
+	var EvidenceOut Evidence
+
+	err = EvidenceOut.FromCBOR(ccaToken)
+	assert.NoError(t, err, "CCA token decoding failed")
+
+	verifier := pubKeyFromJWK(t, testIAK)
+
+	err = EvidenceOut.Verify(verifier)
+	assert.EqualError(t, err, "binding verification failed: platform nonce does not match RAK hash")
+}
+
 func TestEvidence_sign_and_verify_platform_key_mismatch(t *testing.T) {
 	rSigner := signerFromJWK(t, testRAK)
 	pSigner := signerFromJWK(t, testIAK)
 
 	var EvidenceIn Evidence
 
-	err := EvidenceIn.SetCcaPlatformClaims(
+	err := EvidenceIn.SetClaims(
 		mustBuildValidCcaPlatformClaims(t, true),
-	)
-	assert.NoError(t, err)
-
-	err = EvidenceIn.SetCcaRealmClaims(
 		mustBuildValidCcaRealmClaims(t),
 	)
 	assert.NoError(t, err)
@@ -114,19 +135,15 @@ func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 
 	var EvidenceIn Evidence
 
-	err := EvidenceIn.SetCcaPlatformClaims(
+	err := EvidenceIn.SetClaims(
 		mustBuildValidCcaPlatformClaims(t, true),
-	)
-	assert.NoError(t, err)
-
-	err = EvidenceIn.SetCcaRealmClaims(
 		mustBuildValidCcaRealmClaims(t),
 	)
 	assert.NoError(t, err)
 
 	// now set a different key from the one which is going to be used for
 	// signing
-	err = EvidenceIn.CcaRealmClaims.SetPubKey(testAltRAKPubRaw)
+	err = EvidenceIn.realmClaims.SetPubKey(testAltRAKPubRaw)
 	assert.NoError(t, err)
 
 	ccaToken, err := EvidenceIn.Sign(pSigner, rSigner)
@@ -146,67 +163,145 @@ func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 }
 
 func TestEvidence_GetInstanceID_ok(t *testing.T) {
-	var EvidenceIn Evidence
-	err := EvidenceIn.SetCcaPlatformClaims(mustBuildValidCcaPlatformClaims(t, true))
-	require.NoError(t, err)
+	var e Evidence
 
-	expected := &testInstID
-	actual := EvidenceIn.GetInstanceID()
-	assert.Equal(t, expected, actual)
-}
-
-func TestEvidence_GetImplementationID_ok(t *testing.T) {
-	var EvidenceIn Evidence
-
-	err := EvidenceIn.SetCcaPlatformClaims(mustBuildValidCcaPlatformClaims(t, true))
-	require.NoError(t, err)
-
-	expected := &testImplementationID
-
-	actual := EvidenceIn.GetImplementationID()
-	assert.Equal(t, expected, actual)
-}
-
-func TestEvidence_GetRealmPubKey_ok(t *testing.T) {
-	var EvidenceIn Evidence
-
-	err := EvidenceIn.SetCcaRealmClaims(mustBuildValidCcaRealmClaims(t))
-	require.NoError(t, err)
-
-	expected := &testRAKPubRaw
-
-	actual := EvidenceIn.GetRealmPublicKey()
-	assert.Equal(t, expected, actual)
-}
-
-func TestEvidence_sign_missing_realm_claims(t *testing.T) {
-	var (
-		EvidenceIn Evidence
-		unused     cose.Signer
-	)
-
-	err := EvidenceIn.SetCcaPlatformClaims(
+	err := e.SetClaims(
 		mustBuildValidCcaPlatformClaims(t, true),
-	)
-	require.NoError(t, err)
-
-	_, err = EvidenceIn.Sign(unused, unused)
-	assert.EqualError(t, err, "missing realm claims in evidence")
-}
-
-func TestEvidence_sign_missing_platform_claims(t *testing.T) {
-	var (
-		EvidenceIn Evidence
-		unused     cose.Signer
-	)
-
-	err := EvidenceIn.SetCcaRealmClaims(
 		mustBuildValidCcaRealmClaims(t),
 	)
 	require.NoError(t, err)
 
-	_, err = EvidenceIn.Sign(unused, unused)
-	assert.EqualError(t, err, "missing platform claims in evidence")
+	expected := &testInstID
+
+	actual := e.GetInstanceID()
+	assert.Equal(t, expected, actual)
+}
+
+func TestEvidence_GetImplementationID_ok(t *testing.T) {
+	var e Evidence
+
+	err := e.SetClaims(
+		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidCcaRealmClaims(t),
+	)
+	require.NoError(t, err)
+
+	expected := &testImplementationID
+
+	actual := e.GetImplementationID()
+	assert.Equal(t, expected, actual)
+}
+
+func TestEvidence_GetRealmPubKey_ok(t *testing.T) {
+	var e Evidence
+
+	err := e.SetClaims(
+		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidCcaRealmClaims(t),
+	)
+	require.NoError(t, err)
+
+	expected := &testRAKPubRaw
+
+	actual := e.GetRealmPublicKey()
+	assert.Equal(t, expected, actual)
+}
+
+func TestEvidence_SetClaims_missing_realm_claims(t *testing.T) {
+	var e Evidence
+
+	err := e.SetClaims(
+		mustBuildValidCcaPlatformClaims(t, true),
+		nil,
+	)
+	assert.EqualError(t, err, "nil claims supplied")
+}
+
+func TestEvidence_SetClaims_missing_platform_claims(t *testing.T) {
+	var e Evidence
+
+	err := e.SetClaims(
+		nil,
+		mustBuildValidCcaRealmClaims(t),
+	)
+	assert.EqualError(t, err, "nil claims supplied")
+}
+
+func TestEvidence_SetClaims_bind_failed(t *testing.T) {
+	emptyRealmClaims := &RealmClaims{}
+	emptyPlatformClaims := &psatoken.CcaPlatformClaims{}
+
+	expectedErr := "tokens binding failed: computing binder value: extracting RAK from the realm token: missing mandatory claim"
+
+	var e Evidence
+
+	err := e.SetClaims(emptyPlatformClaims, emptyRealmClaims)
+	assert.EqualError(t, err, expectedErr)
+}
+
+func TestEvidence_SetClaims_invalid_platform(t *testing.T) {
+	emptyPlatformClaims := &psatoken.CcaPlatformClaims{}
+
+	expectedErr := "validation of cca-platform-claims failed: validating profile: missing mandatory claim"
+
+	var e Evidence
+
+	err := e.SetClaims(
+		emptyPlatformClaims,
+		mustBuildValidCcaRealmClaims(t),
+	)
+	assert.EqualError(t, err, expectedErr)
+}
+
+func TestEvidence_SetClaims_invalid_realm(t *testing.T) {
+	incompleteRealmClaims := &RealmClaims{}
+
+	// just set the bare minimum to compute the binder
+	err := incompleteRealmClaims.SetPubKey(testRAKPubRaw)
+	require.NoError(t, err)
+
+	err = incompleteRealmClaims.SetPubKeyHashAlgID("sha-256")
+	require.NoError(t, err)
+
+	expectedErr := "validation of cca-realm-claims failed: validating cca-realm-challenge claim: missing mandatory claim"
+
+	var e Evidence
+
+	err = e.SetClaims(
+		mustBuildValidCcaPlatformClaims(t, false),
+		incompleteRealmClaims,
+	)
+	assert.EqualError(t, err, expectedErr)
+}
+
+func TestEvidence_Sign_no_platform_claims(t *testing.T) {
+	var (
+		e      Evidence
+		unused cose.Signer
+	)
+
+	expectedErr := "claims not set in evidence"
+
+	_, err := e.Sign(unused, unused)
+	assert.EqualError(t, err, expectedErr)
+}
+
+func TestEvidence_Sign_invalid_signers(t *testing.T) {
+	var (
+		e       Evidence
+		invalid cose.Signer
+	)
+
+	err := e.SetClaims(
+		mustBuildValidCcaPlatformClaims(t, false),
+		mustBuildValidCcaRealmClaims(t),
+	)
+	require.NoError(t, err)
+
+	expectedErr := "nil signer(s) supplied"
+
+	_, err = e.Sign(invalid, invalid)
+	assert.EqualError(t, err, expectedErr)
 }
 
 func TestEvidence_Verify_no_message(t *testing.T) {
@@ -220,17 +315,17 @@ func TestEvidence_Verify_no_message(t *testing.T) {
 }
 
 func TestEvidence_FromCBOR_Malformed_token(t *testing.T) {
-	wrongTag := []byte{
+	wrongCBORTag := []byte{
 		0xd2, 0x84, 0x43, 0xa1, 0x01, 0x26, 0xa0, 0x58, 0x1e, 0xa1, 0x19, 0x01,
 		0x09, 0x78, 0x18, 0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f, 0x61, 0x72,
 		0x6d, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x70, 0x73, 0x61, 0x2f, 0x33, 0x2e,
 		0x30, 0x2e, 0x30, 0x44, 0xde, 0xad, 0xbe, 0xef,
 	}
 
-	expectedErr := `cbor decoding of CCA evidence failed: cbor: wrong tag number for ccatoken.Token, got [18], expected [399]`
+	expectedErr := `cbor decoding of CCA evidence failed: cbor: wrong tag number for ccatoken.Collection, got [18], expected [399]`
 
 	var e Evidence
-	err := e.FromCBOR(wrongTag)
 
+	err := e.FromCBOR(wrongCBORTag)
 	assert.EqualError(t, err, expectedErr)
 }
