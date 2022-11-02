@@ -207,6 +207,28 @@ func TestEvidence_GetRealmPubKey_ok(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestEvidence_MarshalJSON_fail(t *testing.T) {
+	var e Evidence
+	_, err := e.MarshalJSON()
+	assert.EqualError(t, err, "invalid evidence")
+}
+
+func TestEvidence_MarshalJSON_ok(t *testing.T) {
+	var e Evidence
+
+	err := e.SetClaims(
+		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidCcaRealmClaims(t),
+	)
+	require.NoError(t, err)
+
+	expected := testCombinedClaimsJSON
+
+	actual, err := e.MarshalJSON()
+	assert.NoError(t, err)
+	assert.JSONEq(t, expected, string(actual))
+}
+
 func TestEvidence_SetClaims_missing_realm_claims(t *testing.T) {
 	var e Evidence
 
