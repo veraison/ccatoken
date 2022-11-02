@@ -27,6 +27,30 @@ type Evidence struct {
 	collection     *Collection
 }
 
+func (e *Evidence) MarshalJSON() ([]byte, error) {
+	if e.platformClaims == nil || e.realmClaims == nil {
+		return nil, errors.New("invalid evidence")
+	}
+
+	pj, err := e.platformClaims.ToJSON()
+	if err != nil {
+		return nil, fmt.Errorf("error serializing platform claims: %w", err)
+	}
+
+	rj, err := e.realmClaims.ToJSON()
+	if err != nil {
+		return nil, fmt.Errorf("error serializing realm claims: %w", err)
+	}
+
+	ej := "{" +
+		`"cca-platform-token": ` + string(pj) +
+		"," +
+		`"cca-realm-delegated-token": ` + string(rj) +
+		"}"
+
+	return []byte(ej), nil
+}
+
 func (e *Evidence) SetClaims(p psatoken.IClaims, r IClaims) error {
 	if p == nil || r == nil {
 		return errors.New("nil claims supplied")
