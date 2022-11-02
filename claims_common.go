@@ -1,6 +1,11 @@
 package ccatoken
 
-import "fmt"
+import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"errors"
+	"fmt"
+)
 
 const (
 	MaxLenRealmExtendedMeas = 4
@@ -87,4 +92,17 @@ func isValidExtensibleMeas(v [][]byte) error {
 		}
 	}
 	return nil
+}
+
+func ecdsaPublicKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
+	x, y := elliptic.Unmarshal(elliptic.P384(), data)
+	if x == nil {
+		return nil, errors.New("failed to unmarshal elliptic curve point")
+	}
+
+	return &ecdsa.PublicKey{
+		Curve: elliptic.P384(),
+		X:     x,
+		Y:     y,
+	}, nil
 }
