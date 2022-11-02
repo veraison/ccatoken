@@ -219,7 +219,6 @@ func getAlgAndKeyFromJWK(t *testing.T, j string) (cose.Algorithm, crypto.Signer)
 
 	var (
 		key crypto.Signer
-		crv elliptic.Curve
 		alg cose.Algorithm
 	)
 
@@ -236,7 +235,7 @@ func getAlgAndKeyFromJWK(t *testing.T, j string) (cose.Algorithm, crypto.Signer)
 		case elliptic.P384():
 			alg = cose.AlgorithmES384
 		default:
-			require.True(t, false, "unknown elliptic curve %v", crv)
+			require.True(t, false, "unknown elliptic curve")
 		}
 	default:
 		require.True(t, false, "unknown private key type %v", reflect.TypeOf(key))
