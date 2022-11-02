@@ -229,6 +229,58 @@ func TestEvidence_MarshalJSON_ok(t *testing.T) {
 	assert.JSONEq(t, expected, string(actual))
 }
 
+func TestEvidence_UnmarshalJSON_ok(t *testing.T) {
+	var e Evidence
+
+	err := e.UnmarshalJSON([]byte(testCombinedClaimsJSON))
+	assert.NoError(t, err)
+}
+
+func TestEvidence_UnmarshalJSON_missing_platform(t *testing.T) {
+	var e Evidence
+
+	expectedErr := "unmarshaling platform claims: unexpected end of JSON input"
+
+	err := e.UnmarshalJSON([]byte(testCombinedClaimsJSONMissingPlatform))
+	assert.EqualError(t, err, expectedErr)
+}
+
+func TestEvidence_UnmarshalJSON_missing_realm(t *testing.T) {
+	var e Evidence
+
+	expectedErr := "unmarshaling realm claims: unexpected end of JSON input"
+
+	err := e.UnmarshalJSON([]byte(testCombinedClaimsJSONMissingRealm))
+	assert.EqualError(t, err, expectedErr)
+}
+
+func TestEvidence_UnmarshalJSON_syntax_error(t *testing.T) {
+	var e Evidence
+
+	expectedErr := "unmarshaling CCA claims: unexpected end of JSON input"
+
+	err := e.UnmarshalJSON([]byte(testNotJSON))
+	assert.EqualError(t, err, expectedErr)
+}
+
+func TestEvidence_JSON_roundtrip(t *testing.T) {
+	var e Evidence
+
+	err := e.SetClaims(
+		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidCcaRealmClaims(t),
+	)
+	require.NoError(t, err)
+
+	err = e.UnmarshalJSON([]byte(testCombinedClaimsJSON))
+	assert.NoError(t, err)
+
+	j, err := e.MarshalJSON()
+	assert.NoError(t, err)
+
+	assert.JSONEq(t, testCombinedClaimsJSON, string(j))
+}
+
 func TestEvidence_SetClaims_missing_realm_claims(t *testing.T) {
 	var e Evidence
 
