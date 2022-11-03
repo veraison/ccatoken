@@ -180,8 +180,7 @@ func signClaims(claimer CBORClaimer, signer cose.Signer) ([]byte, error) {
 // FromCBOR extracts and validates the realm and platform tokens from the
 // serialized collection.
 func (e *Evidence) FromCBOR(buf []byte) error {
-	ccaToken := CBORCollection{}
-	e.collection = &ccaToken
+	e.collection = &CBORCollection{}
 
 	err := dm.Unmarshal(buf, e.collection)
 	if err != nil {

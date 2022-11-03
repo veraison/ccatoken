@@ -388,7 +388,7 @@ func TestEvidence_Verify_no_message(t *testing.T) {
 	assert.EqualError(t, err, "no message found")
 }
 
-func TestEvidence_FromCBOR_Malformed_token(t *testing.T) {
+func TestEvidence_FromCBOR_wrong_top_level_tag(t *testing.T) {
 	wrongCBORTag := []byte{
 		0xd2, 0x84, 0x43, 0xa1, 0x01, 0x26, 0xa0, 0x58, 0x1e, 0xa1, 0x19, 0x01,
 		0x09, 0x78, 0x18, 0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f, 0x61, 0x72,
@@ -402,4 +402,22 @@ func TestEvidence_FromCBOR_Malformed_token(t *testing.T) {
 
 	err := e.FromCBOR(wrongCBORTag)
 	assert.EqualError(t, err, expectedErr)
+}
+
+func TestEvidence_FromCBOR_wrong_bstr_wrapped_tokens(t *testing.T) {
+	b := mustHexDecode(t, testBstrWrappedTokens)
+
+	expectedErr := `decoding of CCA evidence failed: failed CBOR decoding for CWT: cbor: invalid COSE_Sign1_Tagged object`
+
+	var e Evidence
+	err := e.FromCBOR(b)
+	assert.EqualError(t, err, expectedErr)
+}
+
+func TestEvidence_FromCBOR_good_CCA_token(t *testing.T) {
+	b := mustHexDecode(t, testGoodCCAToken)
+
+	var e Evidence
+	err := e.FromCBOR(b)
+	assert.NoError(t, err)
 }
