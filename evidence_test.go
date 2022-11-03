@@ -396,7 +396,7 @@ func TestEvidence_FromCBOR_Malformed_token(t *testing.T) {
 		0x30, 0x2e, 0x30, 0x44, 0xde, 0xad, 0xbe, 0xef,
 	}
 
-	expectedErr := `cbor decoding of CCA evidence failed: cbor: wrong tag number for ccatoken.Collection, got [18], expected [399]`
+	expectedErr := `cbor decoding of CCA evidence failed: cbor: wrong tag number for ccatoken.CBORCollection, got [18], expected [399]`
 
 	var e Evidence
 

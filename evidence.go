@@ -12,20 +12,26 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/fxamacker/cbor/v2"
 	cose "github.com/veraison/go-cose"
 	"github.com/veraison/psatoken"
 )
 
-type Collection struct {
-	PlatformToken []byte `cbor:"44234,keyasint"`
-	RealmToken    []byte `cbor:"44241,keyasint"`
+type CBORCollection struct {
+	PlatformToken cbor.RawMessage `cbor:"44234,keyasint"`
+	RealmToken    cbor.RawMessage `cbor:"44241,keyasint"`
+}
+
+type JSONCollection struct {
+	PlatformToken json.RawMessage `json:"cca-platform-token"`
+	RealmToken    json.RawMessage `json:"cca-realm-delegated-token"`
 }
 
 // Evidence is a wrapper around CcaToken
 type Evidence struct {
 	platformClaims psatoken.IClaims
 	realmClaims    IClaims
-	collection     *Collection
+	collection     *CBORCollection
 }
 
 func (e *Evidence) MarshalJSON() ([]byte, error) {
@@ -53,12 +59,7 @@ func (e *Evidence) MarshalJSON() ([]byte, error) {
 }
 
 func (e *Evidence) UnmarshalJSON(data []byte) error {
-	type JC struct {
-		PlatformToken json.RawMessage `json:"cca-platform-token"`
-		RealmToken    json.RawMessage `json:"cca-realm-delegated-token"`
-	}
-
-	var c JC
+	var c JSONCollection
 
 	if err := json.Unmarshal(data, &c); err != nil {
 		return fmt.Errorf("unmarshaling CCA claims: %w", err)
@@ -131,7 +132,7 @@ func (e *Evidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error
 		return nil, fmt.Errorf("signing realm claims: %w", err)
 	}
 
-	e.collection = &Collection{
+	e.collection = &CBORCollection{
 		PlatformToken: platformToken,
 		RealmToken:    realmToken,
 	}
@@ -180,7 +181,7 @@ func signClaims(claimer CBORClaimer, signer cose.Signer) ([]byte, error) {
 // FromCBOR extracts and validates the realm and platform tokens from the
 // serialized collection.
 func (e *Evidence) FromCBOR(buf []byte) error {
-	ccaToken := Collection{}
+	ccaToken := CBORCollection{}
 	e.collection = &ccaToken
 
 	err := dm.Unmarshal(buf, e.collection)
