@@ -49,13 +49,12 @@ func (e *Evidence) MarshalJSON() ([]byte, error) {
 		return nil, fmt.Errorf("error serializing realm claims: %w", err)
 	}
 
-	ej := "{" +
-		`"cca-platform-token": ` + string(pj) +
-		"," +
-		`"cca-realm-delegated-token": ` + string(rj) +
-		"}"
+	c := JSONCollection{
+		PlatformToken: pj,
+		RealmToken:    rj,
+	}
 
-	return []byte(ej), nil
+	return json.Marshal(c)
 }
 
 func (e *Evidence) UnmarshalJSON(data []byte) error {
