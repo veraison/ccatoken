@@ -55,9 +55,9 @@ var (
 	testAltIAK = `{
 		"kty": "EC",
 		"crv": "P-256",
-		"x": "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqx7D4",
-		"y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
-		"d": "870MB6gfuTJ4HtUnUvYMyJpr5eUZNP4Bk43bVdj3eAE"
+		"x": "AtIf5xiADwKXrfB8-EPysL5zGNAGe15mP1bd9v72PcU",
+		"y": "4HL-uTN8GEpq8HuAFfbWSeSOJJxRB1SJ96QGqt4mgLI",
+		"d": "TGMozguxS9KKtFvoC0S6M6k6N9pGyzamd5q_dDEY0Bs"
 	}`
 )
 
