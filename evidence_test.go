@@ -82,7 +82,7 @@ func TestEvidence_sign_and_verify_bad_binder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// tamper with the binder value
-	err = EvidenceIn.platformClaims.SetNonce([]byte("tampered binder!tampered binder!"))
+	err = EvidenceIn.PlatformClaims.SetNonce([]byte("tampered binder!tampered binder!"))
 	require.NoError(t, err, "overriding binder")
 
 	ccaToken, err := EvidenceIn.Sign(pSigner, rSigner)
@@ -143,7 +143,7 @@ func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 
 	// now set a different key from the one which is going to be used for
 	// signing
-	err = EvidenceIn.realmClaims.SetPubKey(testAltRAKPubRaw)
+	err = EvidenceIn.RealmClaims.SetPubKey(testAltRAKPubRaw)
 	assert.NoError(t, err)
 
 	ccaToken, err := EvidenceIn.Sign(pSigner, rSigner)
