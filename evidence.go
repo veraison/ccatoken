@@ -12,14 +12,13 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/fxamacker/cbor/v2"
 	cose "github.com/veraison/go-cose"
 	"github.com/veraison/psatoken"
 )
 
 type CBORCollection struct {
-	PlatformToken cbor.RawMessage `cbor:"44234,keyasint"`
-	RealmToken    cbor.RawMessage `cbor:"44241,keyasint"`
+	PlatformToken *[]byte `cbor:"44234,keyasint"`
+	RealmToken    *[]byte `cbor:"44241,keyasint"`
 }
 
 type JSONCollection struct {
@@ -132,8 +131,8 @@ func (e *Evidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error
 	}
 
 	e.collection = &CBORCollection{
-		PlatformToken: platformToken,
-		RealmToken:    realmToken,
+		PlatformToken: &platformToken,
+		RealmToken:    &realmToken,
 	}
 
 	// We do now have CcaPlatform and Realm Token setup correctly.
@@ -184,7 +183,7 @@ func (e *Evidence) FromCBOR(buf []byte) error {
 
 	err := dm.Unmarshal(buf, e.collection)
 	if err != nil {
-		return fmt.Errorf("cbor decoding of CCA evidence failed: %w", err)
+		return fmt.Errorf("CBOR decoding of CCA evidence failed: %w", err)
 	}
 
 	if e.collection.PlatformToken == nil {
@@ -205,10 +204,14 @@ func (e *Evidence) FromCBOR(buf []byte) error {
 }
 
 func (e *Evidence) decodeClaims() error {
+	if e.collection.RealmToken == nil || e.collection.PlatformToken == nil {
+		panic("broken invariant: nil tokens")
+	}
+
 	// decode platform
 	pSign1 := cose.NewSign1Message()
 
-	if err := pSign1.UnmarshalCBOR(e.collection.PlatformToken); err != nil {
+	if err := pSign1.UnmarshalCBOR(*e.collection.PlatformToken); err != nil {
 		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
 	}
 
@@ -221,7 +224,7 @@ func (e *Evidence) decodeClaims() error {
 	// decode realm
 	rSign1 := cose.NewSign1Message()
 
-	if err = rSign1.UnmarshalCBOR(e.collection.RealmToken); err != nil {
+	if err = rSign1.UnmarshalCBOR(*e.collection.RealmToken); err != nil {
 		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
 	}
 
@@ -249,7 +252,7 @@ func (e *Evidence) Verify(iak crypto.PublicKey) error {
 	}
 
 	// First verify the platform token
-	if err := e.verifyCOSEToken(e.collection.PlatformToken, iak); err != nil {
+	if err := e.verifyCOSEToken(*e.collection.PlatformToken, iak); err != nil {
 		return fmt.Errorf("unable to verify platform token: %w", err)
 	}
 
@@ -270,7 +273,7 @@ func (e *Evidence) Verify(iak crypto.PublicKey) error {
 	}
 
 	// Next verify the realm token
-	if err := e.verifyCOSEToken(e.collection.RealmToken, rak); err != nil {
+	if err := e.verifyCOSEToken(*e.collection.RealmToken, rak); err != nil {
 		return fmt.Errorf("unable to verify realm token: %w", err)
 	}
 

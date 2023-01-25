@@ -388,6 +388,19 @@ func TestEvidence_Verify_no_message(t *testing.T) {
 	assert.EqualError(t, err, "no message found")
 }
 
+func TestEvidence_Verify_RMM(t *testing.T) {
+	b := mustHexDecode(t, testRMMEvidence)
+
+	var e Evidence
+	err := e.FromCBOR(b)
+	require.NoError(t, err)
+
+	verifier := pubKeyFromJWK(t, testRMMCPAK)
+
+	err = e.Verify(verifier)
+	assert.NoError(t, err)
+}
+
 func TestEvidence_FromCBOR_wrong_top_level_tag(t *testing.T) {
 	wrongCBORTag := []byte{
 		0xd2, 0x84, 0x43, 0xa1, 0x01, 0x26, 0xa0, 0x58, 0x1e, 0xa1, 0x19, 0x01,
@@ -396,7 +409,7 @@ func TestEvidence_FromCBOR_wrong_top_level_tag(t *testing.T) {
 		0x30, 0x2e, 0x30, 0x44, 0xde, 0xad, 0xbe, 0xef,
 	}
 
-	expectedErr := `cbor decoding of CCA evidence failed: cbor: wrong tag number for ccatoken.CBORCollection, got [18], expected [399]`
+	expectedErr := `CBOR decoding of CCA evidence failed: cbor: wrong tag number for ccatoken.CBORCollection, got [18], expected [399]`
 
 	var e Evidence
 
@@ -404,10 +417,10 @@ func TestEvidence_FromCBOR_wrong_top_level_tag(t *testing.T) {
 	assert.EqualError(t, err, expectedErr)
 }
 
-func TestEvidence_FromCBOR_wrong_bstr_wrapped_tokens(t *testing.T) {
-	b := mustHexDecode(t, testBstrWrappedTokens)
+func TestEvidence_FromCBOR_wrong_unwrapped_tokens(t *testing.T) {
+	b := mustHexDecode(t, testBadUnwrappedTokens)
 
-	expectedErr := `decoding of CCA evidence failed: failed CBOR decoding for CWT: cbor: invalid COSE_Sign1_Tagged object`
+	expectedErr := `CBOR decoding of CCA evidence failed: cbor: cannot unmarshal byte string into Go struct field ccatoken.CBORCollection.44234 of type uint8`
 
 	var e Evidence
 	err := e.FromCBOR(b)
