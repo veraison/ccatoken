@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/require"
 	cose "github.com/veraison/go-cose"
 	"github.com/veraison/psatoken"
@@ -331,15 +331,16 @@ func mustHexDecode(t *testing.T, s string) []byte {
 }
 
 func signerFromJWK(t *testing.T, j string) cose.Signer {
-	alg, key := getAlgAndKeyFromJWK(t, j)
+
+	alg, key := getAlgAndKeyFromJWK(t, []byte(j))
 	s, err := cose.NewSigner(alg, key)
 	require.Nil(t, err)
 
 	return s
 }
 
-func getAlgAndKeyFromJWK(t *testing.T, j string) (cose.Algorithm, crypto.Signer) {
-	ks, err := jwk.ParseString(j)
+func getAlgAndKeyFromJWK(t *testing.T, j []byte) (cose.Algorithm, crypto.Signer) {
+	k, err := jwk.ParseKey(j)
 	require.Nil(t, err)
 
 	var (
@@ -347,8 +348,6 @@ func getAlgAndKeyFromJWK(t *testing.T, j string) (cose.Algorithm, crypto.Signer)
 		alg cose.Algorithm
 	)
 
-	k, ok := ks.Get(0)
-	require.True(t, ok)
 	err = k.Raw(&key)
 	require.NoError(t, err)
 
@@ -369,7 +368,7 @@ func getAlgAndKeyFromJWK(t *testing.T, j string) (cose.Algorithm, crypto.Signer)
 }
 
 func pubKeyFromJWK(t *testing.T, j string) crypto.PublicKey {
-	_, key := getAlgAndKeyFromJWK(t, j)
+	_, key := getAlgAndKeyFromJWK(t, []byte(j))
 	vk := key.Public()
 	return vk
 }
