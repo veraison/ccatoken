@@ -22,8 +22,8 @@ type CBORCollection struct {
 }
 
 type JSONCollection struct {
-	PlatformToken json.RawMessage `json:"cca-platform-token"`
-	RealmToken    json.RawMessage `json:"cca-realm-delegated-token"`
+	PlatformToken json.RawMessage `json:"cca-platform-token,omitempty"`
+	RealmToken    json.RawMessage `json:"cca-realm-delegated-token,omitempty"`
 }
 
 // Evidence is a wrapper around CcaToken
@@ -56,25 +56,44 @@ func (e *Evidence) MarshalJSON() ([]byte, error) {
 	return json.Marshal(c)
 }
 
+func (e *Evidence) MarshalUnvalidatedJSON() ([]byte, error) {
+	var pj, rj []byte
+	var err error
+
+	if e.PlatformClaims != nil {
+		pj, err = e.PlatformClaims.ToUnvalidatedJSON()
+		if err != nil {
+			return nil, fmt.Errorf("error serializing platform claims: %w", err)
+		}
+	}
+
+	if e.RealmClaims != nil {
+		rj, err = e.RealmClaims.ToUnvalidatedJSON()
+		if err != nil {
+			return nil, fmt.Errorf("error serializing realm claims: %w", err)
+		}
+	}
+
+	c := JSONCollection{
+		PlatformToken: pj,
+		RealmToken:    rj,
+	}
+
+	return json.Marshal(c)
+}
+
 func (e *Evidence) UnmarshalJSON(data []byte) error {
-	var c JSONCollection
-
-	if err := json.Unmarshal(data, &c); err != nil {
-		return fmt.Errorf("unmarshaling CCA claims: %w", err)
+	p, r, err := e.doUnmarshalJSON(data)
+	if err != nil {
+		return err
 	}
 
-	// platform
-	p := &psatoken.CcaPlatformClaims{}
+	if p == nil {
+		return errors.New("unmarshaling CCA claims: missing platform claims")
 
-	if err := json.Unmarshal(c.PlatformToken, &p); err != nil {
-		return fmt.Errorf("unmarshaling platform claims: %w", err)
 	}
-
-	// realm
-	r := &RealmClaims{}
-
-	if err := json.Unmarshal(c.RealmToken, &r); err != nil {
-		return fmt.Errorf("unmarshaling realm claims: %w", err)
+	if r == nil {
+		return errors.New("unmarshaling CCA claims: missing realm claims")
 	}
 
 	if err := e.SetClaims(p, r); err != nil {
@@ -84,9 +103,58 @@ func (e *Evidence) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (e *Evidence) UnmarshalUnvalidatedJSON(data []byte) error {
+	p, r, err := e.doUnmarshalJSON(data)
+	if err != nil {
+		return err
+	}
+
+	if err := e.SetUnvalidatedClaims(p, r); err != nil {
+		return fmt.Errorf("setting claims: %w", err)
+	}
+
+	return nil
+}
+
+func (e *Evidence) doUnmarshalJSON(data []byte) (*psatoken.CcaPlatformClaims, IClaims, error) {
+	var c map[string]json.RawMessage
+
+	if err := json.Unmarshal(data, &c); err != nil {
+		return nil, nil, fmt.Errorf("unmarshaling CCA claims: %w", err)
+	}
+
+	// platform
+	var p *psatoken.CcaPlatformClaims
+	platToken, ok := c["cca-platform-token"]
+	if ok {
+		p = &psatoken.CcaPlatformClaims{}
+
+		if err := json.Unmarshal(platToken, &p); err != nil {
+			return nil, nil, fmt.Errorf("unmarshaling platform claims: %w", err)
+		}
+	}
+
+	// realm
+	var r IClaims
+	realmToken, ok := c["cca-realm-delegated-token"]
+	if ok {
+		r = &RealmClaims{}
+
+		if err := json.Unmarshal(realmToken, &r); err != nil {
+			return nil, nil, fmt.Errorf("unmarshaling realm claims: %w", err)
+		}
+	}
+
+	return p, r, nil
+}
+
 func (e *Evidence) SetClaims(p psatoken.IClaims, r IClaims) error {
 	if p == nil || r == nil {
 		return errors.New("nil claims supplied")
+	}
+
+	if err := e.SetUnvalidatedClaims(p, r); err != nil {
+		return err
 	}
 
 	e.RealmClaims = r
@@ -104,6 +172,19 @@ func (e *Evidence) SetClaims(p psatoken.IClaims, r IClaims) error {
 
 	if err := r.Validate(); err != nil {
 		return fmt.Errorf("validation of cca-realm-claims failed: %w", err)
+	}
+
+	return nil
+}
+
+func (e *Evidence) SetUnvalidatedClaims(p psatoken.IClaims, r IClaims) error {
+	e.RealmClaims = r
+	e.PlatformClaims = p
+
+	// This call will set the nonce in the platform claims based on the RAK and
+	// hash algorithm in the realm claims.
+	if p != nil && r != nil {
+		_ = e.bind()
 	}
 
 	return nil
@@ -144,26 +225,84 @@ func (e *Evidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error
 	return buf, nil
 }
 
+// Sign signs the given evidence using the supplied Platform and Realm Signer
+// and returns the complete CCA token as CBOR bytes
+func (e *Evidence) SignUnvalidated(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error) {
+	if pSigner == nil || rSigner == nil {
+		return nil, fmt.Errorf("nil signer(s) supplied")
+	}
+
+	var err error
+	var platformToken []byte
+
+	if e.PlatformClaims != nil {
+		platformToken, err = signUnvalidatedClaims(e.PlatformClaims, pSigner)
+		if err != nil {
+			return nil, fmt.Errorf("signing platform claims: %w", err)
+
+		}
+	} else {
+		platformToken = []byte("")
+	}
+
+	var realmToken []byte
+	if e.RealmClaims != nil {
+		realmToken, err = signUnvalidatedClaims(e.RealmClaims, rSigner)
+		if err != nil {
+			return nil, fmt.Errorf("signing realm claims: %w", err)
+		}
+	} else {
+		realmToken = []byte("")
+	}
+
+	e.collection = &CBORCollection{
+		PlatformToken: &platformToken,
+		RealmToken:    &realmToken,
+	}
+
+	// We do now have CcaPlatform and Realm Token setup correctly.
+	buf, err := em.Marshal(e.collection)
+	if err != nil {
+		return nil, fmt.Errorf("CBOR encoding of CCA token failed: %w", err)
+	}
+
+	return buf, nil
+}
+
 type CBORClaimer interface {
 	ToCBOR() ([]byte, error)
+	ToUnvalidatedCBOR() ([]byte, error)
 }
 
 func signClaims(claimer CBORClaimer, signer cose.Signer) ([]byte, error) {
-	alg := signer.Algorithm()
-	if strings.Contains(alg.String(), "unknown algorithm value") {
-		return nil, errors.New("signer has no algorithm")
-	}
-
 	claimSet, err := claimer.ToCBOR()
 	if err != nil {
 		return nil, fmt.Errorf("CBOR encoding the payload: %w", err)
 	}
 
+	return signPayload(claimSet, signer)
+}
+
+func signUnvalidatedClaims(claimer CBORClaimer, signer cose.Signer) ([]byte, error) {
+	claimSet, err := claimer.ToUnvalidatedCBOR()
+	if err != nil {
+		return nil, fmt.Errorf("CBOR encoding the payload: %w", err)
+	}
+
+	return signPayload(claimSet, signer)
+}
+
+func signPayload(payload []byte, signer cose.Signer) ([]byte, error) {
+	alg := signer.Algorithm()
+	if strings.Contains(alg.String(), "unknown algorithm value") {
+		return nil, errors.New("signer has no algorithm")
+	}
+
 	message := cose.NewSign1Message()
-	message.Payload = claimSet
+	message.Payload = payload
 	message.Headers.Protected.SetAlgorithm(alg)
 
-	err = message.Sign(rand.Reader, []byte(""), signer)
+	err := message.Sign(rand.Reader, []byte(""), signer)
 	if err != nil {
 		return nil, fmt.Errorf("COSE Sign1 failed: %w", err)
 	}

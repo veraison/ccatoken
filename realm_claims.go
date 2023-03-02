@@ -186,14 +186,23 @@ func (c RealmClaims) Validate() error {
 // Codecs
 
 func (c *RealmClaims) FromCBOR(buf []byte) error {
-	err := dm.Unmarshal(buf, c)
+	err := c.FromUnvalidatedCBOR(buf)
 	if err != nil {
-		return fmt.Errorf("CBOR decoding of CCA realm claims failed: %w", err)
+		return err
 	}
 
 	err = c.Validate()
 	if err != nil {
 		return fmt.Errorf("validation of CCA realm claims failed: %w", err)
+	}
+
+	return nil
+}
+
+func (c *RealmClaims) FromUnvalidatedCBOR(buf []byte) error {
+	err := dm.Unmarshal(buf, c)
+	if err != nil {
+		return fmt.Errorf("CBOR decoding of CCA realm claims failed: %w", err)
 	}
 
 	return nil
@@ -205,6 +214,10 @@ func (c RealmClaims) ToCBOR() ([]byte, error) {
 		return nil, fmt.Errorf("validation of CCA realm claims failed: %w", err)
 	}
 
+	return c.ToUnvalidatedCBOR()
+}
+
+func (c RealmClaims) ToUnvalidatedCBOR() ([]byte, error) {
 	buf, err := em.Marshal(&c)
 	if err != nil {
 		return nil, fmt.Errorf("CBOR encoding of CCA realm claims failed: %w", err)
@@ -214,14 +227,23 @@ func (c RealmClaims) ToCBOR() ([]byte, error) {
 }
 
 func (c *RealmClaims) FromJSON(buf []byte) error {
-	err := json.Unmarshal(buf, c)
+	err := c.FromUnvalidatedJSON(buf)
 	if err != nil {
-		return fmt.Errorf("JSON decoding of CCA realm claims failed: %w", err)
+		return err
 	}
 
 	err = c.Validate()
 	if err != nil {
 		return fmt.Errorf("validation of CCA realm claims failed: %w", err)
+	}
+
+	return nil
+}
+
+func (c *RealmClaims) FromUnvalidatedJSON(buf []byte) error {
+	err := json.Unmarshal(buf, c)
+	if err != nil {
+		return fmt.Errorf("JSON decoding of CCA realm claims failed: %w", err)
 	}
 
 	return nil
@@ -233,6 +255,10 @@ func (c RealmClaims) ToJSON() ([]byte, error) {
 		return nil, fmt.Errorf("validation of CCA realm claims failed: %w", err)
 	}
 
+	return c.ToUnvalidatedJSON()
+}
+
+func (c RealmClaims) ToUnvalidatedJSON() ([]byte, error) {
 	buf, err := json.Marshal(&c)
 	if err != nil {
 		return nil, fmt.Errorf("JSON encoding of CCA realm claims failed: %w", err)
