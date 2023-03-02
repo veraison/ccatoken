@@ -30,10 +30,14 @@ type IClaims interface {
 	// CBOR codecs
 	FromCBOR([]byte) error
 	ToCBOR() ([]byte, error)
+	FromUnvalidatedCBOR([]byte) error
+	ToUnvalidatedCBOR() ([]byte, error)
 
 	// JSON codecs
 	FromJSON([]byte) error
 	ToJSON() ([]byte, error)
+	FromUnvalidatedJSON([]byte) error
+	ToUnvalidatedJSON() ([]byte, error)
 
 	// Semantic validation
 	Validate() error
@@ -47,16 +51,6 @@ func DecodeClaims(buf []byte) (IClaims, error) {
 	cl := &RealmClaims{}
 
 	if err := cl.FromCBOR(buf); err != nil {
-		return nil, err
-	}
-
-	return cl, nil
-}
-
-func DecodeJSONClaims(buf []byte) (IClaims, error) {
-	cl := &RealmClaims{}
-
-	if err := cl.FromJSON(buf); err != nil {
 		return nil, err
 	}
 
