@@ -154,12 +154,12 @@ func TestEvidenceCCA(t *testing.T) {
 	err = os.WriteFile("testvectors/tf-rmm/cca-sha256.json", tokenBytes, fs.ModeAppend)
 	require.NoError(t, err)
 
-	tokenBytes, err = os.ReadFile("testvectors/tf-rmm/paul.cbor")
+	tokenBytes, err = os.ReadFile("testvectors/cbor/tf-rmm-original-fvp.cbor")
 	require.NoError(t, err)
 	err = EvidenceIn.FromCBOR(tokenBytes)
 	require.NoError(t, err)
 	tokenBytes, err = EvidenceIn.MarshalJSON()
-	err = os.WriteFile("testvectors/tf-rmm/paul.json", tokenBytes, (fs.ModeAppend | 0x3FF))
+	err = os.WriteFile("testvectors/json/tf-rmm-original-fvp.json", tokenBytes, (fs.ModeAppend | 0x3FF))
 	require.NoError(t, err)
 
 	tokenBytes, err = os.ReadFile("testvectors/tf-rmm/cca-sha512.cbor")
