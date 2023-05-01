@@ -1,0 +1,37 @@
+{
+    "cca-platform-profile": "http://arm.com/CCA-SSD/1.0.0",
+    "cca-platform-challenge": "tZc8touqn8VVWHhrfsZ/aeQN9bpaqSHNDCf0BYegEeo=",
+    "cca-platform-implementation-id": "f0VMRgIBAQAAAAAAAAAAAAMAPgABAAAAUFgAAAAAAAA=",
+    "cca-platform-instance-id": "AQcGBQQDAgEADw4NDAsKCQgXFhUUExIREB8eHRwbGhkY",
+    "cca-platform-config": "AQcGBQQDAgEADw4NDAsKCQgXFhUUExIREB8eHRwbGhkY",
+    "cca-platform-lifecycle": 12291,
+    "cca-platform-sw-components": [
+      {
+        "measurement-type": "BL",
+        "measurement-value": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg=",
+        "version": "3.4.2",
+        "signer-id": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg=",
+        "measurement-description": "TF-M_SHA256MemPreXIP"
+      },
+      {
+        "measurement-type": "M1",
+        "measurement-value": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg=",
+        "version": "1.2",
+        "signer-id": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg="
+      },
+      {
+        "measurement-type": "M2",
+        "measurement-value": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg=",
+        "version": "1.2.3",
+        "signer-id": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg="
+      },
+      {
+        "measurement-type": "M3",
+        "measurement-value": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg=",
+        "version": "1",
+        "signer-id": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg="
+      }
+    ],
+    "cca-platform-service-indicator": "whatever.com",
+    "cca-platform-hash-algo-id": "sha-256"
+  }

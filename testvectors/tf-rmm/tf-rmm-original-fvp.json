@@ -1,0 +1,53 @@
+{
+    "cca-platform-token": {
+      "cca-platform-profile": "http://arm.com/CCA-SSD/1.0.0",
+      "cca-platform-challenge": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg=",
+      "cca-platform-implementation-id": "f0VMRgIBAQAAAAAAAAAAAAMAPgABAAAAUFgAAAAAAABAAAAAAAAAAKADAgAAAAAAAAAAAEAAOAAJAEAAHAAbAA==",
+      "cca-platform-instance-id": "AQcGBQQDAgEADw4NDAsKCQgXFhUUExIREB8eHRwbGhkY",
+      "cca-platform-config": "AQcGBQQDAgEADw4NDAsKCQgXFhUUExIREB8eHRwbGhkY",
+      "cca-platform-lifecycle": 12291,
+      "cca-platform-sw-components": [
+        {
+          "measurement-type": "BL",
+          "measurement-value": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg=",
+          "version": "3.4.2",
+          "signer-id": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg=",
+          "measurement-description": "sha-256"
+        },
+        {
+          "measurement-type": "M1",
+          "measurement-value": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg=",
+          "version": "1.2",
+          "signer-id": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg="
+        },
+        {
+          "measurement-type": "M2",
+          "measurement-value": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg=",
+          "version": "1.2.3",
+          "signer-id": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg="
+        },
+        {
+          "measurement-type": "M3",
+          "measurement-value": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg=",
+          "version": "1",
+          "signer-id": "BwYFBAMCAQAPDg0MCwoJCBcWFRQTEhEQHx4dHBsaGRg="
+        }
+      ],
+      "cca-platform-service-indicator": "whatever.com",
+      "cca-platform-hash-algo-id": "sha-256"
+    },
+    "cca-realm-delegated-token": {
+      "cca-realm-challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "cca-realm-personalization-value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "cca-realm-initial-measurement": "elbJXPdNeiUaHmHHL4YCbxnLB7b+CYxHEl7m3oGSdHQ=",
+      "cca-realm-extensible-measurements": [
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      ],
+      "cca-realm-hash-algo-id": "sha-256",
+      "cca-realm-public-key": "BHb5iAkb5YXtQYAa7Pq4WFSMYwV+FrDmdhILvQ0vnCngVsXUGgEw65whUXiZ3CMUayjhsGK9PqSzFf0hnxy7Uoy250ykm+Fnc3NPYaHKYQMbK789kY8vlP/EIo5QkZVErg==",
+      "cca-realm-public-key-hash-algo-id": "sha-256"
+    }
+  }  
