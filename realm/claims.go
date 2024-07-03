@@ -1,5 +1,5 @@
 // CCA Realm Claims
-package ccatoken
+package realm
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/veraison/eat"
 )
 
-type RealmClaims struct {
+type Claims struct {
 	Challenge              *eat.Nonce `cbor:"10,keyasint" json:"cca-realm-challenge"`
 	PersonalizationValue   *[]byte    `cbor:"44235,keyasint" json:"cca-realm-personalization-value"`
 	InitialMeasurement     *[]byte    `cbor:"44238,keyasint" json:"cca-realm-initial-measurement"`
@@ -20,7 +20,7 @@ type RealmClaims struct {
 
 // Setters
 
-func (c *RealmClaims) SetChallenge(v []byte) error {
+func (c *Claims) SetChallenge(v []byte) error {
 	if err := isValidChallenge(v); err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (c *RealmClaims) SetChallenge(v []byte) error {
 	return nil
 }
 
-func (c *RealmClaims) SetPersonalizationValue(v []byte) error {
+func (c *Claims) SetPersonalizationValue(v []byte) error {
 	if err := isValidPersonalizationValue(v); err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (c *RealmClaims) SetPersonalizationValue(v []byte) error {
 	return nil
 }
 
-func (c *RealmClaims) SetInitialMeasurement(v []byte) error {
+func (c *Claims) SetInitialMeasurement(v []byte) error {
 	if err := isValidRealmMeas(v); err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (c *RealmClaims) SetInitialMeasurement(v []byte) error {
 	return nil
 }
 
-func (c *RealmClaims) SetExtensibleMeasurements(v [][]byte) error {
+func (c *Claims) SetExtensibleMeasurements(v [][]byte) error {
 	if err := isValidExtensibleMeas(v); err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (c *RealmClaims) SetExtensibleMeasurements(v [][]byte) error {
 	return nil
 }
 
-func (c *RealmClaims) SetHashAlgID(v string) error {
+func (c *Claims) SetHashAlgID(v string) error {
 	if err := isValidHashAlgID(v); err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (c *RealmClaims) SetHashAlgID(v string) error {
 	return nil
 }
 
-func (c *RealmClaims) SetPubKey(v []byte) error {
+func (c *Claims) SetPubKey(v []byte) error {
 	if err := isValidRealmPubKey(v); err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (c *RealmClaims) SetPubKey(v []byte) error {
 	return nil
 }
 
-func (c *RealmClaims) SetPubKeyHashAlgID(v string) error {
+func (c *Claims) SetPubKeyHashAlgID(v string) error {
 	if v == "" {
 		return fmt.Errorf("invalid null string set for cca-realm-pubkey-hash-algo-id")
 	}
@@ -89,7 +89,7 @@ func (c *RealmClaims) SetPubKeyHashAlgID(v string) error {
 }
 
 // Getters
-func (c RealmClaims) GetChallenge() ([]byte, error) {
+func (c Claims) GetChallenge() ([]byte, error) {
 	v := c.Challenge
 
 	if v == nil {
@@ -109,7 +109,7 @@ func (c RealmClaims) GetChallenge() ([]byte, error) {
 	return n, nil
 }
 
-func (c RealmClaims) GetPersonalizationValue() ([]byte, error) {
+func (c Claims) GetPersonalizationValue() ([]byte, error) {
 	v := c.PersonalizationValue
 
 	if v == nil {
@@ -121,7 +121,7 @@ func (c RealmClaims) GetPersonalizationValue() ([]byte, error) {
 	return *v, nil
 }
 
-func (c RealmClaims) GetInitialMeasurement() ([]byte, error) {
+func (c Claims) GetInitialMeasurement() ([]byte, error) {
 
 	v := c.InitialMeasurement
 	if v == nil {
@@ -133,7 +133,7 @@ func (c RealmClaims) GetInitialMeasurement() ([]byte, error) {
 	return *v, nil
 }
 
-func (c RealmClaims) GetExtensibleMeasurements() ([][]byte, error) {
+func (c Claims) GetExtensibleMeasurements() ([][]byte, error) {
 	v := c.ExtensibleMeasurements
 	if v == nil {
 		return nil, ErrMandatoryClaimMissing
@@ -144,7 +144,7 @@ func (c RealmClaims) GetExtensibleMeasurements() ([][]byte, error) {
 	return *v, nil
 }
 
-func (c RealmClaims) GetHashAlgID() (string, error) {
+func (c Claims) GetHashAlgID() (string, error) {
 	v := c.HashAlgID
 	if v == nil {
 		return "", ErrMandatoryClaimMissing
@@ -155,7 +155,7 @@ func (c RealmClaims) GetHashAlgID() (string, error) {
 	return *v, nil
 }
 
-func (c RealmClaims) GetPubKey() ([]byte, error) {
+func (c Claims) GetPubKey() ([]byte, error) {
 	v := c.PublicKey
 
 	if v == nil {
@@ -169,7 +169,7 @@ func (c RealmClaims) GetPubKey() ([]byte, error) {
 	return *v, nil
 }
 
-func (c RealmClaims) GetPubKeyHashAlgID() (string, error) {
+func (c Claims) GetPubKeyHashAlgID() (string, error) {
 	v := c.PublicKeyHashAlgID
 
 	if v == nil {
@@ -179,13 +179,13 @@ func (c RealmClaims) GetPubKeyHashAlgID() (string, error) {
 }
 
 // Semantic validation
-func (c RealmClaims) Validate() error {
+func (c Claims) Validate() error {
 	return validate(&c)
 }
 
 // Codecs
 
-func (c *RealmClaims) FromCBOR(buf []byte) error {
+func (c *Claims) FromCBOR(buf []byte) error {
 	err := c.FromUnvalidatedCBOR(buf)
 	if err != nil {
 		return err
@@ -199,7 +199,7 @@ func (c *RealmClaims) FromCBOR(buf []byte) error {
 	return nil
 }
 
-func (c *RealmClaims) FromUnvalidatedCBOR(buf []byte) error {
+func (c *Claims) FromUnvalidatedCBOR(buf []byte) error {
 	err := dm.Unmarshal(buf, c)
 	if err != nil {
 		return fmt.Errorf("CBOR decoding of CCA realm claims failed: %w", err)
@@ -208,7 +208,7 @@ func (c *RealmClaims) FromUnvalidatedCBOR(buf []byte) error {
 	return nil
 }
 
-func (c RealmClaims) ToCBOR() ([]byte, error) {
+func (c Claims) ToCBOR() ([]byte, error) {
 	err := c.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("validation of CCA realm claims failed: %w", err)
@@ -217,7 +217,7 @@ func (c RealmClaims) ToCBOR() ([]byte, error) {
 	return c.ToUnvalidatedCBOR()
 }
 
-func (c RealmClaims) ToUnvalidatedCBOR() ([]byte, error) {
+func (c Claims) ToUnvalidatedCBOR() ([]byte, error) {
 	buf, err := em.Marshal(&c)
 	if err != nil {
 		return nil, fmt.Errorf("CBOR encoding of CCA realm claims failed: %w", err)
@@ -226,7 +226,7 @@ func (c RealmClaims) ToUnvalidatedCBOR() ([]byte, error) {
 	return buf, nil
 }
 
-func (c *RealmClaims) FromJSON(buf []byte) error {
+func (c *Claims) FromJSON(buf []byte) error {
 	err := c.FromUnvalidatedJSON(buf)
 	if err != nil {
 		return err
@@ -240,7 +240,7 @@ func (c *RealmClaims) FromJSON(buf []byte) error {
 	return nil
 }
 
-func (c *RealmClaims) FromUnvalidatedJSON(buf []byte) error {
+func (c *Claims) FromUnvalidatedJSON(buf []byte) error {
 	err := json.Unmarshal(buf, c)
 	if err != nil {
 		return fmt.Errorf("JSON decoding of CCA realm claims failed: %w", err)
@@ -249,7 +249,7 @@ func (c *RealmClaims) FromUnvalidatedJSON(buf []byte) error {
 	return nil
 }
 
-func (c RealmClaims) ToJSON() ([]byte, error) {
+func (c Claims) ToJSON() ([]byte, error) {
 	err := c.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("validation of CCA realm claims failed: %w", err)
@@ -258,7 +258,7 @@ func (c RealmClaims) ToJSON() ([]byte, error) {
 	return c.ToUnvalidatedJSON()
 }
 
-func (c RealmClaims) ToUnvalidatedJSON() ([]byte, error) {
+func (c Claims) ToUnvalidatedJSON() ([]byte, error) {
 	buf, err := json.Marshal(&c)
 	if err != nil {
 		return nil, fmt.Errorf("JSON encoding of CCA realm claims failed: %w", err)

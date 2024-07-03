@@ -1,4 +1,4 @@
-package ccatoken
+package realm
 
 import (
 	"crypto/ecdsa"
@@ -95,7 +95,7 @@ func isValidExtensibleMeas(v [][]byte) error {
 }
 
 func ecdsaPublicKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
-	x, y := elliptic.Unmarshal(elliptic.P384(), data)
+	x, y := elliptic.Unmarshal(elliptic.P384(), data) // nolint:staticcheck
 	if x == nil {
 		return nil, errors.New("failed to unmarshal elliptic curve point")
 	}

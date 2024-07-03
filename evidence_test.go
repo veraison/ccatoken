@@ -7,15 +7,42 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/veraison/ccatoken/platform"
+	"github.com/veraison/ccatoken/realm"
 	"github.com/veraison/go-cose"
-	"github.com/veraison/psatoken"
 )
 
-func mustBuildValidCcaPlatformClaims(t *testing.T, includeOptional bool) psatoken.IClaims {
-	c, err := psatoken.NewClaims(testCcaProfile)
+func mustBuildValidCcaRealmClaims(t *testing.T) realm.IClaims {
+	c := realm.NewClaims()
+
+	err := c.SetChallenge(testChallenge)
 	require.NoError(t, err)
 
-	err = c.SetSecurityLifeCycle(testPlatformLifecycleSecured)
+	err = c.SetPersonalizationValue(testPersonalizationVal)
+	require.NoError(t, err)
+
+	err = c.SetInitialMeasurement(testInitMeas)
+	require.NoError(t, err)
+
+	err = c.SetExtensibleMeasurements(testExtensibleMeas)
+	require.NoError(t, err)
+
+	err = c.SetHashAlgID(testHashAlgID)
+	require.NoError(t, err)
+
+	err = c.SetPubKey(testRAKPubRaw)
+	require.NoError(t, err)
+
+	err = c.SetPubKeyHashAlgID(testPubKeyHashAlgID)
+	require.NoError(t, err)
+
+	return c
+}
+
+func mustBuildValidPlatformClaims(t *testing.T, includeOptional bool) platform.IClaims {
+	c := platform.NewClaims()
+
+	err := c.SetSecurityLifeCycle(testPlatformLifecycleSecured)
 	require.NoError(t, err)
 
 	err = c.SetImplID(testImplementationID)
@@ -48,7 +75,7 @@ func TestEvidence_sign_and_verify_ok(t *testing.T) {
 	var EvidenceIn Evidence
 
 	err := EvidenceIn.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidPlatformClaims(t, true),
 		mustBuildValidCcaRealmClaims(t),
 	)
 	assert.NoError(t, err)
@@ -76,7 +103,7 @@ func TestEvidence_sign_and_verify_bad_binder(t *testing.T) {
 	var EvidenceIn Evidence
 
 	err := EvidenceIn.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidPlatformClaims(t, true),
 		mustBuildValidCcaRealmClaims(t),
 	)
 	assert.NoError(t, err)
@@ -108,7 +135,7 @@ func TestEvidence_sign_and_verify_platform_key_mismatch(t *testing.T) {
 	var EvidenceIn Evidence
 
 	err := EvidenceIn.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidPlatformClaims(t, true),
 		mustBuildValidCcaRealmClaims(t),
 	)
 	assert.NoError(t, err)
@@ -136,7 +163,7 @@ func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 	var EvidenceIn Evidence
 
 	err := EvidenceIn.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidPlatformClaims(t, true),
 		mustBuildValidCcaRealmClaims(t),
 	)
 	assert.NoError(t, err)
@@ -167,17 +194,17 @@ func TestEvidence_sign_unvalidated(t *testing.T) {
 	pSigner := signerFromJWK(t, testIAK)
 
 	testVectors := []struct {
-		Platform psatoken.IClaims
-		Realm    IClaims
+		Platform platform.IClaims
+		Realm    realm.IClaims
 		Error    string
 	}{
 		{
-			mustBuildValidCcaPlatformClaims(t, true),
+			mustBuildValidPlatformClaims(t, true),
 			mustBuildValidCcaRealmClaims(t),
 			"",
 		},
 		{
-			mustBuildValidCcaPlatformClaims(t, true),
+			mustBuildValidPlatformClaims(t, true),
 			nil,
 			"",
 		},
@@ -207,7 +234,7 @@ func TestEvidence_GetInstanceID_ok(t *testing.T) {
 	var e Evidence
 
 	err := e.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidPlatformClaims(t, true),
 		mustBuildValidCcaRealmClaims(t),
 	)
 	require.NoError(t, err)
@@ -222,7 +249,7 @@ func TestEvidence_GetImplementationID_ok(t *testing.T) {
 	var e Evidence
 
 	err := e.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidPlatformClaims(t, true),
 		mustBuildValidCcaRealmClaims(t),
 	)
 	require.NoError(t, err)
@@ -237,7 +264,7 @@ func TestEvidence_GetRealmPubKey_ok(t *testing.T) {
 	var e Evidence
 
 	err := e.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidPlatformClaims(t, true),
 		mustBuildValidCcaRealmClaims(t),
 	)
 	require.NoError(t, err)
@@ -258,7 +285,7 @@ func TestEvidence_MarshalJSON_ok(t *testing.T) {
 	var e Evidence
 
 	err := e.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidPlatformClaims(t, true),
 		mustBuildValidCcaRealmClaims(t),
 	)
 	require.NoError(t, err)
@@ -274,7 +301,7 @@ func TestEvidence_MarshalUnvalidatedJSON(t *testing.T) {
 	var e Evidence
 
 	err := e.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidPlatformClaims(t, true),
 		mustBuildValidCcaRealmClaims(t),
 	)
 	require.NoError(t, err)
@@ -351,7 +378,7 @@ func TestEvidence_JSON_roundtrip(t *testing.T) {
 	var e Evidence
 
 	err := e.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidPlatformClaims(t, true),
 		mustBuildValidCcaRealmClaims(t),
 	)
 	require.NoError(t, err)
@@ -369,7 +396,7 @@ func TestEvidence_SetClaims_missing_realm_claims(t *testing.T) {
 	var e Evidence
 
 	err := e.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, true),
+		mustBuildValidPlatformClaims(t, true),
 		nil,
 	)
 	assert.EqualError(t, err, "nil claims supplied")
@@ -386,8 +413,8 @@ func TestEvidence_SetClaims_missing_platform_claims(t *testing.T) {
 }
 
 func TestEvidence_SetClaims_bind_failed(t *testing.T) {
-	emptyRealmClaims := &RealmClaims{}
-	emptyPlatformClaims := &psatoken.CcaPlatformClaims{}
+	emptyRealmClaims := &realm.Claims{}
+	emptyPlatformClaims := &platform.Claims{}
 
 	expectedErr := "tokens binding failed: computing binder value: extracting RAK from the realm token: missing mandatory claim"
 
@@ -398,7 +425,7 @@ func TestEvidence_SetClaims_bind_failed(t *testing.T) {
 }
 
 func TestEvidence_SetClaims_invalid_platform(t *testing.T) {
-	emptyPlatformClaims := &psatoken.CcaPlatformClaims{}
+	emptyPlatformClaims := &platform.Claims{}
 
 	expectedErr := "validation of cca-platform-claims failed: validating profile: missing mandatory claim"
 
@@ -412,7 +439,7 @@ func TestEvidence_SetClaims_invalid_platform(t *testing.T) {
 }
 
 func TestEvidence_SetClaims_invalid_realm(t *testing.T) {
-	incompleteRealmClaims := &RealmClaims{}
+	incompleteRealmClaims := &realm.Claims{}
 
 	// just set the bare minimum to compute the binder
 	err := incompleteRealmClaims.SetPubKey(testRAKPubRaw)
@@ -426,7 +453,7 @@ func TestEvidence_SetClaims_invalid_realm(t *testing.T) {
 	var e Evidence
 
 	err = e.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, false),
+		mustBuildValidPlatformClaims(t, false),
 		incompleteRealmClaims,
 	)
 	assert.EqualError(t, err, expectedErr)
@@ -451,7 +478,7 @@ func TestEvidence_Sign_invalid_signers(t *testing.T) {
 	)
 
 	err := e.SetClaims(
-		mustBuildValidCcaPlatformClaims(t, false),
+		mustBuildValidPlatformClaims(t, false),
 		mustBuildValidCcaRealmClaims(t),
 	)
 	require.NoError(t, err)

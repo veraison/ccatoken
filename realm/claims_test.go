@@ -1,4 +1,4 @@
-package ccatoken
+package realm
 
 import (
 	"os"
@@ -110,7 +110,7 @@ func Test_CcaRealmClaims_ToCBOR_all_claims(t *testing.T) {
 func Test_CcaRealmClaims_FromCBOR_ok(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaRealmClaimsAll)
 
-	var c RealmClaims
+	var c Claims
 	err := c.FromCBOR(buf)
 	assert.NoError(t, err)
 
@@ -151,7 +151,7 @@ func Test_CcaRealmClaims_FromCBOR_bad_input(t *testing.T) {
 
 	expectedErr := "CBOR decoding of CCA realm claims failed: unexpected EOF"
 
-	var c RealmClaims
+	var c Claims
 	err := c.FromCBOR(buf)
 
 	assert.EqualError(t, err, expectedErr)
@@ -162,35 +162,35 @@ func Test_CcaRealmClaims_FromCBOR_missing_mandatory_claims(t *testing.T) {
 
 	expectedErr := "validation of CCA realm claims failed: validating cca-realm-challenge claim: missing mandatory claim"
 
-	var c RealmClaims
+	var c Claims
 	err := c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandInitialMeas)
 
 	expectedErr = "validation of CCA realm claims failed: validating cca-realm-initial-measurements claim: missing mandatory claim"
-	c = RealmClaims{}
+	c = Claims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandHashAlgID)
 
 	expectedErr = "validation of CCA realm claims failed: validating cca-realm-hash-alg-id claim: missing mandatory claim"
-	c = RealmClaims{}
+	c = Claims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandPubKey)
 
 	expectedErr = "validation of CCA realm claims failed: validating cca-realm-public-key claim: missing mandatory claim"
-	c = RealmClaims{}
+	c = Claims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandExtendedMeas)
 
 	expectedErr = "validation of CCA realm claims failed: validating cca-realm-extended-measurements claim: missing mandatory claim"
-	c = RealmClaims{}
+	c = Claims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
@@ -235,7 +235,7 @@ func Test_CcaRealmClaims_FromJSON_ok(t *testing.T) {
   "cca-realm-public-key": "BIEZWICiIH+5VgMqPLl/XaWvcm/8txXuFkeEp/sWwGCWvdlGKjJlCykSqFUVcNbqHzstH32oonX6ADMPAHhhi8PhSVScgXDTLsVYkKf57HifHxiukusV0iKvlx2XHJZa8Q==",
   "cca-realm-public-key-hash-algo-id": "sha-512"
 }`
-	var c RealmClaims
+	var c Claims
 	err := c.FromJSON([]byte(tv))
 
 	assert.NoError(t, err)
@@ -246,7 +246,7 @@ func Test_CcaRealmClaims_FromJSON_invalid_json(t *testing.T) {
 
 	expectedErr := `JSON decoding of CCA realm claims failed: unexpected end of JSON input`
 
-	var c RealmClaims
+	var c Claims
 	err := c.FromJSON(tv)
 
 	assert.EqualError(t, err, expectedErr)
@@ -271,7 +271,7 @@ func Test_CcaRealmClaims_FromJSON_negatives(t *testing.T) {
 		buf, err := os.ReadFile(fn)
 		require.NoError(t, err)
 
-		var claimsSet RealmClaims
+		var claimsSet Claims
 
 		err = claimsSet.FromJSON(buf)
 		assert.Error(t, err, "test vector %d failed", i)

@@ -1,7 +1,7 @@
 // Copyright 2021-2022 Contributors to the Veraison project.
 // SPDX-License-Identifier: Apache-2.0
 
-package ccatoken
+package realm
 
 import (
 	"fmt"
@@ -44,11 +44,11 @@ type IClaims interface {
 }
 
 func NewClaims() IClaims {
-	return &RealmClaims{}
+	return &Claims{}
 }
 
 func DecodeClaims(buf []byte) (IClaims, error) {
-	cl := &RealmClaims{}
+	cl := &Claims{}
 
 	if err := cl.FromCBOR(buf); err != nil {
 		return nil, err
