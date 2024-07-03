@@ -1,21 +1,31 @@
-# Copyright 2022 Contributors to the Veraison project.
+# Copyright 2024 Contributors to the Veraison project.
 # SPDX-License-Identifier: Apache-2.0
 import os
 import re
 import sys
 
-# read output of (potentially many invocations of) "go test -cover -short",
-# e.g., "coverage: 65.7% of statements"
-cover_report_lines = sys.stdin.read()
+cover_line_re = re.compile(r'ok\s+(?P<package>\S+)\s.*coverage: (?P<pc>[\d.])% of statements')
 
-if len(cover_report_lines) == 0:
-    sys.exit(2)
+default_min_cover = float(re.findall(r'\d*\.\d+|\d+', os.environ['GITHUB_WORKFLOW'])[0])
 
-# extract min coverage from GITHUB_WORKFLOW, e.g., "60.4%"
-min_cover = float(re.findall(r'\d*\.\d+|\d+', os.environ['GITHUB_WORKFLOW'])[0])
+min_cover_map = {}
+for arg in sys.argv[1:]:
+    package, min_cover_str = arg.split(':')
+    min_cover_map[package] = float(min_cover_str)
 
-for l in cover_report_lines.splitlines():
-    cover = float(re.findall(r'\d*\.\d+|\d+', l)[0])
+for line in sys.stdin:
+    if 'FAIL' in line:
+        print('ERROR: tests failed')
+        sys.exit(1)
+
+    match = cover_line_re.search(line)
+    if match is None:
+        continue
+
+    package = match.group('package')
+    cover = float(match.group('pc'))
+    min_cover = min_cover_map.get(package, default_min_cover)
+
     if cover < min_cover:
         sys.exit(1)
 

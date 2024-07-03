@@ -5,12 +5,14 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"encoding/hex"
+	"errors"
 	"reflect"
 	"regexp"
 	"testing"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/require"
+	"github.com/veraison/ccatoken/platform"
 	cose "github.com/veraison/go-cose"
 	"github.com/veraison/psatoken"
 )
@@ -72,7 +74,6 @@ var (
 
 var (
 	testNotJSON            = []byte(`{`)
-	testNotCBOR            = `6e6f745f63626f720a`
 	testChallenge          = []byte("ABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB")
 	testPersonalizationVal = []byte("ADADADADADADADADADADADADADADADADADADADADADADADADADADADADADADADAD")
 	testInitMeas           = []byte("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
@@ -85,7 +86,7 @@ var (
 	testHashAlgID       = "sha-256"
 	testPubKeyHashAlgID = "sha-512"
 
-	testPlatformLifecycleSecured = uint16(psatoken.CcaPlatformLifecycleSecuredMin)
+	testPlatformLifecycleSecured = uint16(platform.LifecycleSecuredMin)
 	testConfig                   = []byte{1, 2, 3}
 	testImplementationID         = []byte{
 		0, 0, 0, 0, 0, 0, 0, 0,
@@ -113,13 +114,12 @@ var (
 		4, 4, 4, 4, 4, 4, 4, 4,
 		4, 4, 4, 4, 4, 4, 4, 4,
 	}
-	testSoftwareComponents = []psatoken.SwComponent{
-		{
+	testSoftwareComponents = []psatoken.ISwComponent{
+		&psatoken.SwComponent{
 			MeasurementValue: &testMeasurementValue,
 			SignerID:         &testSignerID,
 		},
 	}
-	testCcaProfile         = "http://arm.com/CCA-SSD/1.0.0"
 	testCombinedClaimsJSON = `
 	{
 	  "cca-platform-token": {
@@ -371,4 +371,17 @@ func pubKeyFromJWK(t *testing.T, j string) crypto.PublicKey {
 	_, key := getAlgAndKeyFromJWK(t, []byte(j))
 	vk := key.Public()
 	return vk
+}
+
+func ecdsaPublicKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
+	x, y := elliptic.Unmarshal(elliptic.P384(), data) // nolint:staticcheck
+	if x == nil {
+		return nil, errors.New("failed to unmarshal elliptic curve point")
+	}
+
+	return &ecdsa.PublicKey{
+		Curve: elliptic.P384(),
+		X:     x,
+		Y:     y,
+	}, nil
 }

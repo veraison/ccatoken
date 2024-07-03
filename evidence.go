@@ -1,3 +1,6 @@
+// Copyright 2021-2024 Contributors to the Veraison project.
+// SPDX-License-Identifier: Apache-2.0
+
 package ccatoken
 
 import (
@@ -12,8 +15,9 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/veraison/ccatoken/platform"
+	"github.com/veraison/ccatoken/realm"
 	cose "github.com/veraison/go-cose"
-	"github.com/veraison/psatoken"
 )
 
 type CBORCollection struct {
@@ -28,8 +32,8 @@ type JSONCollection struct {
 
 // Evidence is a wrapper around CcaToken
 type Evidence struct {
-	PlatformClaims psatoken.IClaims
-	RealmClaims    IClaims
+	PlatformClaims platform.IClaims
+	RealmClaims    realm.IClaims
 	collection     *CBORCollection
 }
 
@@ -116,7 +120,7 @@ func (e *Evidence) UnmarshalUnvalidatedJSON(data []byte) error {
 	return nil
 }
 
-func (e *Evidence) doUnmarshalJSON(data []byte) (*psatoken.CcaPlatformClaims, IClaims, error) {
+func (e *Evidence) doUnmarshalJSON(data []byte) (platform.IClaims, realm.IClaims, error) {
 	var c map[string]json.RawMessage
 
 	if err := json.Unmarshal(data, &c); err != nil {
@@ -124,10 +128,10 @@ func (e *Evidence) doUnmarshalJSON(data []byte) (*psatoken.CcaPlatformClaims, IC
 	}
 
 	// platform
-	var p *psatoken.CcaPlatformClaims
+	var p platform.IClaims
 	platToken, ok := c["cca-platform-token"]
 	if ok {
-		p = &psatoken.CcaPlatformClaims{}
+		p = platform.NewClaims()
 
 		if err := json.Unmarshal(platToken, &p); err != nil {
 			return nil, nil, fmt.Errorf("unmarshaling platform claims: %w", err)
@@ -135,10 +139,10 @@ func (e *Evidence) doUnmarshalJSON(data []byte) (*psatoken.CcaPlatformClaims, IC
 	}
 
 	// realm
-	var r IClaims
+	var r realm.IClaims
 	realmToken, ok := c["cca-realm-delegated-token"]
 	if ok {
-		r = &RealmClaims{}
+		r = realm.NewClaims()
 
 		if err := json.Unmarshal(realmToken, &r); err != nil {
 			return nil, nil, fmt.Errorf("unmarshaling realm claims: %w", err)
@@ -148,7 +152,7 @@ func (e *Evidence) doUnmarshalJSON(data []byte) (*psatoken.CcaPlatformClaims, IC
 	return p, r, nil
 }
 
-func (e *Evidence) SetClaims(p psatoken.IClaims, r IClaims) error {
+func (e *Evidence) SetClaims(p platform.IClaims, r realm.IClaims) error {
 	if p == nil || r == nil {
 		return errors.New("nil claims supplied")
 	}
@@ -177,7 +181,7 @@ func (e *Evidence) SetClaims(p psatoken.IClaims, r IClaims) error {
 	return nil
 }
 
-func (e *Evidence) SetUnvalidatedClaims(p psatoken.IClaims, r IClaims) error {
+func (e *Evidence) SetUnvalidatedClaims(p platform.IClaims, r realm.IClaims) error {
 	e.RealmClaims = r
 	e.PlatformClaims = p
 
@@ -354,7 +358,7 @@ func (e *Evidence) decodeClaims() error {
 		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
 	}
 
-	PlatformClaims, err := psatoken.DecodeClaims(pSign1.Payload)
+	PlatformClaims, err := platform.DecodeClaims(pSign1.Payload)
 	if err != nil {
 		return fmt.Errorf("failed CBOR decoding of CCA platform claims: %w", err)
 	}
@@ -367,7 +371,7 @@ func (e *Evidence) decodeClaims() error {
 		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
 	}
 
-	RealmClaims, err := DecodeClaims(rSign1.Payload)
+	RealmClaims, err := realm.DecodeClaims(rSign1.Payload)
 	if err != nil {
 		return fmt.Errorf("failed CBOR decoding of CCA realm claims: %w", err)
 	}

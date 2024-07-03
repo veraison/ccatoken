@@ -4,6 +4,8 @@ export GO111MODULE := on
 export SHELL := /bin/bash
 
 GOPKG := github.com/veraison/ccatoken
+GOPKG += github.com/veraison/ccatoken/platform
+GOPKG += github.com/veraison/ccatoken/realm
 
 GOLINT ?= golangci-lint
 

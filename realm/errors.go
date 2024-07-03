@@ -1,4 +1,4 @@
-package ccatoken
+package realm
 
 import "errors"
 

@@ -1,0 +1,29 @@
+{
+  "cca-platform-profile": "http://arm.com/PSA-SSD/1.0.0",
+  "cca-platform-challenge":  "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "cca-platform-instance-id": "AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+  "psa-implementation-id": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA=",
+  "psa-boot-seed": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIg==",
+  "cca-platform-config": "AQID",
+  "cca-platform-lifecycle": 12288,
+  "cca-platform-sw-components": [
+    {
+      "measurement-value": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM=",
+      "signer-id": "BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ="
+    }
+  ],
+  "psa-software-components": [
+    {
+      "measurement-type": "BL",
+      "measurement-value": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA=",
+      "signer-id": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA="
+    },
+    {
+      "measurement-type": "PRoT",
+      "measurement-value": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA=",
+      "signer-id": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA="
+    }
+  ],
+  "cca-platform-service-indicator" : "https://veraison.example/v1/challenge-response",
+  "cca-platform-hash-algo-id": "sha-256"
+}

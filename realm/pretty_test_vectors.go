@@ -1,4 +1,4 @@
-package ccatoken
+package realm
 
 // automatically generated from CcaRealmClaimsAll.diag
 var testEncodedCcaRealmClaimsAll = `
