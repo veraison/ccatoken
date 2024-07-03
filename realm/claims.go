@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/veraison/eat"
+	"github.com/veraison/psatoken"
 )
 
 type Claims struct {
@@ -21,7 +22,7 @@ type Claims struct {
 // Setters
 
 func (c *Claims) SetChallenge(v []byte) error {
-	if err := isValidChallenge(v); err != nil {
+	if err := ValidateChallenge(v); err != nil {
 		return err
 	}
 
@@ -35,7 +36,7 @@ func (c *Claims) SetChallenge(v []byte) error {
 }
 
 func (c *Claims) SetPersonalizationValue(v []byte) error {
-	if err := isValidPersonalizationValue(v); err != nil {
+	if err := ValidatePersonalizationValue(v); err != nil {
 		return err
 	}
 
@@ -44,7 +45,7 @@ func (c *Claims) SetPersonalizationValue(v []byte) error {
 }
 
 func (c *Claims) SetInitialMeasurement(v []byte) error {
-	if err := isValidRealmMeas(v); err != nil {
+	if err := ValidateRealmMeas(v); err != nil {
 		return err
 	}
 
@@ -53,7 +54,7 @@ func (c *Claims) SetInitialMeasurement(v []byte) error {
 }
 
 func (c *Claims) SetExtensibleMeasurements(v [][]byte) error {
-	if err := isValidExtensibleMeas(v); err != nil {
+	if err := ValidateExtendedMeas(v); err != nil {
 		return err
 	}
 
@@ -62,7 +63,7 @@ func (c *Claims) SetExtensibleMeasurements(v [][]byte) error {
 }
 
 func (c *Claims) SetHashAlgID(v string) error {
-	if err := isValidHashAlgID(v); err != nil {
+	if err := ValidateHashAlgID(v); err != nil {
 		return err
 	}
 
@@ -71,7 +72,7 @@ func (c *Claims) SetHashAlgID(v string) error {
 }
 
 func (c *Claims) SetPubKey(v []byte) error {
-	if err := isValidRealmPubKey(v); err != nil {
+	if err := ValidateRealmPubKey(v); err != nil {
 		return err
 	}
 
@@ -81,7 +82,7 @@ func (c *Claims) SetPubKey(v []byte) error {
 
 func (c *Claims) SetPubKeyHashAlgID(v string) error {
 	if v == "" {
-		return fmt.Errorf("invalid null string set for cca-realm-pubkey-hash-algo-id")
+		return fmt.Errorf("invalid null string set for realm pubkey hash alg ID")
 	}
 
 	c.PublicKeyHashAlgID = &v
@@ -91,21 +92,20 @@ func (c *Claims) SetPubKeyHashAlgID(v string) error {
 // Getters
 func (c Claims) GetChallenge() ([]byte, error) {
 	v := c.Challenge
-
 	if v == nil {
-		return nil, ErrMandatoryClaimMissing
+		return nil, psatoken.ErrMandatoryClaimMissing
 	}
 
 	l := v.Len()
-
 	if l != 1 {
-		return nil, fmt.Errorf("%w: got %d nonces, want 1", ErrWrongClaimSyntax, l)
+		return nil, fmt.Errorf("%w: got %d nonces, want 1", psatoken.ErrWrongSyntax, l)
 	}
 
 	n := v.GetI(0)
-	if err := isValidChallenge(n); err != nil {
+	if err := ValidateChallenge(n); err != nil {
 		return nil, err
 	}
+
 	return n, nil
 }
 
@@ -113,43 +113,48 @@ func (c Claims) GetPersonalizationValue() ([]byte, error) {
 	v := c.PersonalizationValue
 
 	if v == nil {
-		return nil, ErrMandatoryClaimMissing
+		return nil, psatoken.ErrMandatoryClaimMissing
 	}
-	if err := isValidPersonalizationValue(*v); err != nil {
+
+	if err := ValidatePersonalizationValue(*v); err != nil {
 		return nil, err
 	}
+
 	return *v, nil
 }
 
 func (c Claims) GetInitialMeasurement() ([]byte, error) {
-
 	v := c.InitialMeasurement
 	if v == nil {
-		return nil, ErrMandatoryClaimMissing
+		return nil, psatoken.ErrMandatoryClaimMissing
 	}
-	if err := isValidRealmMeas(*v); err != nil {
+
+	if err := ValidateRealmMeas(*v); err != nil {
 		return nil, err
 	}
+
 	return *v, nil
 }
 
 func (c Claims) GetExtensibleMeasurements() ([][]byte, error) {
 	v := c.ExtensibleMeasurements
 	if v == nil {
-		return nil, ErrMandatoryClaimMissing
+		return nil, psatoken.ErrMandatoryClaimMissing
 	}
-	if err := isValidExtensibleMeas(*v); err != nil {
+
+	if err := ValidateExtendedMeas(*v); err != nil {
 		return nil, err
 	}
+
 	return *v, nil
 }
 
 func (c Claims) GetHashAlgID() (string, error) {
 	v := c.HashAlgID
 	if v == nil {
-		return "", ErrMandatoryClaimMissing
+		return "", psatoken.ErrMandatoryClaimMissing
 	}
-	if err := isValidHashAlgID(*v); err != nil {
+	if err := ValidateHashAlgID(*v); err != nil {
 		return "", err
 	}
 	return *v, nil
@@ -159,10 +164,10 @@ func (c Claims) GetPubKey() ([]byte, error) {
 	v := c.PublicKey
 
 	if v == nil {
-		return nil, ErrMandatoryClaimMissing
+		return nil, psatoken.ErrMandatoryClaimMissing
 	}
 
-	if err := isValidRealmPubKey(*v); err != nil {
+	if err := ValidateRealmPubKey(*v); err != nil {
 		return nil, err
 	}
 
@@ -173,14 +178,15 @@ func (c Claims) GetPubKeyHashAlgID() (string, error) {
 	v := c.PublicKeyHashAlgID
 
 	if v == nil {
-		return "", ErrMandatoryClaimMissing
+		return "", psatoken.ErrMandatoryClaimMissing
 	}
+
 	return *v, nil
 }
 
 // Semantic validation
 func (c Claims) Validate() error {
-	return validate(&c)
+	return ValidateClaims(&c)
 }
 
 // Codecs
@@ -227,13 +233,11 @@ func (c Claims) ToUnvalidatedCBOR() ([]byte, error) {
 }
 
 func (c *Claims) FromJSON(buf []byte) error {
-	err := c.FromUnvalidatedJSON(buf)
-	if err != nil {
+	if err := c.FromUnvalidatedJSON(buf); err != nil {
 		return err
 	}
 
-	err = c.Validate()
-	if err != nil {
+	if err := c.Validate(); err != nil {
 		return fmt.Errorf("validation of CCA realm claims failed: %w", err)
 	}
 
@@ -241,8 +245,7 @@ func (c *Claims) FromJSON(buf []byte) error {
 }
 
 func (c *Claims) FromUnvalidatedJSON(buf []byte) error {
-	err := json.Unmarshal(buf, c)
-	if err != nil {
+	if err := json.Unmarshal(buf, c); err != nil {
 		return fmt.Errorf("JSON decoding of CCA realm claims failed: %w", err)
 	}
 
@@ -250,8 +253,7 @@ func (c *Claims) FromUnvalidatedJSON(buf []byte) error {
 }
 
 func (c Claims) ToJSON() ([]byte, error) {
-	err := c.Validate()
-	if err != nil {
+	if err := c.Validate(); err != nil {
 		return nil, fmt.Errorf("validation of CCA realm claims failed: %w", err)
 	}
 

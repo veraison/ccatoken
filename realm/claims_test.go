@@ -46,27 +46,27 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 	c := NewClaims()
 
 	err := c.SetChallenge([]byte("123"))
-	expectedErr := "wrong syntax for claim: length 3 (cca-hash-type MUST be 64 bytes)"
+	expectedErr := "wrong syntax: length 3 (hash MUST be 64 bytes)"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetPersonalizationValue([]byte("personalizationVal"))
-	expectedErr = "wrong syntax for claim: length 18 (cca-personalization-value MUST be 64 bytes)"
+	expectedErr = "wrong syntax: length 18 (personalization value MUST be 64 bytes)"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetInitialMeasurement([]byte("random"))
-	expectedErr = "wrong syntax for claim: length 6 (cca-realm-measurement MUST be 32, 48 or 64 bytes)"
+	expectedErr = "wrong syntax: length 6 (realm measurement MUST be 32, 48 or 64 bytes)"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetExtensibleMeasurements([][]byte{})
-	expectedErr = "missing mandatory claim cca-realm-extended-measurements"
+	expectedErr = "missing mandatory claim realm extended measurements"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetHashAlgID("")
-	expectedErr = "wrong syntax for claim: empty string"
+	expectedErr = "wrong syntax: empty string"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetPubKey([]byte("not-a-valid-point"))
-	expectedErr = "wrong syntax for claim: length 17 (cca-realm-public-key MUST be 97 bytes)"
+	expectedErr = "wrong syntax: length 17 (realm public key MUST be 97 bytes)"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetPubKey([]byte{
@@ -80,11 +80,11 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 		0xff,
 	})
-	expectedErr = "wrong syntax for claim: checking raw public key coordinates are on curve P-384: failed to unmarshal elliptic curve point"
+	expectedErr = "wrong syntax: checking raw public key coordinates are on curve P-384: failed to unmarshal elliptic curve point"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetPubKeyHashAlgID("")
-	expectedErr = "invalid null string set for cca-realm-pubkey-hash-algo-id"
+	expectedErr = "invalid null string set for realm pubkey hash alg ID"
 	assert.EqualError(t, err, expectedErr)
 }
 
@@ -92,7 +92,7 @@ func Test_CcaRealmClaims_ToCBOR_invalid(t *testing.T) {
 	c := NewClaims()
 
 	_, err := c.ToCBOR()
-	expectedErr := `validation of CCA realm claims failed: validating cca-realm-challenge claim: missing mandatory claim`
+	expectedErr := `validation of CCA realm claims failed: validating realm challenge claim: missing mandatory claim`
 	assert.EqualError(t, err, expectedErr)
 }
 
@@ -160,7 +160,7 @@ func Test_CcaRealmClaims_FromCBOR_bad_input(t *testing.T) {
 func Test_CcaRealmClaims_FromCBOR_missing_mandatory_claims(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaRealmClaimsMissingMandNonce)
 
-	expectedErr := "validation of CCA realm claims failed: validating cca-realm-challenge claim: missing mandatory claim"
+	expectedErr := "validation of CCA realm claims failed: validating realm challenge claim: missing mandatory claim"
 
 	var c Claims
 	err := c.FromCBOR(buf)
@@ -168,28 +168,28 @@ func Test_CcaRealmClaims_FromCBOR_missing_mandatory_claims(t *testing.T) {
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandInitialMeas)
 
-	expectedErr = "validation of CCA realm claims failed: validating cca-realm-initial-measurements claim: missing mandatory claim"
+	expectedErr = "validation of CCA realm claims failed: validating realm initial measurements claim: missing mandatory claim"
 	c = Claims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandHashAlgID)
 
-	expectedErr = "validation of CCA realm claims failed: validating cca-realm-hash-alg-id claim: missing mandatory claim"
+	expectedErr = "validation of CCA realm claims failed: validating realm hash alg ID claim: missing mandatory claim"
 	c = Claims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandPubKey)
 
-	expectedErr = "validation of CCA realm claims failed: validating cca-realm-public-key claim: missing mandatory claim"
+	expectedErr = "validation of CCA realm claims failed: validating realm public key claim: missing mandatory claim"
 	c = Claims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandExtendedMeas)
 
-	expectedErr = "validation of CCA realm claims failed: validating cca-realm-extended-measurements claim: missing mandatory claim"
+	expectedErr = "validation of CCA realm claims failed: validating realm extended measurements claim: missing mandatory claim"
 	c = Claims{}
 	err = c.FromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
