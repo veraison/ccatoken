@@ -448,7 +448,7 @@ func TestEvidence_SetClaims_invalid_realm(t *testing.T) {
 	err = incompleteRealmClaims.SetPubKeyHashAlgID("sha-256")
 	require.NoError(t, err)
 
-	expectedErr := "validation of cca-realm-claims failed: validating cca-realm-challenge claim: missing mandatory claim"
+	expectedErr := "validation of cca-realm-claims failed: validating realm challenge claim: missing mandatory claim"
 
 	var e Evidence
 

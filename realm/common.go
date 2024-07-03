@@ -5,92 +5,93 @@ import (
 	"crypto/elliptic"
 	"errors"
 	"fmt"
+
+	"github.com/veraison/psatoken"
 )
 
 const (
 	MaxLenRealmExtendedMeas = 4
 )
 
-func isCcaHashType(b []byte) error {
-	l := len(b)
+func ValidateChallenge(v []byte) error {
+	l := len(v)
 
 	if l != 64 {
 		return fmt.Errorf(
-			"%w: length %d (cca-hash-type MUST be 64 bytes)",
-			ErrWrongClaimSyntax, l,
+			"%w: length %d (hash MUST be 64 bytes)",
+			psatoken.ErrWrongSyntax, l,
 		)
 	}
 
 	return nil
 }
 
-func isValidChallenge(v []byte) error {
-	if err := isCcaHashType(v); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func isValidPersonalizationValue(b []byte) error {
+func ValidatePersonalizationValue(b []byte) error {
 	l := len(b)
 
 	if l != 64 {
 		return fmt.Errorf(
-			"%w: length %d (cca-personalization-value MUST be 64 bytes)",
-			ErrWrongClaimSyntax, l,
+			"%w: length %d (personalization value MUST be 64 bytes)",
+			psatoken.ErrWrongSyntax, l,
 		)
 	}
 	return nil
 }
 
-func isValidRealmPubKey(b []byte) error {
+func ValidateRealmPubKey(b []byte) error {
 	// Realm Public Key is ECC Public key of type ECC-P384 of size 97 bytes
 	l := len(b)
+
 	if l != 97 {
 		return fmt.Errorf(
-			"%w: length %d (cca-realm-public-key MUST be 97 bytes)",
-			ErrWrongClaimSyntax, l,
+			"%w: length %d (realm public key MUST be 97 bytes)",
+			psatoken.ErrWrongSyntax, l,
 		)
 	}
 
 	if _, err := ecdsaPublicKeyFromRaw(b); err != nil {
 		return fmt.Errorf(
 			"%w: checking raw public key coordinates are on curve P-384: %v",
-			ErrWrongClaimSyntax, err,
+			psatoken.ErrWrongSyntax, err,
 		)
 	}
 
 	return nil
 }
-func isValidRealmMeas(b []byte) error {
+
+func ValidateRealmMeas(b []byte) error {
 	l := len(b)
 
 	if l != 32 && l != 48 && l != 64 {
 		return fmt.Errorf(
-			"%w: length %d (cca-realm-measurement MUST be 32, 48 or 64 bytes)",
-			ErrWrongClaimSyntax, l,
+			"%w: length %d (realm measurement MUST be 32, 48 or 64 bytes)",
+			psatoken.ErrWrongSyntax, l,
 		)
 	}
+
 	return nil
 }
 
-func isValidHashAlgID(v string) error {
+func ValidateHashAlgID(v string) error {
 	if v == "" {
-		return fmt.Errorf("%w: empty string", ErrWrongClaimSyntax)
+		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
 	}
+
 	return nil
 }
 
-func isValidExtensibleMeas(v [][]byte) error {
+func ValidateExtendedMeas(v [][]byte) error {
 	if len(v) == 0 {
-		return fmt.Errorf("%w cca-realm-extended-measurements", ErrMandatoryClaimMissing)
+		return fmt.Errorf("%w realm extended measurements",
+			psatoken.ErrMandatoryClaimMissing)
 	}
+
 	for i, meas := range v {
-		if err := isValidRealmMeas(meas); err != nil {
-			return fmt.Errorf("incorrect cca-realm-extended-measurement at index %d: %w", i, err)
+		if err := ValidateRealmMeas(meas); err != nil {
+			return fmt.Errorf("incorrect realm extended measurement at index %d: %w", i, err)
 		}
 	}
+
 	return nil
 }
 
