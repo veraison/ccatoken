@@ -13,6 +13,9 @@ import (
 
 const ProfileName = "http://arm.com/CCA-SSD/1.0.0"
 
+// Profile is the psatoken.IProfile implementation for CCA claims. It is
+// registered to associate the claims with the profile name, so that it can be
+// automatically used during unmarshaling.
 type Profile struct{}
 
 func (o Profile) GetName() string {
@@ -23,6 +26,8 @@ func (o Profile) GetClaims() psatoken.IClaims {
 	return NewClaims()
 }
 
+// Claims contains the CCA platform claims. It implements IClaims, which is an
+// extension of psatoken.IClaims.
 type Claims struct {
 	Profile           *eat.Profile           `cbor:"265,keyasint" json:"cca-platform-profile"`
 	Challenge         *eat.Nonce             `cbor:"10,keyasint" json:"cca-platform-challenge"`
@@ -38,6 +43,7 @@ type Claims struct {
 	CanonicalProfile string `cbor:"-" json:"-"`
 }
 
+// NewClaims claims returns a new instance of Claims.
 func NewClaims() IClaims {
 	p := eat.Profile{}
 	if err := p.Set(ProfileName); err != nil {

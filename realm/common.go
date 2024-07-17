@@ -13,6 +13,8 @@ const (
 	MaxLenRealmExtendedMeas = 4
 )
 
+// ValidateChallenge returns an error if the provided value does not contain a
+// valid CCA challenge.
 func ValidateChallenge(v []byte) error {
 	l := len(v)
 
@@ -26,6 +28,8 @@ func ValidateChallenge(v []byte) error {
 	return nil
 }
 
+// ValidatePersonalizationValue returns an error if the provided value is not a
+// valid personalization value (must be exactly 64 bytes long).
 func ValidatePersonalizationValue(b []byte) error {
 	l := len(b)
 
@@ -38,8 +42,9 @@ func ValidatePersonalizationValue(b []byte) error {
 	return nil
 }
 
+// ValidateRealmPubKey returns an error if the provided value does not contain
+// a valid realm public key (must 97-byte ECC-P384).
 func ValidateRealmPubKey(b []byte) error {
-	// Realm Public Key is ECC Public key of type ECC-P384 of size 97 bytes
 	l := len(b)
 
 	if l != 97 {
@@ -59,6 +64,8 @@ func ValidateRealmPubKey(b []byte) error {
 	return nil
 }
 
+// ValidateRealmMeas returns an error if the provided value does not contain a
+// valid realm measurement (must be 32, 48, or 64 bytes long).
 func ValidateRealmMeas(b []byte) error {
 	l := len(b)
 
@@ -72,6 +79,8 @@ func ValidateRealmMeas(b []byte) error {
 	return nil
 }
 
+// ValidateHashAlgID returns an error if the provided value is not a valid
+// hash algorithm string.
 func ValidateHashAlgID(v string) error {
 	if v == "" {
 		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
@@ -80,6 +89,9 @@ func ValidateHashAlgID(v string) error {
 	return nil
 }
 
+// ValidateExtendedMeas returns an error if the provided slice does not contain
+// valid realm extended measurements (it must be non-empty, and each value must
+// be a valid ream measurement).
 func ValidateExtendedMeas(v [][]byte) error {
 	if len(v) == 0 {
 		return fmt.Errorf("%w realm extended measurements",

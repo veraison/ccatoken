@@ -9,6 +9,7 @@ import (
 	"github.com/veraison/psatoken"
 )
 
+// IClaims extends psatoken.IClaims to add accessors for CCA  claims.
 type IClaims interface {
 	psatoken.IClaims
 
@@ -19,6 +20,7 @@ type IClaims interface {
 	SetHashAlgID(string) error
 }
 
+// DecodeClaims unmarshals CCA platform claims from provided CBOR data.
 func DecodeClaims(buf []byte) (IClaims, error) {
 	cl := NewClaims()
 
@@ -29,6 +31,8 @@ func DecodeClaims(buf []byte) (IClaims, error) {
 	return cl, nil
 }
 
+// ValidateClaims returns an error if the provided IClaims instance does not
+// contain a valid set of CCA platform claims.
 func ValidateClaims(c IClaims) error {
 	if err := psatoken.ValidateClaims(c); err != nil {
 		return err

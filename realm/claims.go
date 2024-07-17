@@ -9,6 +9,8 @@ import (
 	"github.com/veraison/psatoken"
 )
 
+// Claims contains the CCA realm claims. It implements IClaims, which is an
+// extension of psatoken.IClaimBase.
 type Claims struct {
 	Challenge              *eat.Nonce `cbor:"10,keyasint" json:"cca-realm-challenge"`
 	PersonalizationValue   *[]byte    `cbor:"44235,keyasint" json:"cca-realm-personalization-value"`
