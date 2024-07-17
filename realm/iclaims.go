@@ -32,10 +32,12 @@ type IClaims interface {
 	SetPubKeyHashAlgID(string) error
 }
 
+// NewClaims returns a new instance of platform Claims.
 func NewClaims() IClaims {
 	return &Claims{}
 }
 
+// DecodeClaims unmarshals CCA realm claims from provided CBOR data.
 func DecodeClaims(buf []byte) (IClaims, error) {
 	cl := &Claims{}
 
@@ -46,6 +48,8 @@ func DecodeClaims(buf []byte) (IClaims, error) {
 	return cl, nil
 }
 
+// ValidateClaims returns an error if the provided IClaims instance does not
+// contain a valid set of CCA realm claims.
 func ValidateClaims(c IClaims) error {
 	if err := psatoken.FilterError(c.GetChallenge()); err != nil {
 		return fmt.Errorf("validating realm challenge claim: %w", err)

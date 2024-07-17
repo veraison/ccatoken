@@ -20,11 +20,15 @@ import (
 	cose "github.com/veraison/go-cose"
 )
 
+// CBORCollection is a wrapper containing the CBOR data for both platform and
+// realm tokens.
 type CBORCollection struct {
 	PlatformToken *[]byte `cbor:"44234,keyasint"`
 	RealmToken    *[]byte `cbor:"44241,keyasint"`
 }
 
+// JSONCollection is a wrapper containing the JSON data for both platform and
+// realm tokens.
 type JSONCollection struct {
 	PlatformToken json.RawMessage `json:"cca-platform-token,omitempty"`
 	RealmToken    json.RawMessage `json:"cca-realm-delegated-token,omitempty"`

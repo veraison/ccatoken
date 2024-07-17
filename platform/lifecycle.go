@@ -26,6 +26,9 @@ const (
 	LifecycleDecommissionedMax              = 0x60ff
 )
 
+// LifeCycleState indicates the life cycle state of attested device. The state
+// is derived from the life cycle claim value, with a range of values mapping
+// onto each state.
 type LifeCycleState uint16
 
 const (
@@ -40,10 +43,12 @@ const (
 	StateInvalid // must be last
 )
 
+// IsValid returns true if the LifeCycleState has a valid value.
 func (o LifeCycleState) IsValid() bool {
 	return o < StateInvalid
 }
 
+// String returns a string representation of the life cycle state.
 func (o LifeCycleState) String() string {
 	switch o {
 	case StateUnknown:
@@ -65,6 +70,9 @@ func (o LifeCycleState) String() string {
 	}
 }
 
+// LifeCycleToState translates the provide life cycle claim value into
+// corresponding LifeCycleState.If the value is not within valid range, then
+// StateInvalid is returned.
 func LifeCycleToState(v uint16) LifeCycleState {
 	if v >= LifecycleUnknownMin &&
 		v <= LifecycleUnknownMax {
@@ -104,6 +112,8 @@ func LifeCycleToState(v uint16) LifeCycleState {
 	return StateInvalid
 }
 
+// ValidateSecurityLifeCycle returns an error if the provided value does not
+// correspond to a valid LifeCycleState.
 func ValidateSecurityLifeCycle(v uint16) error {
 	if !LifeCycleToState(v).IsValid() {
 		return fmt.Errorf("%w: value %d is invalid", psatoken.ErrWrongSyntax, v)
