@@ -34,6 +34,73 @@ type JSONCollection struct {
 	RealmToken    json.RawMessage `json:"cca-realm-delegated-token,omitempty"`
 }
 
+// DecodeAndValidateEvidenceFromCBOR unmarshals CCA claims collection from
+// provided CBOR and validates both sets of claims.
+func DecodeAndValidateEvidenceFromCBOR(buf []byte) (*Evidence, error) {
+	ev, err := DecodeEvidenceFromCBOR(buf)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ev.Validate(); err != nil {
+		return nil, err
+	}
+
+	return ev, nil
+}
+
+// DecodeEvidenceFromCBOR unmarshals CCA claims collection from provided CBOR.
+func DecodeEvidenceFromCBOR(buf []byte) (*Evidence, error) {
+	ev := &Evidence{}
+
+	if err := ev.UnmarshalCBOR(buf); err != nil {
+		return nil, err
+	}
+
+	return ev, nil
+}
+
+// DecodeAndValidateEvidenceFromJSON unmarshals CCA claims collection from
+// provided JSON and validates both sets of claims.
+func DecodeAndValidateEvidenceFromJSON(buf []byte) (*Evidence, error) {
+	ev, err := DecodeEvidenceFromJSON(buf)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ev.Validate(); err != nil {
+		return nil, err
+	}
+
+	return ev, nil
+}
+
+// DecodeEvidenceFromJSON unmarshals CCA claims collection from provided JSON.
+func DecodeEvidenceFromJSON(buf []byte) (*Evidence, error) {
+	ev := &Evidence{}
+
+	if err := ev.UnmarshalJSON(buf); err != nil {
+		return nil, err
+	}
+
+	return ev, nil
+}
+
+// ValidateAndEncodeEvidenceToJSON validates and then marshals CCA evidence
+// to JSON.
+func ValidateAndEncodeEvidenceToJSON(e *Evidence) ([]byte, error) {
+	if err := e.Validate(); err != nil {
+		return nil, err
+	}
+
+	return EncodeEvidenceToJSON(e)
+}
+
+// EncodeEvidenceToJSON marshals CCA evidence to JSON.
+func EncodeEvidenceToJSON(e *Evidence) ([]byte, error) {
+	return json.Marshal(e)
+}
+
 // Evidence is a wrapper around CcaToken
 type Evidence struct {
 	PlatformClaims platform.IClaims
@@ -41,17 +108,62 @@ type Evidence struct {
 	collection     *CBORCollection
 }
 
-func (e *Evidence) MarshalJSON() ([]byte, error) {
-	if e.PlatformClaims == nil || e.RealmClaims == nil {
-		return nil, errors.New("invalid evidence")
+// Validate that both platform and realm cliams have been set and are valid.
+func (e *Evidence) Validate() error {
+	if e.PlatformClaims == nil && e.RealmClaims == nil {
+		return errors.New("claims not set in evidence")
+	} else if e.PlatformClaims == nil {
+		return errors.New("missing platform claims")
+	} else if e.RealmClaims == nil {
+		return errors.New("missing realm claims")
 	}
 
-	pj, err := e.PlatformClaims.ToJSON()
+	if err := e.PlatformClaims.Validate(); err != nil {
+		return fmt.Errorf("validation of cca-platform-claims failed: %w", err)
+	}
+
+	if err := e.RealmClaims.Validate(); err != nil {
+		return fmt.Errorf("validation of cca-realm-claims failed: %w", err)
+	}
+
+	return nil
+}
+
+// UnmarshalCBOR extracts the realm and platform tokens from the serialized
+// collection.
+func (e *Evidence) UnmarshalCBOR(buf []byte) error {
+	e.collection = &CBORCollection{}
+
+	err := dm.Unmarshal(buf, e.collection)
+	if err != nil {
+		return fmt.Errorf("CBOR decoding of CCA evidence failed: %w", err)
+	}
+
+	if e.collection.PlatformToken == nil {
+		return fmt.Errorf("CCA platform token not set")
+	}
+
+	if e.collection.RealmToken == nil {
+		return fmt.Errorf("CCA realm token not set")
+	}
+
+	// This will decode both platform and realm claims
+	err = e.decodeClaimsFromCBOR()
+	if err != nil {
+		return fmt.Errorf("decoding of CCA evidence failed: %w", err)
+	}
+
+	return nil
+}
+
+// MarshalJSON encodes the realm and platform claims into a JSON object.
+func (e *Evidence) MarshalJSON() ([]byte, error) {
+	pj, err := platform.EncodeClaimsToJSON(e.PlatformClaims)
 	if err != nil {
 		return nil, fmt.Errorf("error serializing platform claims: %w", err)
 	}
 
-	rj, err := e.RealmClaims.ToJSON()
+	rj, err := realm.EncodeClaimsToJSON(e.RealmClaims)
 	if err != nil {
 		return nil, fmt.Errorf("error serializing realm claims: %w", err)
 	}
@@ -64,109 +176,27 @@ func (e *Evidence) MarshalJSON() ([]byte, error) {
 	return json.Marshal(c)
 }
 
-func (e *Evidence) MarshalUnvalidatedJSON() ([]byte, error) {
-	var pj, rj []byte
-	var err error
-
-	if e.PlatformClaims != nil {
-		pj, err = e.PlatformClaims.ToUnvalidatedJSON()
-		if err != nil {
-			return nil, fmt.Errorf("error serializing platform claims: %w", err)
-		}
-	}
-
-	if e.RealmClaims != nil {
-		rj, err = e.RealmClaims.ToUnvalidatedJSON()
-		if err != nil {
-			return nil, fmt.Errorf("error serializing realm claims: %w", err)
-		}
-	}
-
-	c := JSONCollection{
-		PlatformToken: pj,
-		RealmToken:    rj,
-	}
-
-	return json.Marshal(c)
-}
-
+// UnmarshalJSON extracts the realm and platform tokens from the serialized
+// collection.
 func (e *Evidence) UnmarshalJSON(data []byte) error {
 	p, r, err := e.doUnmarshalJSON(data)
 	if err != nil {
 		return err
 	}
 
-	if p == nil {
-		return errors.New("unmarshaling CCA claims: missing platform claims")
-
-	}
-	if r == nil {
-		return errors.New("unmarshaling CCA claims: missing realm claims")
-	}
-
-	if err := e.SetClaims(p, r); err != nil {
-		return fmt.Errorf("setting claims: %w", err)
-	}
+	e.SetUnvalidatedClaims(p, r)
 
 	return nil
 }
 
-func (e *Evidence) UnmarshalUnvalidatedJSON(data []byte) error {
-	p, r, err := e.doUnmarshalJSON(data)
-	if err != nil {
-		return err
-	}
-
-	if err := e.SetUnvalidatedClaims(p, r); err != nil {
-		return fmt.Errorf("setting claims: %w", err)
-	}
-
-	return nil
-}
-
-func (e *Evidence) doUnmarshalJSON(data []byte) (platform.IClaims, realm.IClaims, error) {
-	var c map[string]json.RawMessage
-
-	if err := json.Unmarshal(data, &c); err != nil {
-		return nil, nil, fmt.Errorf("unmarshaling CCA claims: %w", err)
-	}
-
-	// platform
-	var p platform.IClaims
-	platToken, ok := c["cca-platform-token"]
-	if ok {
-		p = platform.NewClaims()
-
-		if err := json.Unmarshal(platToken, &p); err != nil {
-			return nil, nil, fmt.Errorf("unmarshaling platform claims: %w", err)
-		}
-	}
-
-	// realm
-	var r realm.IClaims
-	realmToken, ok := c["cca-realm-delegated-token"]
-	if ok {
-		r = realm.NewClaims()
-
-		if err := json.Unmarshal(realmToken, &r); err != nil {
-			return nil, nil, fmt.Errorf("unmarshaling realm claims: %w", err)
-		}
-	}
-
-	return p, r, nil
-}
-
+// SetClaims sets the specified realm and platform claims in the evidence aend
+// ensures they are valid.
 func (e *Evidence) SetClaims(p platform.IClaims, r realm.IClaims) error {
 	if p == nil || r == nil {
 		return errors.New("nil claims supplied")
 	}
 
-	if err := e.SetUnvalidatedClaims(p, r); err != nil {
-		return err
-	}
-
-	e.RealmClaims = r
-	e.PlatformClaims = p
+	e.SetUnvalidatedClaims(p, r)
 
 	// This call will set the nonce in the platform claims based on the RAK and
 	// hash algorithm in the realm claims.
@@ -185,7 +215,8 @@ func (e *Evidence) SetClaims(p platform.IClaims, r realm.IClaims) error {
 	return nil
 }
 
-func (e *Evidence) SetUnvalidatedClaims(p platform.IClaims, r realm.IClaims) error {
+// SetUnvalidatedClaims is the same as SetClaims but without validation.
+func (e *Evidence) SetUnvalidatedClaims(p platform.IClaims, r realm.IClaims) {
 	e.RealmClaims = r
 	e.PlatformClaims = p
 
@@ -194,17 +225,22 @@ func (e *Evidence) SetUnvalidatedClaims(p platform.IClaims, r realm.IClaims) err
 	if p != nil && r != nil {
 		_ = e.bind()
 	}
+}
 
-	return nil
+// ValidateAndSign validates and then signs the given evidence using the
+// supplied Platform and Realm Signer and returns the complete CCA token as
+// CBOR bytes
+func (e *Evidence) ValidateAndSign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error) {
+	if err := e.Validate(); err != nil {
+		return nil, err
+	}
+
+	return e.Sign(pSigner, rSigner)
 }
 
 // Sign signs the given evidence using the supplied Platform and Realm Signer
 // and returns the complete CCA token as CBOR bytes
 func (e *Evidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error) {
-	if e.PlatformClaims == nil || e.RealmClaims == nil {
-		return nil, fmt.Errorf("claims not set in evidence")
-	}
-
 	if pSigner == nil || rSigner == nil {
 		return nil, fmt.Errorf("nil signer(s) supplied")
 	}
@@ -231,157 +267,6 @@ func (e *Evidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error
 	}
 
 	return buf, nil
-}
-
-// Sign signs the given evidence using the supplied Platform and Realm Signer
-// and returns the complete CCA token as CBOR bytes
-func (e *Evidence) SignUnvalidated(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error) {
-	if pSigner == nil || rSigner == nil {
-		return nil, fmt.Errorf("nil signer(s) supplied")
-	}
-
-	var err error
-	var platformToken []byte
-
-	if e.PlatformClaims != nil {
-		platformToken, err = signUnvalidatedClaims(e.PlatformClaims, pSigner)
-		if err != nil {
-			return nil, fmt.Errorf("signing platform claims: %w", err)
-
-		}
-	} else {
-		platformToken = []byte("")
-	}
-
-	var realmToken []byte
-	if e.RealmClaims != nil {
-		realmToken, err = signUnvalidatedClaims(e.RealmClaims, rSigner)
-		if err != nil {
-			return nil, fmt.Errorf("signing realm claims: %w", err)
-		}
-	} else {
-		realmToken = []byte("")
-	}
-
-	e.collection = &CBORCollection{
-		PlatformToken: &platformToken,
-		RealmToken:    &realmToken,
-	}
-
-	// We do now have CcaPlatform and Realm Token setup correctly.
-	buf, err := em.Marshal(e.collection)
-	if err != nil {
-		return nil, fmt.Errorf("CBOR encoding of CCA token failed: %w", err)
-	}
-
-	return buf, nil
-}
-
-type CBORClaimer interface {
-	ToCBOR() ([]byte, error)
-	ToUnvalidatedCBOR() ([]byte, error)
-}
-
-func signClaims(claimer CBORClaimer, signer cose.Signer) ([]byte, error) {
-	claimSet, err := claimer.ToCBOR()
-	if err != nil {
-		return nil, fmt.Errorf("CBOR encoding the payload: %w", err)
-	}
-
-	return signPayload(claimSet, signer)
-}
-
-func signUnvalidatedClaims(claimer CBORClaimer, signer cose.Signer) ([]byte, error) {
-	claimSet, err := claimer.ToUnvalidatedCBOR()
-	if err != nil {
-		return nil, fmt.Errorf("CBOR encoding the payload: %w", err)
-	}
-
-	return signPayload(claimSet, signer)
-}
-
-func signPayload(payload []byte, signer cose.Signer) ([]byte, error) {
-	alg := signer.Algorithm()
-	if strings.Contains(alg.String(), "unknown algorithm value") {
-		return nil, errors.New("signer has no algorithm")
-	}
-
-	message := cose.NewSign1Message()
-	message.Payload = payload
-	message.Headers.Protected.SetAlgorithm(alg)
-
-	err := message.Sign(rand.Reader, []byte(""), signer)
-	if err != nil {
-		return nil, fmt.Errorf("COSE Sign1 failed: %w", err)
-	}
-
-	sign1, err := message.MarshalCBOR()
-	if err != nil {
-		return nil, fmt.Errorf("CBOR encoding the COSE Sign1: %w", err)
-	}
-
-	return sign1, nil
-}
-
-// FromCBOR extracts and validates the realm and platform tokens from the
-// serialized collection.
-func (e *Evidence) FromCBOR(buf []byte) error {
-	e.collection = &CBORCollection{}
-
-	err := dm.Unmarshal(buf, e.collection)
-	if err != nil {
-		return fmt.Errorf("CBOR decoding of CCA evidence failed: %w", err)
-	}
-
-	if e.collection.PlatformToken == nil {
-		return fmt.Errorf("CCA platform token not set")
-	}
-
-	if e.collection.RealmToken == nil {
-		return fmt.Errorf("CCA realm token not set")
-	}
-
-	// This will decode both platform and realm claims
-	err = e.decodeClaims()
-	if err != nil {
-		return fmt.Errorf("decoding of CCA evidence failed: %w", err)
-	}
-
-	return nil
-}
-
-func (e *Evidence) decodeClaims() error {
-	if e.collection.RealmToken == nil || e.collection.PlatformToken == nil {
-		panic("broken invariant: nil tokens")
-	}
-
-	// decode platform
-	pSign1 := cose.NewSign1Message()
-
-	if err := pSign1.UnmarshalCBOR(*e.collection.PlatformToken); err != nil {
-		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
-	}
-
-	PlatformClaims, err := platform.DecodeClaims(pSign1.Payload)
-	if err != nil {
-		return fmt.Errorf("failed CBOR decoding of CCA platform claims: %w", err)
-	}
-	e.PlatformClaims = PlatformClaims
-
-	// decode realm
-	rSign1 := cose.NewSign1Message()
-
-	if err = rSign1.UnmarshalCBOR(*e.collection.RealmToken); err != nil {
-		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
-	}
-
-	RealmClaims, err := realm.DecodeClaims(rSign1.Payload)
-	if err != nil {
-		return fmt.Errorf("failed CBOR decoding of CCA realm claims: %w", err)
-	}
-	e.RealmClaims = RealmClaims
-
-	return nil
 }
 
 // Verify verifies the CCA evidence using the supplied platform public key.
@@ -430,6 +315,133 @@ func (e *Evidence) Verify(iak crypto.PublicKey) error {
 	}
 
 	return nil
+}
+
+// GetInstanceID returns the InstanceID from CCA platform token
+// or a nil pointer if no suitable InstanceID could be located.
+func (e *Evidence) GetInstanceID() *[]byte {
+	instID, err := e.PlatformClaims.GetInstID()
+	if err != nil {
+		return nil
+	}
+	return &instID
+}
+
+// GetImplementationID returns the ImplementationID from CCA platform token
+// or a nil pointer if no suitable ImplementationID could be located.
+func (e *Evidence) GetImplementationID() *[]byte {
+	implID, err := e.PlatformClaims.GetImplID()
+	if err != nil {
+		return nil
+	}
+	return &implID
+}
+
+// GetRealmPublicKey returns the RMM Public Key
+// RMM Public Key is used to verify the signature on the Realm Token
+func (e *Evidence) GetRealmPublicKey() *[]byte {
+	pubKey, err := e.RealmClaims.GetPubKey()
+	if err != nil {
+		return nil
+	}
+	return &pubKey
+}
+
+func (e *Evidence) doUnmarshalJSON(data []byte) (platform.IClaims, realm.IClaims, error) {
+	var c map[string]json.RawMessage
+	var err error
+
+	if err = json.Unmarshal(data, &c); err != nil {
+		return nil, nil, fmt.Errorf("unmarshaling CCA claims: %w", err)
+	}
+
+	// platform
+	var p platform.IClaims
+	platToken, ok := c["cca-platform-token"]
+	if ok && platToken != nil {
+		p, err = platform.DecodeClaimsFromJSON(platToken)
+		if err != nil {
+			return nil, nil, fmt.Errorf("unmarshaling platform claims: %w", err)
+		}
+	}
+
+	// realm
+	var r realm.IClaims
+	realmToken, ok := c["cca-realm-delegated-token"]
+	if ok && realmToken != nil {
+		r, err = realm.DecodeClaimsFromJSON(realmToken)
+		if err != nil {
+			return nil, nil, fmt.Errorf("unmarshaling realm claims: %w", err)
+		}
+	}
+
+	return p, r, nil
+}
+
+func (e *Evidence) decodeClaimsFromCBOR() error {
+	if e.collection.RealmToken == nil || e.collection.PlatformToken == nil {
+		panic("broken invariant: nil tokens")
+	}
+
+	// decode platform
+	pSign1 := cose.NewSign1Message()
+
+	if err := pSign1.UnmarshalCBOR(*e.collection.PlatformToken); err != nil {
+		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
+	}
+
+	PlatformClaims, err := platform.DecodeClaimsFromCBOR(pSign1.Payload)
+	if err != nil {
+		return fmt.Errorf("failed CBOR decoding of CCA platform claims: %w", err)
+	}
+	e.PlatformClaims = PlatformClaims
+
+	// decode realm
+	rSign1 := cose.NewSign1Message()
+
+	if err = rSign1.UnmarshalCBOR(*e.collection.RealmToken); err != nil {
+		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
+	}
+
+	RealmClaims, err := realm.DecodeClaimsFromCBOR(rSign1.Payload)
+	if err != nil {
+		return fmt.Errorf("failed CBOR decoding of CCA realm claims: %w", err)
+	}
+	e.RealmClaims = RealmClaims
+
+	return nil
+}
+
+func signClaims(claims any, signer cose.Signer) ([]byte, error) {
+	claimSet, err := em.Marshal(claims)
+	if err != nil {
+		return nil, fmt.Errorf("CBOR encoding the payload: %w", err)
+	}
+
+	return signPayload(claimSet, signer)
+}
+
+func signPayload(payload []byte, signer cose.Signer) ([]byte, error) {
+	alg := signer.Algorithm()
+	if strings.Contains(alg.String(), "unknown algorithm value") {
+		return nil, errors.New("signer has no algorithm")
+	}
+
+	message := cose.NewSign1Message()
+	message.Payload = payload
+	message.Headers.Protected.SetAlgorithm(alg)
+
+	err := message.Sign(rand.Reader, []byte(""), signer)
+	if err != nil {
+		return nil, fmt.Errorf("COSE Sign1 failed: %w", err)
+	}
+
+	sign1, err := message.MarshalCBOR()
+	if err != nil {
+		return nil, fmt.Errorf("CBOR encoding the COSE Sign1: %w", err)
+	}
+
+	return sign1, nil
 }
 
 func (e *Evidence) bind() error {
@@ -527,34 +539,4 @@ func (e *Evidence) verifyCOSEToken(token []byte, pk crypto.PublicKey) error {
 	}
 
 	return nil
-}
-
-// GetInstanceID returns the InstanceID from CCA platform token
-// or a nil pointer if no suitable InstanceID could be located.
-func (e *Evidence) GetInstanceID() *[]byte {
-	instID, err := e.PlatformClaims.GetInstID()
-	if err != nil {
-		return nil
-	}
-	return &instID
-}
-
-// GetImplementationID returns the ImplementationID from CCA platform token
-// or a nil pointer if no suitable ImplementationID could be located.
-func (e *Evidence) GetImplementationID() *[]byte {
-	implID, err := e.PlatformClaims.GetImplID()
-	if err != nil {
-		return nil
-	}
-	return &implID
-}
-
-// GetRealmPublicKey returns the RMM Public Key
-// RMM Public Key is used to verify the signature on the Realm Token
-func (e *Evidence) GetRealmPublicKey() *[]byte {
-	pubKey, err := e.RealmClaims.GetPubKey()
-	if err != nil {
-		return nil
-	}
-	return &pubKey
 }

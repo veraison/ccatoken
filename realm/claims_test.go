@@ -88,30 +88,30 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_CcaRealmClaims_ToCBOR_invalid(t *testing.T) {
+func Test_CcaRealmClaims_MarshalCBOR_invalid(t *testing.T) {
 	c := NewClaims()
+	expectedErr := `validating realm challenge claim: missing mandatory claim`
 
-	_, err := c.ToCBOR()
-	expectedErr := `validation of CCA realm claims failed: validating realm challenge claim: missing mandatory claim`
+	_, err := ValidateAndEncodeClaimsToCBOR(c)
+
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_CcaRealmClaims_ToCBOR_all_claims(t *testing.T) {
+func Test_CcaRealmClaims_MarshalCBOR_all_claims(t *testing.T) {
 	c := mustBuildValidCcaRealmClaims(t)
-
 	expected := mustHexDecode(t, testEncodedCcaRealmClaimsAll)
 
-	actual, err := c.ToCBOR()
+	actual, err := ValidateAndEncodeClaimsToCBOR(c)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
-func Test_CcaRealmClaims_FromCBOR_ok(t *testing.T) {
+func Test_CcaRealmClaims_UnmarshalCBOR_ok(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaRealmClaimsAll)
 
-	var c Claims
-	err := c.FromCBOR(buf)
+	c, err := DecodeAndValidateClaimsFromCBOR(buf)
+
 	assert.NoError(t, err)
 
 	// mandatory
@@ -146,57 +146,48 @@ func Test_CcaRealmClaims_FromCBOR_ok(t *testing.T) {
 	assert.Equal(t, expectedPubKey, actualPubKey)
 }
 
-func Test_CcaRealmClaims_FromCBOR_bad_input(t *testing.T) {
+func Test_CcaRealmClaims_UnmarshalCBOR_bad_input(t *testing.T) {
 	buf := mustHexDecode(t, testNotCBOR)
+	expectedErr := "unexpected EOF"
 
-	expectedErr := "CBOR decoding of CCA realm claims failed: unexpected EOF"
-
-	var c Claims
-	err := c.FromCBOR(buf)
+	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_CcaRealmClaims_FromCBOR_missing_mandatory_claims(t *testing.T) {
+func Test_CcaRealmClaims_UnmarshalCBOR_missing_mandatory_claims(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaRealmClaimsMissingMandNonce)
+	expectedErr := "validating realm challenge claim: missing mandatory claim"
 
-	expectedErr := "validation of CCA realm claims failed: validating realm challenge claim: missing mandatory claim"
-
-	var c Claims
-	err := c.FromCBOR(buf)
+	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandInitialMeas)
+	expectedErr = "validating realm initial measurements claim: missing mandatory claim"
 
-	expectedErr = "validation of CCA realm claims failed: validating realm initial measurements claim: missing mandatory claim"
-	c = Claims{}
-	err = c.FromCBOR(buf)
+	_, err = DecodeAndValidateClaimsFromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandHashAlgID)
+	expectedErr = "validating realm hash alg ID claim: missing mandatory claim"
 
-	expectedErr = "validation of CCA realm claims failed: validating realm hash alg ID claim: missing mandatory claim"
-	c = Claims{}
-	err = c.FromCBOR(buf)
+	_, err = DecodeAndValidateClaimsFromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandPubKey)
+	expectedErr = "validating realm public key claim: missing mandatory claim"
 
-	expectedErr = "validation of CCA realm claims failed: validating realm public key claim: missing mandatory claim"
-	c = Claims{}
-	err = c.FromCBOR(buf)
+	_, err = DecodeAndValidateClaimsFromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
 
 	buf = mustHexDecode(t, testEncodedCcaClaimsMissingMandExtendedMeas)
+	expectedErr = "validating realm extended measurements claim: missing mandatory claim"
 
-	expectedErr = "validation of CCA realm claims failed: validating realm extended measurements claim: missing mandatory claim"
-	c = Claims{}
-	err = c.FromCBOR(buf)
+	_, err = DecodeAndValidateClaimsFromCBOR(buf)
 	assert.EqualError(t, err, expectedErr)
-
 }
 
-func Test_CcaRealm_Claims_ToJSON_ok(t *testing.T) {
+func Test_CcaRealm_Claims_MarshalJSON_ok(t *testing.T) {
 	c := mustBuildValidCcaRealmClaims(t)
 
 	expected := `{
@@ -214,12 +205,12 @@ func Test_CcaRealm_Claims_ToJSON_ok(t *testing.T) {
   "cca-realm-public-key": "BIEZWICiIH+5VgMqPLl/XaWvcm/8txXuFkeEp/sWwGCWvdlGKjJlCykSqFUVcNbqHzstH32oonX6ADMPAHhhi8PhSVScgXDTLsVYkKf57HifHxiukusV0iKvlx2XHJZa8Q==",
   "cca-realm-public-key-hash-algo-id": "sha-512"
 }`
-	actual, err := c.ToJSON()
+	actual, err := ValidateAndEncodeClaimsToJSON(c)
 	assert.NoError(t, err)
 	assert.JSONEq(t, expected, string(actual))
 }
 
-func Test_CcaRealmClaims_FromJSON_ok(t *testing.T) {
+func Test_CcaRealmClaims_UnmarshalJSON_ok(t *testing.T) {
 	tv := `{
   "cca-realm-challenge": "QUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQg==",
   "cca-realm-personalization-value": "QURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBRA==",
@@ -235,24 +226,21 @@ func Test_CcaRealmClaims_FromJSON_ok(t *testing.T) {
   "cca-realm-public-key": "BIEZWICiIH+5VgMqPLl/XaWvcm/8txXuFkeEp/sWwGCWvdlGKjJlCykSqFUVcNbqHzstH32oonX6ADMPAHhhi8PhSVScgXDTLsVYkKf57HifHxiukusV0iKvlx2XHJZa8Q==",
   "cca-realm-public-key-hash-algo-id": "sha-512"
 }`
-	var c Claims
-	err := c.FromJSON([]byte(tv))
+	_, err := DecodeAndValidateClaimsFromJSON([]byte(tv))
 
 	assert.NoError(t, err)
 }
 
-func Test_CcaRealmClaims_FromJSON_invalid_json(t *testing.T) {
+func Test_CcaRealmClaims_UnmarshalJSON_invalid_json(t *testing.T) {
 	tv := testNotJSON
+	expectedErr := `unexpected end of JSON input`
 
-	expectedErr := `JSON decoding of CCA realm claims failed: unexpected end of JSON input`
-
-	var c Claims
-	err := c.FromJSON(tv)
+	_, err := DecodeAndValidateClaimsFromJSON(tv)
 
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_CcaRealmClaims_FromJSON_negatives(t *testing.T) {
+func Test_CcaRealmClaims_UnmarshalJSON_negatives(t *testing.T) {
 	tvs := []string{
 		/* 0 */ "testvectors/json/test-invalid-nonce.json",
 		/* 1 */ "testvectors/json/test-invalid-extended-meas.json",
@@ -271,9 +259,8 @@ func Test_CcaRealmClaims_FromJSON_negatives(t *testing.T) {
 		buf, err := os.ReadFile(fn)
 		require.NoError(t, err)
 
-		var claimsSet Claims
+		_, err = DecodeAndValidateClaimsFromJSON(buf)
 
-		err = claimsSet.FromJSON(buf)
 		assert.Error(t, err, "test vector %d failed", i)
 	}
 }

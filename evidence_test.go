@@ -80,14 +80,12 @@ func TestEvidence_sign_and_verify_ok(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	ccaToken, err := EvidenceIn.Sign(pSigner, rSigner)
+	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
 	fmt.Printf("CCA evidence : %x\n", ccaToken)
 
-	var EvidenceOut Evidence
-
-	err = EvidenceOut.FromCBOR(ccaToken)
+	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
 
 	verifier := pubKeyFromJWK(t, testIAK)
@@ -112,14 +110,12 @@ func TestEvidence_sign_and_verify_bad_binder(t *testing.T) {
 	err = EvidenceIn.PlatformClaims.SetNonce([]byte("tampered binder!tampered binder!"))
 	require.NoError(t, err, "overriding binder")
 
-	ccaToken, err := EvidenceIn.Sign(pSigner, rSigner)
+	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
 	fmt.Printf("CCA evidence : %x\n", ccaToken)
 
-	var EvidenceOut Evidence
-
-	err = EvidenceOut.FromCBOR(ccaToken)
+	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
 
 	verifier := pubKeyFromJWK(t, testIAK)
@@ -140,14 +136,12 @@ func TestEvidence_sign_and_verify_platform_key_mismatch(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	ccaToken, err := EvidenceIn.Sign(pSigner, rSigner)
+	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
 	fmt.Printf("CCA evidence : %x\n", ccaToken)
 
-	var EvidenceOut Evidence
-
-	err = EvidenceOut.FromCBOR(ccaToken)
+	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
 
 	mismatchedVerifier := pubKeyFromJWK(t, testAltIAK)
@@ -173,14 +167,12 @@ func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 	err = EvidenceIn.RealmClaims.SetPubKey(testAltRAKPubRaw)
 	assert.NoError(t, err)
 
-	ccaToken, err := EvidenceIn.Sign(pSigner, rSigner)
+	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
 	fmt.Printf("CCA evidence : %x\n", ccaToken)
 
-	var EvidenceOut Evidence
-
-	err = EvidenceOut.FromCBOR(ccaToken)
+	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
 
 	mismatchedVerifier := pubKeyFromJWK(t, testIAK)
@@ -218,10 +210,9 @@ func TestEvidence_sign_unvalidated(t *testing.T) {
 	for _, tv := range testVectors {
 		var EvidenceIn Evidence
 
-		err := EvidenceIn.SetUnvalidatedClaims(tv.Platform, tv.Realm)
-		assert.NoError(t, err)
+		EvidenceIn.SetUnvalidatedClaims(tv.Platform, tv.Realm)
 
-		_, err = EvidenceIn.SignUnvalidated(pSigner, rSigner)
+		_, err := EvidenceIn.Sign(pSigner, rSigner)
 		if tv.Error == "" {
 			assert.NoError(t, err, "signing failed")
 		} else {
@@ -277,8 +268,8 @@ func TestEvidence_GetRealmPubKey_ok(t *testing.T) {
 
 func TestEvidence_MarshalJSON_fail(t *testing.T) {
 	var e Evidence
-	_, err := e.MarshalJSON()
-	assert.EqualError(t, err, "invalid evidence")
+	_, err := ValidateAndEncodeEvidenceToJSON(&e)
+	assert.EqualError(t, err, "claims not set in evidence")
 }
 
 func TestEvidence_MarshalJSON_ok(t *testing.T) {
@@ -308,47 +299,43 @@ func TestEvidence_MarshalUnvalidatedJSON(t *testing.T) {
 
 	expected := testCombinedClaimsJSON
 
-	actual, err := e.MarshalUnvalidatedJSON()
+	actual, err := e.MarshalJSON()
 	assert.NoError(t, err)
 	assert.JSONEq(t, expected, string(actual))
 
 	var empty Evidence
-	actual, err = empty.MarshalUnvalidatedJSON()
+	actual, err = empty.MarshalJSON()
 	assert.NoError(t, err)
 	assert.JSONEq(t, "{}", string(actual))
 }
 
-func TestEvidence_UnmarshalJSON_ok(t *testing.T) {
-	var e Evidence
-
-	err := e.UnmarshalJSON([]byte(testCombinedClaimsJSON))
+func TestEvidence_JSON_round_trip(t *testing.T) {
+	e, err := DecodeAndValidateEvidenceFromJSON([]byte(testCombinedClaimsJSON))
 	assert.NoError(t, err)
+
+	buf, err := ValidateAndEncodeEvidenceToJSON(e)
+	assert.NoError(t, err)
+	assert.JSONEq(t, testCombinedClaimsJSON, string(buf))
 }
 
 func TestEvidence_UnmarshalJSON_missing_platform(t *testing.T) {
-	var e Evidence
+	expectedErr := "missing platform claims"
 
-	expectedErr := "unmarshaling CCA claims: missing platform claims"
-
-	err := e.UnmarshalJSON([]byte(testCombinedClaimsJSONMissingPlatform))
+	_, err := DecodeAndValidateEvidenceFromJSON([]byte(testCombinedClaimsJSONMissingPlatform))
 	assert.EqualError(t, err, expectedErr)
 }
 
 func TestEvidence_UnmarshalJSON_missing_realm(t *testing.T) {
-	var e Evidence
+	expectedErr := "missing realm claims"
 
-	expectedErr := "unmarshaling CCA claims: missing realm claims"
-
-	err := e.UnmarshalJSON([]byte(testCombinedClaimsJSONMissingRealm))
+	_, err := DecodeAndValidateEvidenceFromJSON([]byte(testCombinedClaimsJSONMissingRealm))
 	assert.EqualError(t, err, expectedErr)
 }
 
 func TestEvidence_UnmarshalJSON_syntax_error(t *testing.T) {
-	var e Evidence
-
 	expectedErr := "unmarshaling CCA claims: unexpected end of JSON input"
 
-	err := e.UnmarshalJSON(testNotJSON)
+	_, err := DecodeAndValidateEvidenceFromJSON(testNotJSON)
 	assert.EqualError(t, err, expectedErr)
 }
 
@@ -363,8 +350,7 @@ func TestEvidence_UnmarshalUnvalidatedJSON(t *testing.T) {
 	}
 
 	for _, tv := range testVectors {
-		var e Evidence
-		err := e.UnmarshalUnvalidatedJSON(tv.Bytes)
+		_, err := DecodeEvidenceFromJSON(tv.Bytes)
 
 		if tv.Error == "" {
 			assert.NoError(t, err)
@@ -467,7 +453,7 @@ func TestEvidence_Sign_no_platform_claims(t *testing.T) {
 
 	expectedErr := "claims not set in evidence"
 
-	_, err := e.Sign(unused, unused)
+	_, err := e.ValidateAndSign(unused, unused)
 	assert.EqualError(t, err, expectedErr)
 }
 
@@ -485,7 +471,7 @@ func TestEvidence_Sign_invalid_signers(t *testing.T) {
 
 	expectedErr := "nil signer(s) supplied"
 
-	_, err = e.Sign(invalid, invalid)
+	_, err = e.ValidateAndSign(invalid, invalid)
 	assert.EqualError(t, err, expectedErr)
 }
 
@@ -502,8 +488,7 @@ func TestEvidence_Verify_no_message(t *testing.T) {
 func TestEvidence_Verify_RMM(t *testing.T) {
 	b := mustHexDecode(t, testRMMEvidence)
 
-	var e Evidence
-	err := e.FromCBOR(b)
+	e, err := DecodeAndValidateEvidenceFromCBOR(b)
 	require.NoError(t, err)
 
 	verifier := pubKeyFromJWK(t, testRMMCPAK)
@@ -512,7 +497,7 @@ func TestEvidence_Verify_RMM(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestEvidence_FromCBOR_wrong_top_level_tag(t *testing.T) {
+func TestEvidence_UnmarshalCBOR_wrong_top_level_tag(t *testing.T) {
 	wrongCBORTag := []byte{
 		0xd2, 0x84, 0x43, 0xa1, 0x01, 0x26, 0xa0, 0x58, 0x1e, 0xa1, 0x19, 0x01,
 		0x09, 0x78, 0x18, 0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f, 0x61, 0x72,
@@ -522,26 +507,68 @@ func TestEvidence_FromCBOR_wrong_top_level_tag(t *testing.T) {
 
 	expectedErr := `CBOR decoding of CCA evidence failed: cbor: wrong tag number for ccatoken.CBORCollection, got [18], expected [399]`
 
-	var e Evidence
-
-	err := e.FromCBOR(wrongCBORTag)
+	_, err := DecodeAndValidateEvidenceFromCBOR(wrongCBORTag)
 	assert.EqualError(t, err, expectedErr)
 }
 
-func TestEvidence_FromCBOR_wrong_unwrapped_tokens(t *testing.T) {
+func TestEvidence_UnmarshalCBOR_wrong_unwrapped_tokens(t *testing.T) {
 	b := mustHexDecode(t, testBadUnwrappedTokens)
-
 	expectedErr := `CBOR decoding of CCA evidence failed: cbor: cannot unmarshal byte string into Go struct field ccatoken.CBORCollection.44234 of type uint8`
 
-	var e Evidence
-	err := e.FromCBOR(b)
+	_, err := DecodeAndValidateEvidenceFromCBOR(b)
 	assert.EqualError(t, err, expectedErr)
 }
 
-func TestEvidence_FromCBOR_good_CCA_token(t *testing.T) {
+func TestEvidence_UnmarshalCBOR_good_CCA_token(t *testing.T) {
 	b := mustHexDecode(t, testGoodCCAToken)
 
-	var e Evidence
-	err := e.FromCBOR(b)
+	_, err := DecodeAndValidateEvidenceFromCBOR(b)
 	assert.NoError(t, err)
+}
+
+func TestEvidence_UnmarshalCBOR_token_not_set(t *testing.T) {
+	buf := []byte{
+		0xd9, 0x01, 0x8f, // tag(399)
+		0xa0, // empty map
+	}
+
+	var ev Evidence
+
+	err := ev.UnmarshalCBOR(buf)
+	assert.EqualError(t, err, "CCA platform token not set")
+
+	buf = []byte{
+		0xd9, 0x01, 0x8f, // tag(399)
+		0xa1,             // map(1)
+		0x19, 0xac, 0xca, // key:  44234
+		0x40, // value: empty bstr
+	}
+
+	err = ev.UnmarshalCBOR(buf)
+	assert.EqualError(t, err, "CCA realm token not set")
+}
+
+func TestEvidence_Validate_nagative(t *testing.T) {
+	ev := &Evidence{
+		PlatformClaims: mustBuildValidPlatformClaims(t, false),
+		RealmClaims:    mustBuildValidCcaRealmClaims(t),
+	}
+
+	err := ev.Validate()
+	assert.Contains(t, err.Error(), "validating nonce: missing mandatory claim")
+
+	err = ev.PlatformClaims.SetNonce([]byte{
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1,
+	})
+	require.NoError(t, err)
+
+	rc := (ev.RealmClaims).(*realm.Claims)
+	*rc.Challenge = nil
+
+	err = ev.Validate()
+	assert.Contains(t, err.Error(), "realm challenge claim: wrong syntax")
+
 }
