@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/veraison/psatoken"
 )
 
 var (
@@ -117,44 +116,39 @@ func Test_Claims_Get_NonValid_Claims(t *testing.T) {
 
 }
 
-func Test_CCAPlatform_Claims_ToCBOR_invalid(t *testing.T) {
+func Test_CCAPlatform_Claims_MarshalCBOR_invalid(t *testing.T) {
 	c := NewClaims()
+	expectedErr := `validating security lifecycle: missing mandatory claim`
 
-	expectedErr := `validation of CCA platform claims failed: validating security lifecycle: missing mandatory claim`
-
-	_, err := c.ToCBOR()
+	_, err := ValidateAndEncodeClaimsToCBOR(c)
 
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_CCAPlatform_Claims_ToCBOR_all_claims(t *testing.T) {
+func Test_CCAPlatform_Claims_MarshalCBOR_all_claims(t *testing.T) {
 	c := mustBuildValidClaims(t, true)
-
 	expected := mustHexDecode(t, testEncodedCcaPlatformClaimsAll)
 
-	actual, err := c.ToCBOR()
+	actual, err := ValidateAndEncodeClaimsToCBOR(c)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
-func Test_CCAPlatform_Claims_ToCBOR_mandatory_only_claims(t *testing.T) {
+func Test_CCAPlatform_Claims_MarshalCBOR_mandatory_only_claims(t *testing.T) {
 	c := mustBuildValidClaims(t, false)
-
 	expected := mustHexDecode(t, testEncodedCcaPlatformClaimsMandatoryOnly)
 
-	actual, err := c.ToCBOR()
+	actual, err := ValidateAndEncodeClaimsToCBOR(c)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
-func Test_CCAPlatform_FromCBOR_ok_mandatory_only(t *testing.T) {
+func Test_CCAPlatform_UnmarshalCBOR_ok_mandatory_only(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsMandatoryOnly)
 
-	c := NewClaims()
-
-	err := c.FromCBOR(buf)
+	c, err := DecodeAndValidateClaimsFromCBOR(buf)
 	assert.NoError(t, err)
 
 	// mandatory
@@ -191,43 +185,34 @@ func Test_CCAPlatform_FromCBOR_ok_mandatory_only(t *testing.T) {
 
 }
 
-func Test_CCAPlatform_Claims_FromCBOR_bad_input(t *testing.T) {
+func Test_CCAPlatform_Claims_UnmarshalCBOR_bad_input(t *testing.T) {
 	buf := mustHexDecode(t, testNotCBOR)
+	expectedErr := "unexpected EOF"
 
-	expectedErr := "CBOR decoding of CCA platform claims failed: unexpected EOF"
-
-	c := NewClaims()
-
-	err := c.FromCBOR(buf)
+	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_CCAPlatform_Claims_FromCBOR_missing_mandatory_claim(t *testing.T) {
+func Test_CCAPlatform_Claims_UnmarshalCBOR_missing_mandatory_claim(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsMissingMandatoryNonce)
+	expectedErr := "validating nonce: missing mandatory claim"
 
-	expectedErr := "validation of CCA platform claims failed: validating nonce: missing mandatory claim"
-
-	c := NewClaims()
-
-	err := c.FromCBOR(buf)
+	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_CCAPlatform_Claims_FromCBOR_invalid_multi_nonce(t *testing.T) {
+func Test_CCAPlatform_Claims_UnmarshalCBOR_invalid_multi_nonce(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsInvalidMultiNonce)
+	expectedErr := "validating nonce: wrong syntax: got 2 nonces, want 1"
 
-	expectedErr := "validation of CCA platform claims failed: validating nonce: wrong syntax: got 2 nonces, want 1"
-
-	c := NewClaims()
-
-	err := c.FromCBOR(buf)
+	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_CCAPlatform_ToJSON_ok(t *testing.T) {
+func Test_CCAPlatform_MarshalJSON_ok(t *testing.T) {
 	c := mustBuildValidClaims(t, true)
 
 	expected := `{
@@ -246,19 +231,21 @@ func Test_CCAPlatform_ToJSON_ok(t *testing.T) {
 	   "cca-platform-service-indicator" : "https://veraison.example/v1/challenge-response",
 	   "cca-platform-hash-algo-id": "sha-256"
 	   }`
-	actual, err := c.ToJSON()
+	actual, err := ValidateAndEncodeClaimsToJSON(c)
 	assert.NoError(t, err)
 	assert.JSONEq(t, expected, string(actual))
 }
 
-func Test_CCAPlatform_ToJSON_not_ok(t *testing.T) {
-	c := Claims{}
-	expectedErr := `validation of CCA platform claims failed: validating profile: missing mandatory claim`
-	_, err := c.ToJSON()
+func Test_CCAPlatform_MarshalJSON_not_ok(t *testing.T) {
+	c := &Claims{}
+	expectedErr := `validating profile: missing mandatory claim`
+
+	_, err := ValidateAndEncodeClaimsToCBOR(c)
+
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_CCAPlatform_FromJSON_ok(t *testing.T) {
+func Test_CCAPlatform_UnmarshalJSON_ok(t *testing.T) {
 	tv := `{
 		"cca-platform-profile": "http://arm.com/CCA-SSD/1.0.0",
 		"cca-platform-challenge":  "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
@@ -276,24 +263,21 @@ func Test_CCAPlatform_FromJSON_ok(t *testing.T) {
 		"cca-platform-hash-algo-id": "sha-256"
 		}`
 
-	c := NewClaims()
+	_, err := DecodeAndValidateClaimsFromJSON([]byte(tv))
 
-	err := c.FromJSON([]byte(tv))
 	assert.NoError(t, err)
 }
 
-func Test_CCAPlatform_FromJSON_invalid_json(t *testing.T) {
+func Test_CCAPlatform_UnmarshalJSON_invalid_json(t *testing.T) {
 	tv := testNotJSON
+	expectedErr := `unexpected end of JSON input`
 
-	expectedErr := `JSON decoding of CCA platform claims failed: unexpected end of JSON input`
+	_, err := DecodeAndValidateClaimsFromJSON(tv)
 
-	c := NewClaims()
-
-	err := c.FromJSON(tv)
 	assert.EqualError(t, err, expectedErr)
 }
 
-func Test_CCAPlatform_FromJSON_negatives(t *testing.T) {
+func Test_CCAPlatform_UnmarshalJSON_negatives(t *testing.T) {
 	tvs := []string{
 		/* 0 */ "testvectors/json/test-invalid-profile.json",
 		/* 1 */ "testvectors/json/test-vsi-invalid-empty.json",
@@ -316,9 +300,8 @@ func Test_CCAPlatform_FromJSON_negatives(t *testing.T) {
 		buf, err := os.ReadFile(fn)
 		require.NoError(t, err)
 
-		var claimsSet Claims
+		_, err = DecodeAndValidateClaimsFromJSON(buf)
 
-		err = claimsSet.FromJSON(buf)
 		assert.Error(t, err, "test vector %d failed", i)
 	}
 }
@@ -331,7 +314,7 @@ func Test_DecodeClaims_CCAPlatform_ok(t *testing.T) {
 
 	for _, tv := range tvs {
 		buf := mustHexDecode(t, tv)
-		c, err := psatoken.DecodeClaimsFromCBOR(buf)
+		c, err := DecodeAndValidateClaimsFromCBOR(buf)
 
 		assert.NoError(t, err)
 
@@ -348,7 +331,7 @@ func Test_DecodeClaims_CCAPlatform_failure(t *testing.T) {
 
 	for _, tv := range tvs {
 		buf := mustHexDecode(t, tv)
-		_, err := psatoken.DecodeClaimsFromCBOR(buf)
+		_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
 		expectedError := `validating nonce: missing mandatory claim`
 
@@ -368,7 +351,7 @@ func Test_DecodeUnvalidatedCCAClaims(t *testing.T) {
 
 	for _, tv := range tvs {
 		buf := mustHexDecode(t, tv.Input)
-		v, err := psatoken.DecodeUnvalidatedClaimsFromCBOR(buf)
+		v, err := DecodeClaimsFromCBOR(buf)
 
 		assert.NoError(t, err)
 		assert.IsType(t, tv.Expected, v)
@@ -387,7 +370,7 @@ func Test_DecodeJSONClaims_CcaPlatform(t *testing.T) {
 	buf, err := os.ReadFile("testvectors/json/test-token-valid-full.json")
 	require.NoError(t, err)
 
-	c, err := psatoken.DecodeClaimsFromJSON(buf)
+	c, err := DecodeAndValidateClaimsFromJSON(buf)
 	assert.NoError(t, err)
 	actualProfile, err := c.GetProfile()
 	assert.NoError(t, err)
@@ -413,8 +396,7 @@ func Test_DecodeUnvalidatedJSONCCAClaims(t *testing.T) {
 		buf, err := os.ReadFile(tv.Path)
 		require.NoError(t, err)
 
-		v := NewClaims()
-		err = v.FromUnvalidatedJSON(buf)
+		v, err := DecodeClaimsFromJSON(buf)
 
 		assert.NoError(t, err)
 		assert.IsType(t, tv.Expected, v)
@@ -469,9 +451,9 @@ func Test_CcaLifeCycleState(t *testing.T) {
 func Test_ToUnvalidated(t *testing.T) {
 	c := NewClaims()
 
-	_, err := c.ToUnvalidatedCBOR()
+	_, err := EncodeClaimsToCBOR(c)
 	assert.NoError(t, err)
 
-	_, err = c.ToUnvalidatedJSON()
+	_, err = EncodeClaimsToJSON(c)
 	assert.NoError(t, err)
 }

@@ -65,108 +65,39 @@ func (c *Claims) Validate() error {
 
 // Codecs
 
-func (c *Claims) FromCBOR(buf []byte) error {
-	err := c.FromUnvalidatedCBOR(buf)
-	if err != nil {
-		return err
-	}
+// this type alias is used to prevent infinite recursion during marshaling.
+type claims Claims
 
-	err = c.Validate()
-	if err != nil {
-		return fmt.Errorf("validation of CCA platform claims failed: %w", err)
-	}
-
-	return nil
-}
-
-func (c *Claims) FromUnvalidatedCBOR(buf []byte) error {
+// MarshalCBOR encodes the claims into CBOR
+func (c *Claims) UnmarshalCBOR(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we taked it from buf
 
-	err := dm.Unmarshal(buf, c)
-	if err != nil {
-		return fmt.Errorf("CBOR decoding of CCA platform claims failed: %w", err)
-	}
-
-	return nil
+	return dm.Unmarshal(buf, (*claims)(c))
 }
 
-func (c *Claims) ToCBOR() ([]byte, error) {
-	err := c.Validate()
-	if err != nil {
-		return nil, fmt.Errorf("validation of CCA platform claims failed: %w", err)
-	}
-
-	return c.ToUnvalidatedCBOR()
-}
-
-func (c *Claims) ToUnvalidatedCBOR() ([]byte, error) {
-	var scs psatoken.ISwComponents
+// UnmarshalCBOR decodes the claims from CBOR
+func (c Claims) MarshalCBOR() ([]byte, error) {
 	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
-		scs = c.SwComponents
 		c.SwComponents = nil
 	}
 
-	buf, err := em.Marshal(&c)
-	if scs != nil {
-		c.SwComponents = scs
-	}
-	if err != nil {
-		return nil, fmt.Errorf("CBOR encoding of CCA platform claims failed: %w", err)
-	}
-
-	return buf, nil
+	return em.Marshal((*claims)(&c))
 }
 
-func (c *Claims) FromJSON(buf []byte) error {
-	err := c.FromUnvalidatedJSON(buf)
-	if err != nil {
-		return err
-	}
-
-	err = c.Validate()
-	if err != nil {
-		return fmt.Errorf("validation of CCA platform claims failed: %w", err)
-	}
-
-	return nil
-}
-
-func (c *Claims) FromUnvalidatedJSON(buf []byte) error {
+// UnmarshalJSON decodes the claims from JSON
+func (c *Claims) UnmarshalJSON(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we taked it from buf
 
-	err := json.Unmarshal(buf, c)
-	if err != nil {
-		return fmt.Errorf("JSON decoding of CCA platform claims failed: %w", err)
-	}
-
-	return nil
+	return json.Unmarshal(buf, (*claims)(c))
 }
 
-func (c *Claims) ToJSON() ([]byte, error) {
-	err := c.Validate()
-	if err != nil {
-		return nil, fmt.Errorf("validation of CCA platform claims failed: %w", err)
-	}
-
-	return c.ToUnvalidatedJSON()
-}
-
-func (c *Claims) ToUnvalidatedJSON() ([]byte, error) {
-	var scs psatoken.ISwComponents
+// MarshalJSON encodes the claims into JSON
+func (c Claims) MarsahlJSON() ([]byte, error) {
 	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
-		scs = c.SwComponents
 		c.SwComponents = nil
 	}
 
-	buf, err := json.Marshal(&c)
-	if scs != nil {
-		c.SwComponents = scs
-	}
-	if err != nil {
-		return nil, fmt.Errorf("JSON encoding of CCA platform claims failed: %w", err)
-	}
-
-	return buf, nil
+	return json.Marshal((*claims)(&c))
 }
 
 func (c *Claims) SetImplID(v []byte) error {

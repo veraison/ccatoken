@@ -8,7 +8,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/veraison/eat v0.0.0-20220117140849-ddaf59d69f53
 	github.com/veraison/go-cose v1.1.0
-	github.com/veraison/psatoken v1.2.1-0.20240718103721-89fde617284b
+	github.com/veraison/psatoken v1.2.1-0.20240719122628-26fe500fd5d4
 )
 
 require (

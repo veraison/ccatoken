@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/veraison/psatoken"
@@ -18,17 +19,6 @@ type IClaims interface {
 
 	SetConfig([]byte) error
 	SetHashAlgID(string) error
-}
-
-// DecodeClaims unmarshals CCA platform claims from provided CBOR data.
-func DecodeClaims(buf []byte) (IClaims, error) {
-	cl := NewClaims()
-
-	if err := cl.FromCBOR(buf); err != nil {
-		return nil, err
-	}
-
-	return cl, nil
 }
 
 // ValidateClaims returns an error if the provided IClaims instance does not
@@ -47,4 +37,94 @@ func ValidateClaims(c IClaims) error {
 	}
 
 	return nil
+}
+
+// DecodeAndValidateClaimsFromCBOR unmarshals and validates CCA platform claims
+// from provided CBOR buf.
+func DecodeAndValidateClaimsFromCBOR(buf []byte) (IClaims, error) {
+	cl, err := DecodeClaimsFromCBOR(buf)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cl.Validate(); err != nil {
+		return nil, err
+	}
+
+	return cl, nil
+}
+
+// DecodeClaimsFromCBOR unmarshals CCA platform claims from provided CBOR buf.
+func DecodeClaimsFromCBOR(buf []byte) (IClaims, error) {
+	cl := NewClaims()
+
+	if err := dm.Unmarshal(buf, cl); err != nil {
+		return nil, err
+	}
+
+	return cl, nil
+}
+
+// DecodeAndValidateClaimsFromJSON unmarshals and validates CCA platform claims
+// from provided JSON buf.
+func DecodeAndValidateClaimsFromJSON(buf []byte) (IClaims, error) {
+	cl, err := DecodeClaimsFromJSON(buf)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cl.Validate(); err != nil {
+		return nil, err
+	}
+
+	return cl, nil
+}
+
+// DecodeClaimsFromJSON unmarshals CCA platform claims from provided JSON buf.
+func DecodeClaimsFromJSON(buf []byte) (IClaims, error) {
+	cl := NewClaims()
+
+	if err := json.Unmarshal(buf, cl); err != nil {
+		return nil, err
+	}
+
+	return cl, nil
+}
+
+// ValidateAndEncodeClaimsToCBOR validates and then marshals CCA platform claims
+// to CBOR.
+func ValidateAndEncodeClaimsToCBOR(c IClaims) ([]byte, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
+	}
+
+	return EncodeClaimsToCBOR(c)
+}
+
+// EncodeClaimsToCBOR marshals CCA platform claims to CBOR.
+func EncodeClaimsToCBOR(c IClaims) ([]byte, error) {
+	if c == nil {
+		return nil, nil
+	}
+
+	return em.Marshal(c)
+}
+
+// ValidateAndEncodeClaimsToJSON validates and then marshals CCA platform claims
+// to JSON.
+func ValidateAndEncodeClaimsToJSON(c IClaims) ([]byte, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
+	}
+
+	return EncodeClaimsToJSON(c)
+}
+
+// EncodeClaimsToJSON marshals CCA platform claims to JSON.
+func EncodeClaimsToJSON(c IClaims) ([]byte, error) {
+	if c == nil {
+		return nil, nil
+	}
+
+	return json.Marshal(c)
 }

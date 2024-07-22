@@ -2,7 +2,6 @@
 package realm
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/veraison/eat"
@@ -189,84 +188,4 @@ func (c Claims) GetPubKeyHashAlgID() (string, error) {
 // Semantic validation
 func (c Claims) Validate() error {
 	return ValidateClaims(&c)
-}
-
-// Codecs
-
-func (c *Claims) FromCBOR(buf []byte) error {
-	err := c.FromUnvalidatedCBOR(buf)
-	if err != nil {
-		return err
-	}
-
-	err = c.Validate()
-	if err != nil {
-		return fmt.Errorf("validation of CCA realm claims failed: %w", err)
-	}
-
-	return nil
-}
-
-func (c *Claims) FromUnvalidatedCBOR(buf []byte) error {
-	err := dm.Unmarshal(buf, c)
-	if err != nil {
-		return fmt.Errorf("CBOR decoding of CCA realm claims failed: %w", err)
-	}
-
-	return nil
-}
-
-func (c Claims) ToCBOR() ([]byte, error) {
-	err := c.Validate()
-	if err != nil {
-		return nil, fmt.Errorf("validation of CCA realm claims failed: %w", err)
-	}
-
-	return c.ToUnvalidatedCBOR()
-}
-
-func (c Claims) ToUnvalidatedCBOR() ([]byte, error) {
-	buf, err := em.Marshal(&c)
-	if err != nil {
-		return nil, fmt.Errorf("CBOR encoding of CCA realm claims failed: %w", err)
-	}
-
-	return buf, nil
-}
-
-func (c *Claims) FromJSON(buf []byte) error {
-	if err := c.FromUnvalidatedJSON(buf); err != nil {
-		return err
-	}
-
-	if err := c.Validate(); err != nil {
-		return fmt.Errorf("validation of CCA realm claims failed: %w", err)
-	}
-
-	return nil
-}
-
-func (c *Claims) FromUnvalidatedJSON(buf []byte) error {
-	if err := json.Unmarshal(buf, c); err != nil {
-		return fmt.Errorf("JSON decoding of CCA realm claims failed: %w", err)
-	}
-
-	return nil
-}
-
-func (c Claims) ToJSON() ([]byte, error) {
-	if err := c.Validate(); err != nil {
-		return nil, fmt.Errorf("validation of CCA realm claims failed: %w", err)
-	}
-
-	return c.ToUnvalidatedJSON()
-}
-
-func (c Claims) ToUnvalidatedJSON() ([]byte, error) {
-	buf, err := json.Marshal(&c)
-	if err != nil {
-		return nil, fmt.Errorf("JSON encoding of CCA realm claims failed: %w", err)
-	}
-
-	return buf, nil
 }
