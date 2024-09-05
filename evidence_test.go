@@ -30,7 +30,7 @@ func mustBuildValidCcaRealmClaims(t *testing.T) realm.IClaims {
 	err = c.SetHashAlgID(testHashAlgID)
 	require.NoError(t, err)
 
-	err = c.SetPubKey(testRAKPubRaw)
+	err = c.SetPubKey(testRAKPubCOSE)
 	require.NoError(t, err)
 
 	err = c.SetPubKeyHashAlgID(testPubKeyHashAlgID)
@@ -164,7 +164,7 @@ func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 
 	// now set a different key from the one which is going to be used for
 	// signing
-	err = EvidenceIn.RealmClaims.SetPubKey(testAltRAKPubRaw)
+	err = EvidenceIn.RealmClaims.SetPubKey(realm.TestAltRAKPubCOSE)
 	assert.NoError(t, err)
 
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
@@ -260,7 +260,7 @@ func TestEvidence_GetRealmPubKey_ok(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	expected := &testRAKPubRaw
+	expected := &testRAKPubCOSE
 
 	actual := e.GetRealmPublicKey()
 	assert.Equal(t, expected, actual)
@@ -428,7 +428,7 @@ func TestEvidence_SetClaims_invalid_realm(t *testing.T) {
 	incompleteRealmClaims := &realm.Claims{}
 
 	// just set the bare minimum to compute the binder
-	err := incompleteRealmClaims.SetPubKey(testRAKPubRaw)
+	err := incompleteRealmClaims.SetPubKey(realm.TestRAKPubRaw)
 	require.NoError(t, err)
 
 	err = incompleteRealmClaims.SetPubKeyHashAlgID("sha-256")
@@ -485,8 +485,10 @@ func TestEvidence_Verify_no_message(t *testing.T) {
 	assert.EqualError(t, err, "no message found")
 }
 
-func TestEvidence_Verify_RMM(t *testing.T) {
-	b := mustHexDecode(t, testRMMEvidence)
+func TestEvidence_Verify_RMM_Legacy(t *testing.T) {
+	b := mustHexDecode(t, testRMMLegacyEvidence)
+
+	fmt.Printf("%x\n", b)
 
 	e, err := DecodeAndValidateEvidenceFromCBOR(b)
 	require.NoError(t, err)
@@ -571,4 +573,38 @@ func TestEvidence_Validate_nagative(t *testing.T) {
 	err = ev.Validate()
 	assert.Contains(t, err.Error(), "realm challenge claim: wrong syntax")
 
+}
+
+func Test_UnmarshalCBOR_InvalidEntries_MissingSign1Tag(t *testing.T) {
+	tv := []byte{
+		0xd9, 0x01, 0x8f, // tag(399)
+		0xa2,             // map(2)
+		0x19, 0xac, 0xca, // unsigned(44234)
+		0x42,       // bytes(2)
+		0xde, 0xad, // h'dead'
+		0x19, 0xac, 0xd1, // unsigned(44241)
+		0x42,       // bytes(2)
+		0xbe, 0xef, // h'beef'
+	}
+	e := Evidence{}
+	err := e.UnmarshalCBOR(tv)
+	assert.ErrorContains(t, err, "decoding of CCA evidence failed")
+}
+
+func Test_UnmarshalCBOR_InvalidEntries_EmptySign1(t *testing.T) {
+	tv := []byte{
+		0xd9, 0x01, 0x8f,
+		0xa2,
+		0x19, 0xac, 0xca,
+		0x4e,
+		// invalid platform token
+		0xd2, 0x84, 0x44, 0xa1, 0x01, 0x38, 0x22, 0xa0, 0x42, 0xde, 0xad, 0x42, 0xbe, 0xef,
+		0x19, 0xac, 0xd1,
+		0x4e,
+		// invalid realm token
+		0xd2, 0x84, 0x44, 0xa1, 0x01, 0x38, 0x22, 0xa0, 0x42, 0xde, 0xad, 0x42, 0xbe, 0xef,
+	}
+	e := Evidence{}
+	err := e.UnmarshalCBOR(tv)
+	assert.ErrorContains(t, err, "decoding of CCA evidence failed")
 }

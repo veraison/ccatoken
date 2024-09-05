@@ -11,7 +11,8 @@ import (
 	"github.com/veraison/psatoken"
 )
 
-const ProfileName = "http://arm.com/CCA-SSD/1.0.0"
+const LegacyProfileName = "http://arm.com/CCA-SSD/1.0.0"
+const ProfileName = "tag:arm.com,2023:cca_platform#1.0.0"
 
 // Profile is the psatoken.IProfile implementation for CCA claims. It is
 // registered to associate the claims with the profile name, so that it can be
@@ -24,6 +25,16 @@ func (o Profile) GetName() string {
 
 func (o Profile) GetClaims() psatoken.IClaims {
 	return NewClaims()
+}
+
+type LegacyProfile struct{}
+
+func (o LegacyProfile) GetName() string {
+	return LegacyProfileName
+}
+
+func (o LegacyProfile) GetClaims() psatoken.IClaims {
+	return NewLegacyClaims()
 }
 
 // Claims contains the CCA platform claims. It implements IClaims, which is an
@@ -45,8 +56,16 @@ type Claims struct {
 
 // NewClaims claims returns a new instance of Claims.
 func NewClaims() IClaims {
+	return newClaims(ProfileName)
+}
+
+func NewLegacyClaims() IClaims {
+	return newClaims(LegacyProfileName)
+}
+
+func newClaims(profileName string) IClaims {
 	p := eat.Profile{}
-	if err := p.Set(ProfileName); err != nil {
+	if err := p.Set(profileName); err != nil {
 		// should never get here as using known good constant as input
 		panic(err)
 	}
@@ -54,7 +73,7 @@ func NewClaims() IClaims {
 	return &Claims{
 		Profile:          &p,
 		SwComponents:     &psatoken.SwComponents[*psatoken.SwComponent]{},
-		CanonicalProfile: ProfileName,
+		CanonicalProfile: profileName,
 	}
 }
 
@@ -217,7 +236,7 @@ func (c *Claims) GetProfile() (string, error) {
 			psatoken.ErrWrongProfile, c.CanonicalProfile, profileString)
 	}
 
-	return c.Profile.Get()
+	return profileString, nil
 }
 
 func (c *Claims) GetClientID() (int32, error) {
@@ -334,6 +353,10 @@ func (c *Claims) GetHashAlgID() (string, error) {
 
 func init() {
 	if err := psatoken.RegisterProfile(Profile{}); err != nil {
+		panic(err)
+	}
+
+	if err := psatoken.RegisterProfile(LegacyProfile{}); err != nil {
 		panic(err)
 	}
 }

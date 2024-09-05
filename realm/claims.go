@@ -8,16 +8,34 @@ import (
 	"github.com/veraison/psatoken"
 )
 
+const ProfileName = "tag:arm.com,2023:realm#1.0.0"
+
 // Claims contains the CCA realm claims. It implements IClaims, which is an
 // extension of psatoken.IClaimBase.
 type Claims struct {
-	Challenge              *eat.Nonce `cbor:"10,keyasint" json:"cca-realm-challenge"`
-	PersonalizationValue   *[]byte    `cbor:"44235,keyasint" json:"cca-realm-personalization-value"`
-	InitialMeasurement     *[]byte    `cbor:"44238,keyasint" json:"cca-realm-initial-measurement"`
-	ExtensibleMeasurements *[][]byte  `cbor:"44239,keyasint" json:"cca-realm-extensible-measurements"`
-	HashAlgID              *string    `cbor:"44236,keyasint" json:"cca-realm-hash-algo-id"`
-	PublicKey              *[]byte    `cbor:"44237,keyasint" json:"cca-realm-public-key"`
-	PublicKeyHashAlgID     *string    `cbor:"44240,keyasint" json:"cca-realm-public-key-hash-algo-id"`
+	Profile                *eat.Profile `cbor:"265,keyasint" json:"cca-realm-profile,omitempty"`
+	Challenge              *eat.Nonce   `cbor:"10,keyasint" json:"cca-realm-challenge"`
+	PersonalizationValue   *[]byte      `cbor:"44235,keyasint" json:"cca-realm-personalization-value"`
+	InitialMeasurement     *[]byte      `cbor:"44238,keyasint" json:"cca-realm-initial-measurement"`
+	ExtensibleMeasurements *[][]byte    `cbor:"44239,keyasint" json:"cca-realm-extensible-measurements"`
+	HashAlgID              *string      `cbor:"44236,keyasint" json:"cca-realm-hash-algo-id"`
+	PublicKey              *[]byte      `cbor:"44237,keyasint" json:"cca-realm-public-key"`
+	PublicKeyHashAlgID     *string      `cbor:"44240,keyasint" json:"cca-realm-public-key-hash-algo-id"`
+}
+
+// NewClaims claims returns a new instance of Claims.
+func NewClaims() IClaims {
+	p := eat.Profile{}
+	if err := p.Set(ProfileName); err != nil {
+		// should never get here as using known good constant as input
+		panic(err)
+	}
+
+	return &Claims{Profile: &p}
+}
+
+func newClaimsForDecoding() IClaims {
+	return &Claims{}
 }
 
 // Setters
@@ -73,8 +91,14 @@ func (c *Claims) SetHashAlgID(v string) error {
 }
 
 func (c *Claims) SetPubKey(v []byte) error {
-	if err := ValidateRealmPubKey(v); err != nil {
-		return err
+	if c.Profile == nil {
+		if err := ValidateRealmPubKey(v); err != nil {
+			return err
+		}
+	} else {
+		if err := ValidateRealmPubKeyCOSE(v); err != nil {
+			return err
+		}
 	}
 
 	c.PublicKey = &v
@@ -108,6 +132,25 @@ func (c Claims) GetChallenge() ([]byte, error) {
 	}
 
 	return n, nil
+}
+
+// If profile is not found return ErrOptionalClaimMissing
+func (c *Claims) GetProfile() (string, error) {
+	if c.Profile == nil {
+		return "", psatoken.ErrOptionalClaimMissing
+	}
+
+	profileString, err := c.Profile.Get()
+	if err != nil {
+		return "", err
+	}
+
+	if profileString != ProfileName {
+		return "", fmt.Errorf("%w: expecting %q, got %q",
+			psatoken.ErrWrongProfile, ProfileName, profileString)
+	}
+
+	return c.Profile.Get()
 }
 
 func (c Claims) GetPersonalizationValue() ([]byte, error) {
@@ -168,8 +211,14 @@ func (c Claims) GetPubKey() ([]byte, error) {
 		return nil, psatoken.ErrMandatoryClaimMissing
 	}
 
-	if err := ValidateRealmPubKey(*v); err != nil {
-		return nil, err
+	if c.Profile == nil {
+		if err := ValidateRealmPubKey(*v); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := ValidateRealmPubKeyCOSE(*v); err != nil {
+			return nil, err
+		}
 	}
 
 	return *v, nil

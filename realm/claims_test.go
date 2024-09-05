@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/veraison/psatoken"
 )
 
 func mustBuildValidCcaRealmClaims(t *testing.T) IClaims {
@@ -26,7 +27,7 @@ func mustBuildValidCcaRealmClaims(t *testing.T) IClaims {
 	err = c.SetHashAlgID(testHashAlgID)
 	require.NoError(t, err)
 
-	err = c.SetPubKey(testRAKPubRaw)
+	err = c.SetPubKey(TestAltRAKPubCOSE)
 	require.NoError(t, err)
 
 	err = c.SetPubKeyHashAlgID(testPubKeyHashAlgID)
@@ -66,8 +67,8 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetPubKey([]byte("not-a-valid-point"))
-	expectedErr = "wrong syntax: length 17 (realm public key MUST be 97 bytes)"
-	assert.EqualError(t, err, expectedErr)
+	expectedErr = "wrong syntax"
+	assert.ErrorContains(t, err, expectedErr)
 
 	err = c.SetPubKey([]byte{
 		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -80,8 +81,8 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 		0xff,
 	})
-	expectedErr = "wrong syntax: checking raw public key coordinates are on curve P-384: failed to unmarshal elliptic curve point"
-	assert.EqualError(t, err, expectedErr)
+	expectedErr = "wrong syntax"
+	assert.ErrorContains(t, err, expectedErr)
 
 	err = c.SetPubKeyHashAlgID("")
 	expectedErr = "invalid null string set for realm pubkey hash alg ID"
@@ -105,6 +106,17 @@ func Test_CcaRealmClaims_MarshalCBOR_all_claims(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+}
+
+func Test_CcaRealmLegacyClaims_UnmarshalCBOR_ok(t *testing.T) {
+	buf := mustHexDecode(t, testEncodedCcaRealmLegacyClaimsAll)
+
+	c, err := DecodeAndValidateClaimsFromCBOR(buf)
+	assert.NoError(t, err)
+
+	k, err := c.GetPubKey()
+	assert.NoError(t, err)
+	assert.Equal(t, TestRAKPubRaw, k)
 }
 
 func Test_CcaRealmClaims_UnmarshalCBOR_ok(t *testing.T) {
@@ -140,7 +152,7 @@ func Test_CcaRealmClaims_UnmarshalCBOR_ok(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedHashAlgID, actualHashAlgID)
 
-	expectedPubKey := testRAKPubRaw
+	expectedPubKey := TestAltRAKPubCOSE
 	actualPubKey, err := c.GetPubKey()
 	assert.NoError(t, err)
 	assert.Equal(t, expectedPubKey, actualPubKey)
@@ -191,6 +203,7 @@ func Test_CcaRealm_Claims_MarshalJSON_ok(t *testing.T) {
 	c := mustBuildValidCcaRealmClaims(t)
 
 	expected := `{
+  "cca-realm-profile": "tag:arm.com,2023:realm#1.0.0",
   "cca-realm-challenge": "QUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQg==",
   "cca-realm-personalization-value": "QURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBRA==",
   "cca-realm-initial-measurement": "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw==",
@@ -202,7 +215,7 @@ func Test_CcaRealm_Claims_MarshalJSON_ok(t *testing.T) {
   ]
   ,
   "cca-realm-hash-algo-id": "sha-256",
-  "cca-realm-public-key": "BIEZWICiIH+5VgMqPLl/XaWvcm/8txXuFkeEp/sWwGCWvdlGKjJlCykSqFUVcNbqHzstH32oonX6ADMPAHhhi8PhSVScgXDTLsVYkKf57HifHxiukusV0iKvlx2XHJZa8Q==",
+  "cca-realm-public-key": "pAECIAIhWDB2+YgJG+WF7UGAGuz6uFhUjGMFfhaw5nYSC70NL5wp4FbF1BoBMOucIVF4mdwjFGsiWDAo4bBivT6ksxX9IZ8cu1KMtudMpJvhZ3NzT2GhymEDGyu/PZGPL5T/xCKOUJGVRK4=",
   "cca-realm-public-key-hash-algo-id": "sha-512"
 }`
 	actual, err := ValidateAndEncodeClaimsToJSON(c)
@@ -223,7 +236,7 @@ func Test_CcaRealmClaims_UnmarshalJSON_ok(t *testing.T) {
   ]
   ,
   "cca-realm-hash-algo-id": "sha-256",
-  "cca-realm-public-key": "BIEZWICiIH+5VgMqPLl/XaWvcm/8txXuFkeEp/sWwGCWvdlGKjJlCykSqFUVcNbqHzstH32oonX6ADMPAHhhi8PhSVScgXDTLsVYkKf57HifHxiukusV0iKvlx2XHJZa8Q==",
+  "cca-realm-public-key": "pAECIAIhWDB2+YgJG+WF7UGAGuz6uFhUjGMFfhaw5nYSC70NL5wp4FbF1BoBMOucIVF4mdwjFGsiWDAo4bBivT6ksxX9IZ8cu1KMtudMpJvhZ3NzT2GhymEDGyu/PZGPL5T/xCKOUJGVRK4=",
   "cca-realm-public-key-hash-algo-id": "sha-512"
 }`
 	_, err := DecodeAndValidateClaimsFromJSON([]byte(tv))
@@ -263,4 +276,29 @@ func Test_CcaRealmClaims_UnmarshalJSON_negatives(t *testing.T) {
 
 		assert.Error(t, err, "test vector %d failed", i)
 	}
+}
+
+func Test_SetPubKey_legacy_ok(t *testing.T) {
+	c := newClaimsForDecoding()
+	err := c.SetPubKey(TestRAKPubRaw)
+	assert.NoError(t, err)
+}
+
+func Test_SetPubKey_legacy_bad(t *testing.T) {
+	c := newClaimsForDecoding()
+	err := c.SetPubKey(TestAltRAKPubCOSE)
+	assert.ErrorContains(t, err, "wrong syntax")
+}
+
+func Test_GetProfile_legacy(t *testing.T) {
+	c := newClaimsForDecoding()
+	_, err := c.GetProfile()
+	assert.ErrorIs(t, err, psatoken.ErrOptionalClaimMissing)
+}
+
+func Test_GetProfile_ok(t *testing.T) {
+	c := NewClaims()
+	profile, err := c.GetProfile()
+	assert.NoError(t, err)
+	assert.Equal(t, ProfileName, profile)
 }

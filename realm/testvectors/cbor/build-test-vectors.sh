@@ -12,10 +12,11 @@ DIAG_FILES="${DIAG_FILES} CcaClaimsMissingMandExtendedMeas"
 DIAG_FILES="${DIAG_FILES} CcaClaimsMissingMandInitialMeas"
 DIAG_FILES="${DIAG_FILES} CcaRealmClaimsMissingMandNonce"
 DIAG_FILES="${DIAG_FILES} CcaClaimsMissingMandHashAlgID"
+DIAG_FILES="${DIAG_FILES} CcaRealmLegacyClaimsAll"
 
 TV_DOT_GO=${TV_DOT_GO?must be set in the environment.}
 
-printf "package ccatoken \n\n" > ${TV_DOT_GO}
+printf "package realm \n\n" > ${TV_DOT_GO}
 
 for t in ${DIAG_FILES}
 do

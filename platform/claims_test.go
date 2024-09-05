@@ -182,7 +182,6 @@ func Test_CCAPlatform_UnmarshalCBOR_ok_mandatory_only(t *testing.T) {
 	actualSwComp, err := c.GetSoftwareComponents()
 	assert.NoError(t, err)
 	assert.Equal(t, expectedSwComp, actualSwComp)
-
 }
 
 func Test_CCAPlatform_Claims_UnmarshalCBOR_bad_input(t *testing.T) {
@@ -216,7 +215,7 @@ func Test_CCAPlatform_MarshalJSON_ok(t *testing.T) {
 	c := mustBuildValidClaims(t, true)
 
 	expected := `{
-	   "cca-platform-profile": "http://arm.com/CCA-SSD/1.0.0",
+	   "cca-platform-profile": "tag:arm.com,2023:cca_platform#1.0.0",
 	   "cca-platform-challenge":  "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
 	   "cca-platform-implementation-id":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
 	   "cca-platform-instance-id": "AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
@@ -309,18 +308,16 @@ func Test_CCAPlatform_UnmarshalJSON_negatives(t *testing.T) {
 func Test_DecodeClaims_CCAPlatform_ok(t *testing.T) {
 	tvs := []string{
 		testEncodedCcaPlatformClaimsAll,
+		testEncodedCcaPlatformLegacyClaimsAll,
 		testEncodedCcaPlatformClaimsMandatoryOnly,
+		testEncodedCcaPlatformLegacyClaimsMandatoryOnly,
 	}
 
 	for _, tv := range tvs {
 		buf := mustHexDecode(t, tv)
-		c, err := DecodeAndValidateClaimsFromCBOR(buf)
+		_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
 		assert.NoError(t, err)
-
-		actualProfile, err := c.GetProfile()
-		assert.NoError(t, err)
-		assert.Equal(t, ProfileName, actualProfile)
 	}
 }
 
@@ -374,7 +371,7 @@ func Test_DecodeJSONClaims_CcaPlatform(t *testing.T) {
 	assert.NoError(t, err)
 	actualProfile, err := c.GetProfile()
 	assert.NoError(t, err)
-	assert.Equal(t, ProfileName, actualProfile)
+	assert.Equal(t, LegacyProfileName, actualProfile)
 }
 
 func Test_DecodeUnvalidatedJSONCCAClaims(t *testing.T) {
