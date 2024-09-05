@@ -5,6 +5,7 @@ package ccatoken
 
 import (
 	"crypto"
+	"crypto/ecdsa"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/sha512"
@@ -18,6 +19,7 @@ import (
 	"github.com/veraison/ccatoken/platform"
 	"github.com/veraison/ccatoken/realm"
 	cose "github.com/veraison/go-cose"
+	"github.com/veraison/psatoken"
 )
 
 // CBORCollection is a wrapper containing the CBOR data for both platform and
@@ -299,9 +301,24 @@ func (e *Evidence) Verify(iak crypto.PublicKey) error {
 		return fmt.Errorf("extracting RAK from the realm token: %w", err)
 	}
 
-	rak, err := ecdsaPublicKeyFromRaw(rawRAK)
+	var rak *ecdsa.PublicKey
+
+	_, err = e.RealmClaims.GetProfile()
 	if err != nil {
-		return fmt.Errorf("decoding RAK: %w", err)
+		switch err {
+		case psatoken.ErrOptionalClaimMissing:
+			rak, err = realm.ECDSAPublicKeyFromRaw(rawRAK)
+			if err != nil {
+				return fmt.Errorf("decoding RAK: %w", err)
+			}
+		default:
+			return fmt.Errorf("extracting realm profile: %w", err)
+		}
+	} else {
+		rak, err = realm.ECDSAPublicKeyFromCOSEKey(rawRAK)
+		if err != nil {
+			return fmt.Errorf("decoding RAK: %w", err)
+		}
 	}
 
 	// Next verify the realm token

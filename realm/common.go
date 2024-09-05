@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	cose "github.com/veraison/go-cose"
+
 	"github.com/veraison/psatoken"
 )
 
@@ -54,9 +56,35 @@ func ValidateRealmPubKey(b []byte) error {
 		)
 	}
 
-	if _, err := ecdsaPublicKeyFromRaw(b); err != nil {
+	if _, err := ECDSAPublicKeyFromRaw(b); err != nil {
 		return fmt.Errorf(
 			"%w: checking raw public key coordinates are on curve P-384: %v",
+			psatoken.ErrWrongSyntax, err,
+		)
+	}
+
+	return nil
+}
+
+// ValidateRealmPubKeyCOSE returns an error if the provided value does not
+// contain a valid realm public key in CBOR-encoded COSE_Key format
+func ValidateRealmPubKeyCOSE(b []byte) error {
+	var k cose.Key
+
+	if err := k.UnmarshalCBOR(b); err != nil {
+		return fmt.Errorf(
+			"%w: checking realm public key is a CBOR-encoded COSE_Key: %v",
+			psatoken.ErrWrongSyntax, err,
+		)
+	}
+
+	if k.KeyType != cose.KeyTypeEC2 {
+		return fmt.Errorf("%w: realm public key is not EC2", psatoken.ErrWrongSyntax)
+	}
+
+	if err := k.Validate(); err != nil {
+		return fmt.Errorf(
+			"%w: validating EC2 realm public key: %v",
 			psatoken.ErrWrongSyntax, err,
 		)
 	}
@@ -107,7 +135,7 @@ func ValidateExtendedMeas(v [][]byte) error {
 	return nil
 }
 
-func ecdsaPublicKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
+func ECDSAPublicKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
 	x, y := elliptic.Unmarshal(elliptic.P384(), data) // nolint:staticcheck
 	if x == nil {
 		return nil, errors.New("failed to unmarshal elliptic curve point")
@@ -118,4 +146,34 @@ func ecdsaPublicKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
 		X:     x,
 		Y:     y,
 	}, nil
+}
+
+func ECDSAPublicKeyFromCOSEKey(buf []byte) (*ecdsa.PublicKey, error) {
+	var k cose.Key
+
+	if err := k.UnmarshalCBOR(buf); err != nil {
+		return nil, err
+	}
+
+	if k.KeyType != cose.KeyTypeEC2 {
+		return nil, errors.New("key type is not EC2")
+	}
+
+	if err := k.Validate(); err != nil {
+		return nil, err
+	}
+
+	pk, err := k.PublicKey()
+	if err != nil {
+		return nil, err
+	}
+
+	epk, ok := pk.(*ecdsa.PublicKey)
+	if !ok {
+		// Paranoid check: this should not happen since k has been already
+		// checked to be a valid EC2 key.
+		return nil, errors.New("key cannot be converted to public ECDSA")
+	}
+
+	return epk, nil
 }

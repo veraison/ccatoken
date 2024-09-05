@@ -22,6 +22,7 @@ type IClaims interface {
 	GetHashAlgID() (string, error)
 	GetPubKey() ([]byte, error)
 	GetPubKeyHashAlgID() (string, error)
+	GetProfile() (string, error)
 
 	// Setters
 	SetChallenge([]byte) error
@@ -31,11 +32,6 @@ type IClaims interface {
 	SetHashAlgID(string) error
 	SetPubKey([]byte) error
 	SetPubKeyHashAlgID(string) error
-}
-
-// NewClaims returns a new instance of realm claims.
-func NewClaims() IClaims {
-	return &Claims{}
 }
 
 // DecodeAndValidateClaimsFromCBOR unmarshals and validates CCA realm claims
@@ -55,7 +51,7 @@ func DecodeAndValidateClaimsFromCBOR(buf []byte) (IClaims, error) {
 
 // DecodeClaimsFromCBOR unmarshals CCA realm claims from provided CBOR data.
 func DecodeClaimsFromCBOR(buf []byte) (IClaims, error) {
-	cl := NewClaims()
+	cl := newClaimsForDecoding()
 
 	if err := dm.Unmarshal(buf, cl); err != nil {
 		return nil, err
