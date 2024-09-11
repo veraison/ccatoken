@@ -293,6 +293,7 @@ func Test_CCAPlatform_UnmarshalJSON_negatives(t *testing.T) {
 		/* 12 */ "testvectors/json/test-instance-id-invalid.json",
 		/* 13 */ "testvectors/json/test-config-missing.json",
 		/* 14 */ "testvectors/json/test-hash-algid-missing.json",
+		/* 15 */ "testvectors/json/test-invalid-psa-claims.json",
 	}
 
 	for i, fn := range tvs {
@@ -385,7 +386,6 @@ func Test_DecodeUnvalidatedJSONCCAClaims(t *testing.T) {
 
 		// invalid
 		{"testvectors/json/test-no-sw-components.json", &Claims{}},
-		{"testvectors/json/test-invalid-profile.json", &Claims{}},
 		{"testvectors/json/test-invalid-psa-claims.json", &Claims{}},
 	}
 
@@ -395,7 +395,7 @@ func Test_DecodeUnvalidatedJSONCCAClaims(t *testing.T) {
 
 		v, err := DecodeClaimsFromJSON(buf)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.IsType(t, tv.Expected, v)
 	}
 }

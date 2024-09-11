@@ -1,5 +1,5 @@
 {
-  "cca-platform-profile": "http://arm.com/PSA-SSD/1.0.0",
+  "cca-platform-profile": "http://arm.com/CCA-SSD/1.0.0",
   "cca-platform-challenge":  "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
   "cca-platform-instance-id": "AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
   "psa-implementation-id": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA=",
