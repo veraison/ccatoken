@@ -5,6 +5,7 @@ package platform
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/veraison/psatoken"
@@ -56,13 +57,17 @@ func DecodeAndValidateClaimsFromCBOR(buf []byte) (IClaims, error) {
 
 // DecodeClaimsFromCBOR unmarshals CCA platform claims from provided CBOR buf.
 func DecodeClaimsFromCBOR(buf []byte) (IClaims, error) {
-	cl := NewClaims()
-
-	if err := dm.Unmarshal(buf, cl); err != nil {
+	i, err := psatoken.DecodeClaimsFromCBOR(buf)
+	if err != nil {
 		return nil, err
 	}
 
-	return cl, nil
+	ic, ok := i.(IClaims)
+	if !ok {
+		return nil, errors.New("not a CCA platform token")
+	}
+
+	return ic, nil
 }
 
 // DecodeAndValidateClaimsFromJSON unmarshals and validates CCA platform claims
@@ -82,13 +87,17 @@ func DecodeAndValidateClaimsFromJSON(buf []byte) (IClaims, error) {
 
 // DecodeClaimsFromJSON unmarshals CCA platform claims from provided JSON buf.
 func DecodeClaimsFromJSON(buf []byte) (IClaims, error) {
-	cl := NewClaims()
-
-	if err := json.Unmarshal(buf, cl); err != nil {
+	i, err := psatoken.DecodeClaimsFromJSON(buf)
+	if err != nil {
 		return nil, err
 	}
 
-	return cl, nil
+	ic, ok := i.(IClaims)
+	if !ok {
+		return nil, errors.New("not a (JSON-encoded) CCA platform token")
+	}
+
+	return ic, nil
 }
 
 // ValidateAndEncodeClaimsToCBOR validates and then marshals CCA platform claims
