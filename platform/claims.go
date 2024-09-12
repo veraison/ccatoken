@@ -87,14 +87,14 @@ func (c *Claims) Validate() error {
 // this type alias is used to prevent infinite recursion during marshaling.
 type claims Claims
 
-// MarshalCBOR encodes the claims into CBOR
+// UnmarshalCBOR decodes the claims from CBOR
 func (c *Claims) UnmarshalCBOR(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we taked it from buf
 
 	return dm.Unmarshal(buf, (*claims)(c))
 }
 
-// UnmarshalCBOR decodes the claims from CBOR
+// MarshalCBOR encodes the claims to CBOR
 func (c Claims) MarshalCBOR() ([]byte, error) {
 	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
 		c.SwComponents = nil
@@ -111,7 +111,7 @@ func (c *Claims) UnmarshalJSON(buf []byte) error {
 }
 
 // MarshalJSON encodes the claims into JSON
-func (c Claims) MarsahlJSON() ([]byte, error) {
+func (c Claims) MarshalJSON() ([]byte, error) {
 	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
 		c.SwComponents = nil
 	}
