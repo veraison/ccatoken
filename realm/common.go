@@ -78,15 +78,8 @@ func ValidateRealmPubKeyCOSE(b []byte) error {
 		)
 	}
 
-	if k.KeyType != cose.KeyTypeEC2 {
+	if k.Type != cose.KeyTypeEC2 {
 		return fmt.Errorf("%w: realm public key is not EC2", psatoken.ErrWrongSyntax)
-	}
-
-	if err := k.Validate(); err != nil {
-		return fmt.Errorf(
-			"%w: validating EC2 realm public key: %v",
-			psatoken.ErrWrongSyntax, err,
-		)
 	}
 
 	return nil
@@ -155,12 +148,8 @@ func ECDSAPublicKeyFromCOSEKey(buf []byte) (*ecdsa.PublicKey, error) {
 		return nil, err
 	}
 
-	if k.KeyType != cose.KeyTypeEC2 {
+	if k.Type != cose.KeyTypeEC2 {
 		return nil, errors.New("key type is not EC2")
-	}
-
-	if err := k.Validate(); err != nil {
-		return nil, err
 	}
 
 	pk, err := k.PublicKey()
