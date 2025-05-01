@@ -22,11 +22,19 @@ import (
 	"github.com/veraison/psatoken"
 )
 
+
+
+type CMWCollectionEntry struct {
+	_           struct{} `cbor:",toarray"`
+	coaptype int
+	tokenStr *[]byte
+}
+
 // CBORCollection is a wrapper containing the CBOR data for both platform and
 // realm tokens.
 type CBORCollection struct {
-	PlatformToken *[]byte `cbor:"44234,keyasint"`
-	RealmToken    *[]byte `cbor:"44241,keyasint"`
+	PlatformTokenColl CMWCollectionEntry `cbor:"44234,keyasint"`
+	RealmTokenColl    CMWCollectionEntry `cbor:"44241,keyasint"`
 }
 
 // JSONCollection is a wrapper containing the JSON data for both platform and
@@ -141,11 +149,11 @@ func (e *Evidence) UnmarshalCBOR(buf []byte) error {
 		return fmt.Errorf("CBOR decoding of CCA evidence failed: %w", err)
 	}
 
-	if e.collection.PlatformToken == nil {
+	if e.collection.PlatformTokenColl.tokenStr == nil {
 		return fmt.Errorf("CCA platform token not set")
 	}
 
-	if e.collection.RealmToken == nil {
+	if e.collection.RealmTokenColl.tokenStr == nil {
 		return fmt.Errorf("CCA realm token not set")
 	}
 
@@ -251,15 +259,27 @@ func (e *Evidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error
 	if err != nil {
 		return nil, fmt.Errorf("signing platform claims: %w", err)
 	}
-
 	realmToken, err := signClaims(e.RealmClaims, rSigner)
 	if err != nil {
 		return nil, fmt.Errorf("signing realm claims: %w", err)
 	}
 
-	e.collection = &CBORCollection{
-		PlatformToken: &platformToken,
-		RealmToken:    &realmToken,
+platCollect := CMWCollectionEntry {
+					coaptype: 263,
+					tokenStr: &platformToken,
+				}
+
+//fmt.Printf("blort plat coll: %v\n", platCollect)
+fmt.Printf("plat coap: %d\n", platCollect.coaptype)
+fmt.Printf("plat token: %x\n", platCollect.tokenStr)
+realmCollect := CMWCollectionEntry {
+					coaptype: 263,
+					tokenStr: &realmToken,
+				}
+
+e.collection = &CBORCollection{
+		PlatformTokenColl: platCollect,
+		RealmTokenColl: realmCollect,
 	}
 
 	// We do now have CcaPlatform and Realm Token setup correctly.
@@ -267,6 +287,7 @@ func (e *Evidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error
 	if err != nil {
 		return nil, fmt.Errorf("CBOR encoding of CCA token failed: %w", err)
 	}
+fmt.Printf("marshall token to: %x\n", buf)
 
 	return buf, nil
 }
@@ -281,17 +302,17 @@ func (e *Evidence) Verify(iak crypto.PublicKey) error {
 	}
 
 	// Check CCA Platform Token
-	if e.collection.PlatformToken == nil {
+	if e.collection.PlatformTokenColl.tokenStr == nil {
 		return fmt.Errorf("missing CCA platform Token")
 	}
 
 	// First verify the platform token
-	if err := e.verifyCOSEToken(*e.collection.PlatformToken, iak); err != nil {
+	if err := e.verifyCOSEToken(*e.collection.PlatformTokenColl.tokenStr, iak); err != nil {
 		return fmt.Errorf("unable to verify platform token: %w", err)
 	}
 
 	// Check CCA Realm Token
-	if e.collection.RealmToken == nil {
+	if e.collection.RealmTokenColl.tokenStr == nil {
 		return fmt.Errorf("missing CCA realm Token")
 	}
 
@@ -322,7 +343,7 @@ func (e *Evidence) Verify(iak crypto.PublicKey) error {
 	}
 
 	// Next verify the realm token
-	if err := e.verifyCOSEToken(*e.collection.RealmToken, rak); err != nil {
+	if err := e.verifyCOSEToken(*e.collection.RealmTokenColl.tokenStr, rak); err != nil {
 		return fmt.Errorf("unable to verify realm token: %w", err)
 	}
 
@@ -396,14 +417,14 @@ func (e *Evidence) doUnmarshalJSON(data []byte) (platform.IClaims, realm.IClaims
 }
 
 func (e *Evidence) decodeClaimsFromCBOR() error {
-	if e.collection.RealmToken == nil || e.collection.PlatformToken == nil {
+	if e.collection.RealmTokenColl.tokenStr == nil || e.collection.PlatformTokenColl.tokenStr == nil {
 		panic("broken invariant: nil tokens")
 	}
 
 	// decode platform
 	pSign1 := cose.NewSign1Message()
 
-	if err := pSign1.UnmarshalCBOR(*e.collection.PlatformToken); err != nil {
+	if err := pSign1.UnmarshalCBOR(*e.collection.PlatformTokenColl.tokenStr); err != nil {
 		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
 	}
 
@@ -416,7 +437,7 @@ func (e *Evidence) decodeClaimsFromCBOR() error {
 	// decode realm
 	rSign1 := cose.NewSign1Message()
 
-	if err = rSign1.UnmarshalCBOR(*e.collection.RealmToken); err != nil {
+	if err = rSign1.UnmarshalCBOR(*e.collection.RealmTokenColl.tokenStr); err != nil {
 		return fmt.Errorf("failed CBOR decoding for CWT: %w", err)
 	}
 
