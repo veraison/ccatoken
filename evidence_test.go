@@ -2,7 +2,7 @@ package ccatoken
 
 import (
 	"crypto"
-	"fmt"
+	//"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -83,7 +83,7 @@ func TestEvidence_sign_and_verify_ok(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	fmt.Printf("CCA evidence : %x\n", ccaToken)
+	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
@@ -113,7 +113,7 @@ func TestEvidence_sign_and_verify_bad_binder(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	fmt.Printf("CCA evidence : %x\n", ccaToken)
+	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
@@ -139,7 +139,7 @@ func TestEvidence_sign_and_verify_platform_key_mismatch(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	fmt.Printf("CCA evidence : %x\n", ccaToken)
+	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
@@ -170,7 +170,7 @@ func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	fmt.Printf("CCA evidence : %x\n", ccaToken)
+	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
@@ -488,8 +488,6 @@ func TestEvidence_Verify_no_message(t *testing.T) {
 func TestEvidence_Verify_RMM_Legacy(t *testing.T) {
 	b := mustHexDecode(t, testRMMLegacyEvidence)
 
-	fmt.Printf("%x\n", b)
-
 	e, err := DecodeAndValidateEvidenceFromCBOR(b)
 	require.NoError(t, err)
 
@@ -515,7 +513,7 @@ func TestEvidence_UnmarshalCBOR_wrong_top_level_tag(t *testing.T) {
 
 func TestEvidence_UnmarshalCBOR_wrong_unwrapped_tokens(t *testing.T) {
 	b := mustHexDecode(t, testBadUnwrappedTokens)
-	expectedErr := `CBOR decoding of CCA evidence failed: cbor: cannot unmarshal byte string into Go struct field ccatoken.CBORCollection.44234 of type uint8`
+	expectedErr := `CBOR decoding of CCA evidence failed: cbor: cannot unmarshal byte string into Go struct field ccatoken.CBORCMWCollection.44234 of type uint8`
 
 	_, err := DecodeAndValidateEvidenceFromCBOR(b)
 	assert.EqualError(t, err, expectedErr)
@@ -523,6 +521,13 @@ func TestEvidence_UnmarshalCBOR_wrong_unwrapped_tokens(t *testing.T) {
 
 func TestEvidence_UnmarshalCBOR_good_CCA_token(t *testing.T) {
 	b := mustHexDecode(t, testGoodCCAToken)
+
+	_, err := DecodeAndValidateEvidenceFromCBOR(b)
+	assert.NoError(t, err)
+}
+
+func TestLegacyEvidence_UnmarshalCBOR_good_CCA_token(t *testing.T) {
+	b := mustHexDecode(t, testGoodLegacyCCAToken)
 
 	_, err := DecodeAndValidateEvidenceFromCBOR(b)
 	assert.NoError(t, err)

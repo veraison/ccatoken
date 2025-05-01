@@ -7,7 +7,8 @@ import "github.com/veraison/ccatoken/encoding"
 
 var (
 	tags = []encoding.CBORTagEntry{
-		{Type: CBORCollection{}, Tag: 907},
+		{Type: CBORCollection{}, Tag: 399},
+		{Type: CBORCMWCollection{}, Tag: 907},
 	}
 	em, emError = encoding.InitCBOREncMode(tags...)
 	dm, dmError = encoding.InitCBORDecMode(tags...)
