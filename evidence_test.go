@@ -507,7 +507,7 @@ func TestEvidence_UnmarshalCBOR_wrong_top_level_tag(t *testing.T) {
 		0x30, 0x2e, 0x30, 0x44, 0xde, 0xad, 0xbe, 0xef,
 	}
 
-	expectedErr := `CBOR decoding of CCA evidence failed: cbor: wrong tag number for ccatoken.CBORCollection, got [18], expected [399]`
+	expectedErr := `CBOR decoding of CCA evidence failed: cbor: wrong tag number for ccatoken.CBORCollection, got [18], expected [907]`
 
 	_, err := DecodeAndValidateEvidenceFromCBOR(wrongCBORTag)
 	assert.EqualError(t, err, expectedErr)
@@ -530,7 +530,7 @@ func TestEvidence_UnmarshalCBOR_good_CCA_token(t *testing.T) {
 
 func TestEvidence_UnmarshalCBOR_token_not_set(t *testing.T) {
 	buf := []byte{
-		0xd9, 0x01, 0x8f, // tag(399)
+		0xd9, 0x03, 0x8b, // tag(907)
 		0xa0, // empty map
 	}
 
@@ -540,9 +540,11 @@ func TestEvidence_UnmarshalCBOR_token_not_set(t *testing.T) {
 	assert.EqualError(t, err, "CCA platform token not set")
 
 	buf = []byte{
-		0xd9, 0x01, 0x8f, // tag(399)
+		0xd9, 0x03, 0x8b, // tag(907)
 		0xa1,             // map(1)
 		0x19, 0xac, 0xca, // key:  44234
+		0x82,             // array(2)
+		0x19, 0x01, 0x07, // 263 (coap type)
 		0x40, // value: empty bstr
 	}
 
@@ -577,12 +579,16 @@ func TestEvidence_Validate_nagative(t *testing.T) {
 
 func Test_UnmarshalCBOR_InvalidEntries_MissingSign1Tag(t *testing.T) {
 	tv := []byte{
-		0xd9, 0x01, 0x8f, // tag(399)
+		0xd9, 0x03, 0x8b, // tag(907)
 		0xa2,             // map(2)
 		0x19, 0xac, 0xca, // unsigned(44234)
+		0x82,             // array(2)
+		0x19, 0x01, 0x07, // 263 (coap type)
 		0x42,       // bytes(2)
 		0xde, 0xad, // h'dead'
 		0x19, 0xac, 0xd1, // unsigned(44241)
+		0x82,             // array(2)
+		0x19, 0x01, 0x07, // 263 (coap type)
 		0x42,       // bytes(2)
 		0xbe, 0xef, // h'beef'
 	}
@@ -593,13 +599,17 @@ func Test_UnmarshalCBOR_InvalidEntries_MissingSign1Tag(t *testing.T) {
 
 func Test_UnmarshalCBOR_InvalidEntries_EmptySign1(t *testing.T) {
 	tv := []byte{
-		0xd9, 0x01, 0x8f,
+		0xd9, 0x03, 0x8b,
 		0xa2,
 		0x19, 0xac, 0xca,
+		0x82,             // array(2)
+		0x19, 0x01, 0x07, // 263 (coap type)
 		0x4e,
 		// invalid platform token
 		0xd2, 0x84, 0x44, 0xa1, 0x01, 0x38, 0x22, 0xa0, 0x42, 0xde, 0xad, 0x42, 0xbe, 0xef,
 		0x19, 0xac, 0xd1,
+		0x82,             // array(2)
+		0x19, 0x01, 0x07, // 263 (coap type)
 		0x4e,
 		// invalid realm token
 		0xd2, 0x84, 0x44, 0xa1, 0x01, 0x38, 0x22, 0xa0, 0x42, 0xde, 0xad, 0x42, 0xbe, 0xef,
