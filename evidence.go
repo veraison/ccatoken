@@ -333,7 +333,6 @@ func (e *Evidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error
 		return nil, fmt.Errorf("CBOR encoding of CCA token failed: %w", err)
 	}
 
-
 	return buf, nil
 }
 
