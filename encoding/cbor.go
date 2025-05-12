@@ -14,6 +14,8 @@ type CBORTagEntry struct {
 	Tag  uint64
 }
 
+type CBORRawTag cbor.RawTag
+
 func InitCBOREncMode(tagEntries ...CBORTagEntry) (en cbor.EncMode, err error) {
 	encOpt := cbor.EncOptions{
 		IndefLength: cbor.IndefLengthForbidden,

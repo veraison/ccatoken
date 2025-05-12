@@ -2,7 +2,7 @@ package ccatoken
 
 import (
 	"crypto"
-	"fmt"
+	//"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -83,7 +83,7 @@ func TestEvidence_sign_and_verify_ok(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	fmt.Printf("CCA evidence : %x\n", ccaToken)
+	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
@@ -113,7 +113,7 @@ func TestEvidence_sign_and_verify_bad_binder(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	fmt.Printf("CCA evidence : %x\n", ccaToken)
+	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
@@ -139,7 +139,7 @@ func TestEvidence_sign_and_verify_platform_key_mismatch(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	fmt.Printf("CCA evidence : %x\n", ccaToken)
+	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
@@ -170,7 +170,7 @@ func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	fmt.Printf("CCA evidence : %x\n", ccaToken)
+	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
@@ -488,8 +488,6 @@ func TestEvidence_Verify_no_message(t *testing.T) {
 func TestEvidence_Verify_RMM_Legacy(t *testing.T) {
 	b := mustHexDecode(t, testRMMLegacyEvidence)
 
-	fmt.Printf("%x\n", b)
-
 	e, err := DecodeAndValidateEvidenceFromCBOR(b)
 	require.NoError(t, err)
 
@@ -507,7 +505,7 @@ func TestEvidence_UnmarshalCBOR_wrong_top_level_tag(t *testing.T) {
 		0x30, 0x2e, 0x30, 0x44, 0xde, 0xad, 0xbe, 0xef,
 	}
 
-	expectedErr := `CBOR decoding of CCA evidence failed: cbor: wrong tag number for ccatoken.CBORCollection, got [18], expected [399]`
+	expectedErr := `CBOR decoding of CCA evidence failed: cbor: wrong tag number for ccatoken.CBORCollection, got [18], expected [907]`
 
 	_, err := DecodeAndValidateEvidenceFromCBOR(wrongCBORTag)
 	assert.EqualError(t, err, expectedErr)
@@ -515,7 +513,7 @@ func TestEvidence_UnmarshalCBOR_wrong_top_level_tag(t *testing.T) {
 
 func TestEvidence_UnmarshalCBOR_wrong_unwrapped_tokens(t *testing.T) {
 	b := mustHexDecode(t, testBadUnwrappedTokens)
-	expectedErr := `CBOR decoding of CCA evidence failed: cbor: cannot unmarshal byte string into Go struct field ccatoken.CBORCollection.44234 of type uint8`
+	expectedErr := `CBOR decoding of CCA evidence failed: cbor: cannot unmarshal byte string into Go struct field ccatoken.CBORCMWCollection.44234 of type uint8`
 
 	_, err := DecodeAndValidateEvidenceFromCBOR(b)
 	assert.EqualError(t, err, expectedErr)
@@ -528,9 +526,16 @@ func TestEvidence_UnmarshalCBOR_good_CCA_token(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestLegacyEvidence_UnmarshalCBOR_good_CCA_token(t *testing.T) {
+	b := mustHexDecode(t, testGoodLegacyCCAToken)
+
+	_, err := DecodeAndValidateEvidenceFromCBOR(b)
+	assert.NoError(t, err)
+}
+
 func TestEvidence_UnmarshalCBOR_token_not_set(t *testing.T) {
 	buf := []byte{
-		0xd9, 0x01, 0x8f, // tag(399)
+		0xd9, 0x03, 0x8b, // tag(907)
 		0xa0, // empty map
 	}
 
@@ -540,9 +545,11 @@ func TestEvidence_UnmarshalCBOR_token_not_set(t *testing.T) {
 	assert.EqualError(t, err, "CCA platform token not set")
 
 	buf = []byte{
-		0xd9, 0x01, 0x8f, // tag(399)
+		0xd9, 0x03, 0x8b, // tag(907)
 		0xa1,             // map(1)
 		0x19, 0xac, 0xca, // key:  44234
+		0x82,             // array(2)
+		0x19, 0x01, 0x07, // 263 (coap type)
 		0x40, // value: empty bstr
 	}
 
@@ -577,12 +584,16 @@ func TestEvidence_Validate_nagative(t *testing.T) {
 
 func Test_UnmarshalCBOR_InvalidEntries_MissingSign1Tag(t *testing.T) {
 	tv := []byte{
-		0xd9, 0x01, 0x8f, // tag(399)
+		0xd9, 0x03, 0x8b, // tag(907)
 		0xa2,             // map(2)
 		0x19, 0xac, 0xca, // unsigned(44234)
+		0x82,             // array(2)
+		0x19, 0x01, 0x07, // 263 (coap type)
 		0x42,       // bytes(2)
 		0xde, 0xad, // h'dead'
 		0x19, 0xac, 0xd1, // unsigned(44241)
+		0x82,             // array(2)
+		0x19, 0x01, 0x07, // 263 (coap type)
 		0x42,       // bytes(2)
 		0xbe, 0xef, // h'beef'
 	}
@@ -593,13 +604,17 @@ func Test_UnmarshalCBOR_InvalidEntries_MissingSign1Tag(t *testing.T) {
 
 func Test_UnmarshalCBOR_InvalidEntries_EmptySign1(t *testing.T) {
 	tv := []byte{
-		0xd9, 0x01, 0x8f,
+		0xd9, 0x03, 0x8b,
 		0xa2,
 		0x19, 0xac, 0xca,
+		0x82,             // array(2)
+		0x19, 0x01, 0x07, // 263 (coap type)
 		0x4e,
 		// invalid platform token
 		0xd2, 0x84, 0x44, 0xa1, 0x01, 0x38, 0x22, 0xa0, 0x42, 0xde, 0xad, 0x42, 0xbe, 0xef,
 		0x19, 0xac, 0xd1,
+		0x82,             // array(2)
+		0x19, 0x01, 0x07, // 263 (coap type)
 		0x4e,
 		// invalid realm token
 		0xd2, 0x84, 0x44, 0xa1, 0x01, 0x38, 0x22, 0xa0, 0x42, 0xde, 0xad, 0x42, 0xbe, 0xef,
