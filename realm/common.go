@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	MaxLenRealmExtendedMeas = 4
+	LenRealmExtendedMeas = 4
 )
 
 // ValidateChallenge returns an error if the provided value does not contain a
@@ -111,12 +111,12 @@ func ValidateHashAlgID(v string) error {
 }
 
 // ValidateExtendedMeas returns an error if the provided slice does not contain
-// valid realm extended measurements (it must be non-empty, and each value must
+// valid realm extended measurements (it must be exactly LenRealmExtendedMeas=4, and each value must
 // be a valid ream measurement).
 func ValidateExtendedMeas(v [][]byte) error {
-	if len(v) == 0 {
-		return fmt.Errorf("%w realm extended measurements",
-			psatoken.ErrMandatoryClaimMissing)
+	if len(v) != LenRealmExtendedMeas {
+		return fmt.Errorf("%w: expected exactly %d realm extended measurements, got %d",
+			psatoken.ErrWrongSyntax, LenRealmExtendedMeas, len(v))
 	}
 
 	for i, meas := range v {
