@@ -59,7 +59,17 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetExtensibleMeasurements([][]byte{})
-	expectedErr = "missing mandatory claim realm extended measurements"
+	expectedErr = "wrong syntax: expected exactly 4 realm extended measurements, got 0"
+	assert.EqualError(t, err, expectedErr)
+
+	meas3 := [][]byte{testInitMeas, testInitMeas, testInitMeas}
+	err = c.SetExtensibleMeasurements(meas3)
+	expectedErr = "wrong syntax: expected exactly 4 realm extended measurements, got 3"
+	assert.EqualError(t, err, expectedErr)
+
+	meas5 := [][]byte{testInitMeas, testInitMeas, testInitMeas, testInitMeas, testInitMeas}
+	err = c.SetExtensibleMeasurements(meas5)
+	expectedErr = "wrong syntax: expected exactly 4 realm extended measurements, got 5"
 	assert.EqualError(t, err, expectedErr)
 
 	err = c.SetHashAlgID("")
