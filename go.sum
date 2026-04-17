@@ -39,8 +39,8 @@ github.com/veraison/eat v0.0.0-20220117140849-ddaf59d69f53 h1:5gnX2TrGd/Xz8DOp2O
 github.com/veraison/eat v0.0.0-20220117140849-ddaf59d69f53/go.mod h1:+kxt8iuFiVvKRs2VQ1Ho7bbAScXAB/kHFFuP5Biw19I=
 github.com/veraison/go-cose v1.3.0-rc.1 h1:j7mMBdwkbq4c+pgEZVbbWG8UwVIgGHPp6+TAAYJj+UY=
 github.com/veraison/go-cose v1.3.0-rc.1/go.mod h1:df09OV91aHoQWLmy1KsDdYiagtXgyAwAl8vFeFn1gMc=
-github.com/veraison/psatoken v1.2.1-0.20240719122628-26fe500fd5d4 h1:N7qg7vDF2mUg7I+8AoU+ieJ20cgcShwFHXHkV5b2YAA=
-github.com/veraison/psatoken v1.2.1-0.20240719122628-26fe500fd5d4/go.mod h1:6+WZzXr0ACXYiUAJJqTaCxW43gY2+gEaCoVNdDv3+Bw=
+github.com/veraison/psatoken v1.2.1-0.20240723091511-b9c092a19d7b h1:6YJOkhWhor5I3LBllc71T2Pvch488thIdR8MxxvyDb0=
+github.com/veraison/psatoken v1.2.1-0.20240723091511-b9c092a19d7b/go.mod h1:6+WZzXr0ACXYiUAJJqTaCxW43gY2+gEaCoVNdDv3+Bw=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
 golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
