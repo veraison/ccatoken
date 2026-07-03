@@ -33,6 +33,9 @@ func mustBuildValidCcaRealmClaims(t *testing.T) IClaims {
 	err = c.SetPubKeyHashAlgID(testPubKeyHashAlgID)
 	require.NoError(t, err)
 
+	err = c.SetMECPolicy(testMECPolicy)
+	require.NoError(t, err)
+
 	return c
 }
 
@@ -40,6 +43,14 @@ func Test_NewCcaRealmClaims_ok(t *testing.T) {
 	c := mustBuildValidCcaRealmClaims(t)
 
 	err := c.Validate()
+	assert.NoError(t, err)
+
+	c = NewClaims()
+	err = c.SetMECPolicy("shared")
+	assert.NoError(t, err)
+
+	c = NewClaims()
+	err = c.SetMECPolicy("private")
 	assert.NoError(t, err)
 }
 
@@ -96,6 +107,10 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 
 	err = c.SetPubKeyHashAlgID("")
 	expectedErr = "invalid null string set for realm pubkey hash alg ID"
+	assert.EqualError(t, err, expectedErr)
+
+	err = c.SetMECPolicy("abc")
+	expectedErr = "wrong syntax: invalid MEC policy value \"abc\" (must be 'shared' or 'private')"
 	assert.EqualError(t, err, expectedErr)
 }
 
@@ -166,6 +181,11 @@ func Test_CcaRealmClaims_UnmarshalCBOR_ok(t *testing.T) {
 	actualPubKey, err := c.GetPubKey()
 	assert.NoError(t, err)
 	assert.Equal(t, expectedPubKey, actualPubKey)
+
+	expectedMECPolicy := testMECPolicy
+	actualMECPolicy, err := c.GetMECPolicy()
+	assert.NoError(t, err)
+	assert.Equal(t, expectedMECPolicy, actualMECPolicy)
 }
 
 func Test_CcaRealmClaims_UnmarshalCBOR_bad_input(t *testing.T) {
@@ -226,7 +246,8 @@ func Test_CcaRealm_Claims_MarshalJSON_ok(t *testing.T) {
   ,
   "cca-realm-hash-algo-id": "sha-256",
   "cca-realm-public-key": "pAECIAIhWDB2+YgJG+WF7UGAGuz6uFhUjGMFfhaw5nYSC70NL5wp4FbF1BoBMOucIVF4mdwjFGsiWDAo4bBivT6ksxX9IZ8cu1KMtudMpJvhZ3NzT2GhymEDGyu/PZGPL5T/xCKOUJGVRK4=",
-  "cca-realm-public-key-hash-algo-id": "sha-512"
+  "cca-realm-public-key-hash-algo-id": "sha-512",
+  "cca-realm-mec-policy": "private"
 }`
 	actual, err := ValidateAndEncodeClaimsToJSON(c)
 	assert.NoError(t, err)
@@ -234,22 +255,10 @@ func Test_CcaRealm_Claims_MarshalJSON_ok(t *testing.T) {
 }
 
 func Test_CcaRealmClaims_UnmarshalJSON_ok(t *testing.T) {
-	tv := `{
-  "cca-realm-challenge": "QUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQg==",
-  "cca-realm-personalization-value": "QURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBRA==",
-  "cca-realm-initial-measurement": "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw==",
-  "cca-realm-extensible-measurements": [
-    "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw==",
-    "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw==",
-    "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw==",
-    "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw=="
-  ]
-  ,
-  "cca-realm-hash-algo-id": "sha-256",
-  "cca-realm-public-key": "pAECIAIhWDB2+YgJG+WF7UGAGuz6uFhUjGMFfhaw5nYSC70NL5wp4FbF1BoBMOucIVF4mdwjFGsiWDAo4bBivT6ksxX9IZ8cu1KMtudMpJvhZ3NzT2GhymEDGyu/PZGPL5T/xCKOUJGVRK4=",
-  "cca-realm-public-key-hash-algo-id": "sha-512"
-}`
-	_, err := DecodeAndValidateClaimsFromJSON([]byte(tv))
+	buf, err := os.ReadFile("testvectors/json/test-cca-claims-all-valid.json")
+	require.NoError(t, err)
+
+	_, err = DecodeAndValidateClaimsFromJSON(buf)
 
 	assert.NoError(t, err)
 }
@@ -270,13 +279,15 @@ func Test_CcaRealmClaims_UnmarshalJSON_negatives(t *testing.T) {
 		/* 2 */ "testvectors/json/test-invalid-initial-meas.json",
 		/* 3 */ "testvectors/json/test-invalid-public-key.json",
 		/* 4 */ "testvectors/json/test-invalid-personalization-val.json",
-		/* 5 */ "testvectors/json/test-missing-nonce.json",
-		/* 6 */ "testvectors/json/test-missing-hash-alg-id.json",
-		/* 7 */ "testvectors/json/test-missing-personalization-val.json",
-		/* 8 */ "testvectors/json/test-missing-initial-meas.json",
-		/* 9 */ "testvectors/json/test-missing-extended-meas.json",
-		/* 10 */ "testvectors/json/test-missing-public-key.json",
-		/* 11 */ "testvectors/json/test-missing-public-key-alg-id.json",
+		/* 5 */ "testvectors/json/test-invalid-mec-policy.json",
+		/* 6 */ "testvectors/json/test-missing-nonce.json",
+		/* 7 */ "testvectors/json/test-missing-hash-alg-id.json",
+		/* 8 */ "testvectors/json/test-missing-personalization-val.json",
+		/* 9 */ "testvectors/json/test-missing-initial-meas.json",
+		/* 10 */ "testvectors/json/test-missing-extended-meas.json",
+		/* 11 */ "testvectors/json/test-missing-public-key.json",
+		/* 12 */ "testvectors/json/test-missing-public-key-alg-id.json",
+		/* 13 */ "testvectors/json/test-missing-mec-policy.json",
 	}
 	for i, fn := range tvs {
 		buf, err := os.ReadFile(fn)

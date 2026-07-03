@@ -156,5 +156,10 @@ func ValidateClaims(c IClaims) error {
 	if err := psatoken.FilterError(c.GetPubKeyHashAlgID()); err != nil {
 		return fmt.Errorf("validating realm public key hash alg ID claim: %w", err)
 	}
+
+	if err := psatoken.FilterError(c.GetMECPolicy()); err != nil {
+		return fmt.Errorf("validating realm MEC policy claim: %w", err)
+	}
+
 	return nil
 }

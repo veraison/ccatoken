@@ -9,5 +9,6 @@
     "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw=="
   ],
   "cca-realm-hash-algo-id": "sha-256",
-  "cca-realm-public-key-hash-algo-id": "sha-512"
+  "cca-realm-public-key-hash-algo-id": "sha-512",
+  "cca-realm-mec-policy": "private"
 }

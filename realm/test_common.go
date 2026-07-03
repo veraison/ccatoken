@@ -22,6 +22,7 @@ var (
 	}
 	testHashAlgID       = "sha-256"
 	testPubKeyHashAlgID = "sha-512"
+	testMECPolicy       = "private"
 
 	// TestRAKPubRaw needs to be public because it is used also by tests in the
 	// ccatoken package.
