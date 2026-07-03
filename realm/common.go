@@ -128,6 +128,17 @@ func ValidateExtendedMeas(v [][]byte) error {
 	return nil
 }
 
+// ValidateMECPolicy returns an error if the provided value does not contain a
+// valid MEC policy (must be "shared" or "private").
+func ValidateMECPolicy(v string) error {
+	if v != "shared" && v != "private" {
+		return fmt.Errorf("%w: invalid MEC policy value %q (must be 'shared' or 'private')",
+			psatoken.ErrWrongSyntax, v)
+	}
+
+	return nil
+}
+
 func ECDSAPublicKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
 	x, y := elliptic.Unmarshal(elliptic.P384(), data) // nolint:staticcheck
 	if x == nil {

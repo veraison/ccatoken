@@ -20,6 +20,7 @@ type IClaims interface {
 	GetInitialMeasurement() ([]byte, error)
 	GetExtensibleMeasurements() ([][]byte, error)
 	GetHashAlgID() (string, error)
+	GetMECPolicy() (string, error)
 	GetPubKey() ([]byte, error)
 	GetPubKeyHashAlgID() (string, error)
 	GetProfile() (string, error)
@@ -30,6 +31,7 @@ type IClaims interface {
 	SetInitialMeasurement([]byte) error
 	SetExtensibleMeasurements([][]byte) error
 	SetHashAlgID(string) error
+	SetMECPolicy(string) error
 	SetPubKey([]byte) error
 	SetPubKeyHashAlgID(string) error
 }

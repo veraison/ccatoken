@@ -21,6 +21,7 @@ type Claims struct {
 	HashAlgID              *string      `cbor:"44236,keyasint" json:"cca-realm-hash-algo-id"`
 	PublicKey              *[]byte      `cbor:"44237,keyasint" json:"cca-realm-public-key"`
 	PublicKeyHashAlgID     *string      `cbor:"44240,keyasint" json:"cca-realm-public-key-hash-algo-id"`
+	MECPolicy              *string      `cbor:"44243,keyasint" json:"cca-realm-mec-policy"`
 }
 
 // NewClaims claims returns a new instance of Claims.
@@ -111,6 +112,15 @@ func (c *Claims) SetPubKeyHashAlgID(v string) error {
 	}
 
 	c.PublicKeyHashAlgID = &v
+	return nil
+}
+
+func (c *Claims) SetMECPolicy(v string) error {
+	if err := ValidateMECPolicy(v); err != nil {
+		return err
+	}
+
+	c.MECPolicy = &v
 	return nil
 }
 
@@ -229,6 +239,20 @@ func (c Claims) GetPubKeyHashAlgID() (string, error) {
 
 	if v == nil {
 		return "", psatoken.ErrMandatoryClaimMissing
+	}
+
+	return *v, nil
+}
+
+func (c Claims) GetMECPolicy() (string, error) {
+	v := c.MECPolicy
+
+	if v == nil {
+		return "", psatoken.ErrMandatoryClaimMissing
+	}
+
+	if err := ValidateMECPolicy(*v); err != nil {
+		return "", err
 	}
 
 	return *v, nil
