@@ -51,6 +51,12 @@ type Claims struct {
 	VSI       *string `cbor:"2400,keyasint,omitempty" json:"cca-platform-service-indicator,omitempty"`
 	HashAlgID *string `cbor:"2402,keyasint" json:"cca-platform-hash-algo-id"`
 
+	ClientID            *uint8         `cbor:"2394,keyasint,omitempty" json:"cca-platform-client-id,omitempty"` // Compulsory for 2024:cca_platform#2.0.0 onwards, not defined for earlier versions. omitempty enables backwards compatibility.
+	ManufacturingConfig *[]byte        `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
+	TbbRotpk            ITbbRotpkArray `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
+	PeerSigners         *[]byte        `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
+	// Extension  *TODO		`cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"` // to find out the type
+
 	CanonicalProfile string `cbor:"-" json:"-"`
 }
 
