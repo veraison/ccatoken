@@ -9,7 +9,7 @@ import (
 // TbbRotpkArray is the generic implementation of ITbbRotpkArray.
 // This provides a container of concrete type for marshaling purposes.
 type TbbRotpkArray[I ITbbRotpkItem] struct {
-	values []I
+	values []I //nolint:structcheck
 }
 
 func (o TbbRotpkArray[I]) Validate() error {
