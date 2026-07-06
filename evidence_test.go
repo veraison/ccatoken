@@ -36,6 +36,9 @@ func mustBuildValidCcaRealmClaims(t *testing.T) realm.IClaims {
 	err = c.SetPubKeyHashAlgID(testPubKeyHashAlgID)
 	require.NoError(t, err)
 
+	err = c.SetMECPolicy(testMECPolicy)
+	require.NoError(t, err)
+
 	return c
 }
 

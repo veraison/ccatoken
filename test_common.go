@@ -73,6 +73,7 @@ var (
 	}
 	testHashAlgID       = "sha-256"
 	testPubKeyHashAlgID = "sha-512"
+	testMECPolicy       = "private"
 
 	testPlatformLifecycleSecured = uint16(platform.LifecycleSecuredMin)
 	testConfig                   = []byte{1, 2, 3}
@@ -139,7 +140,8 @@ var (
 		],
 		"cca-realm-hash-algo-id": "sha-256",
 		"cca-realm-public-key": "pAECIAIhWDCBGViAoiB/uVYDKjy5f12lr3Jv/LcV7hZHhKf7FsBglr3ZRioyZQspEqhVFXDW6h8iWDA7LR99qKJ1+gAzDwB4YYvD4UlUnIFw0y7FWJCn+ex4nx8YrpLrFdIir5cdlxyWWvE=",
-		"cca-realm-public-key-hash-algo-id": "sha-512"
+		"cca-realm-public-key-hash-algo-id": "sha-512",
+		"cca-realm-mec-policy": "private"
 	  }
 	}
 	`
