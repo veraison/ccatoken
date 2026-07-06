@@ -1,8 +1,8 @@
 package platform
 
-// Where an implementation of the CCA platform follows the Trusted Board Boot specification [TBB],
+// Where an implementation of the CCA platform follows the Trusted Board Boot (TBB) specification,
 // the platform will include several provisioned public key identifiers which are used to establish a chain of trust.
-// The CCA platform TBB ROTPK claim is used to provide this information to a verifier.
+// The CCA platform TBB Root of Trust Public Key (ROTPK) claim is used to provide this information to a verifier.
 
 // ITbbRotpkArray defines the interface for the CCA platform TBB ROTPK claim.
 type ITbbRotpkArray interface {
