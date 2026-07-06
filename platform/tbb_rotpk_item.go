@@ -2,14 +2,12 @@ package platform
 
 import "github.com/veraison/psatoken"
 
-// Where an implementation of the CCA platform follows the Trusted Board Boot specification [TBB],
-// the platform will include several provisioned public key identifiers which are used to establish a chain of trust.
-// The CCA platform TBB ROTPK claim is used to provide this information to a verifier.
+// TbbRotpkItem represents a single item in the CCA platform TBB ROTPK claim.
 type TbbRotpkItem struct {
-	Name             *string `cbor:"1,keyasint" json:"description"`
-	ActiveROTPKArray *int32  `cbor:"2,keyasint" json:"active-array"` // int or int32 or uint or uint32 or ?
-	Index            *int32  `cbor:"3,keyasint" json:"index"`        // same question as above
-	Hash             *[]byte `cbor:"4,keyasint" json:"hash"`
+	Name             *string `cbor:"1,keyasint" json:"description"`  // e.g. "CM" or "DM"
+	ActiveROTPKArray *int32  `cbor:"2,keyasint" json:"active-array"` // active ROTPK array
+	Index            *int32  `cbor:"3,keyasint" json:"index"`        // index in the active array
+	Hash             *[]byte `cbor:"4,keyasint" json:"hash"`         // hash object
 }
 
 func (i TbbRotpkItem) Validate() error {

@@ -10,10 +10,10 @@ import (
 type ITbbRotpkItem interface {
 	Validate() error
 
-	GetName() (string, error)
-	GetActiveROTPKArray() (int32, error)
-	GetIndex() (int32, error)
-	GetHash() ([]byte, error)
+	GetName() (string, error)            // e.g. "CM" or "DM"
+	GetActiveROTPKArray() (int32, error) // active ROTPK array
+	GetIndex() (int32, error)            // index in the active array
+	GetHash() ([]byte, error)            // hash object
 
 	SetName(v string) error
 	SetActiveROTPKArray(v int32) error
