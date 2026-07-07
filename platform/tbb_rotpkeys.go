@@ -9,6 +9,10 @@ import (
 type TBBRoTPKeys []ITBBRoTPKey
 
 func (o TBBRoTPKeys) Validate() error {
+	if len(o) == 0 {
+		return fmt.Errorf("TBBRoTPK claim is included but empty")
+	}
+
 	for i, k := range o {
 		if isNilTBBRoTPKey(k) {
 			return fmt.Errorf("failed at index %d: %s", i, "Nil key in TBBRoTPKeys")

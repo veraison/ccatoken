@@ -33,7 +33,6 @@ func Test_TBBRoTPKeys(t *testing.T) {
 	keys := TBBRoTPKeys{
 		&testTBBRoTPKey1,
 		&testTBBRoTPKey2,
-		&(TBBRoTPKey{}),
 	}
 
 	assert.NoError(t, keys.Validate())
@@ -46,4 +45,28 @@ func Test_TBBRoTPKeys_TypedNilKey(t *testing.T) {
 	err := keys.Validate()
 
 	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKeys")
+}
+
+func Test_TBBRoTPKeys_NilKey(t *testing.T) {
+	keys := TBBRoTPKeys{nil}
+
+	err := keys.Validate()
+
+	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKeys")
+}
+
+func Test_TBBRoTPKeys_EmptyKey(t *testing.T) {
+	keys := TBBRoTPKeys{&TBBRoTPKey{}}
+
+	err := keys.Validate()
+
+	assert.EqualError(t, err, "failed at index 0: description: missing mandatory field")
+}
+
+func Test_TBBRoTPKeys_NoKeys(t *testing.T) {
+	keys := TBBRoTPKeys{}
+
+	err := keys.Validate()
+
+	assert.EqualError(t, err, "TBBRoTPKeys is included but empty")
 }
