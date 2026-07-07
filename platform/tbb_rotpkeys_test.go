@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -18,10 +19,11 @@ var (
 		Hash:        &testHash1,
 	}
 	testName2             = "DM"
-	testActiveRoTPKArray2 = int32(1)
-	testIndex2            = int32(1)
-	testHash2             = []byte{0xab, 0xcd, 0xef, 0x00, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef}
-	testTBBRoTPKey2       = TBBRoTPKey{
+	testActiveRoTPKArray2 = int32(0)
+	testIndex2            = int32(3)
+	testHash2             = []byte{0xab, 0xcd, 0xef, 0x00, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef,
+		0xab, 0xcd, 0xef, 0x00, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef}
+	testTBBRoTPKey2 = TBBRoTPKey{
 		Name:        &testName2,
 		ActiveArray: &testActiveRoTPKArray2,
 		Index:       &testIndex2,
@@ -35,10 +37,11 @@ func Test_TBBRoTPKeys(t *testing.T) {
 		&testTBBRoTPKey2,
 	}
 
+	require.NoError(t, testTBBRoTPKey1.Validate())
+	require.NoError(t, testTBBRoTPKey2.Validate())
 	assert.NoError(t, keys.Validate())
 }
-
-func Test_TBBRoTPKeys_TypedNilKey(t *testing.T) {
+func Test_TBBRoTPKeys_typed_nil_key(t *testing.T) {
 	var key *TBBRoTPKey
 	keys := TBBRoTPKeys{key}
 
@@ -47,7 +50,7 @@ func Test_TBBRoTPKeys_TypedNilKey(t *testing.T) {
 	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKeys")
 }
 
-func Test_TBBRoTPKeys_NilKey(t *testing.T) {
+func Test_TBBRoTPKeys_nil_key(t *testing.T) {
 	keys := TBBRoTPKeys{nil}
 
 	err := keys.Validate()
@@ -55,7 +58,7 @@ func Test_TBBRoTPKeys_NilKey(t *testing.T) {
 	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKeys")
 }
 
-func Test_TBBRoTPKeys_EmptyKey(t *testing.T) {
+func Test_TBBRoTPKeys_empty_key(t *testing.T) {
 	keys := TBBRoTPKeys{&TBBRoTPKey{}}
 
 	err := keys.Validate()
@@ -63,7 +66,7 @@ func Test_TBBRoTPKeys_EmptyKey(t *testing.T) {
 	assert.EqualError(t, err, "failed at index 0: description: missing mandatory field")
 }
 
-func Test_TBBRoTPKeys_NoKeys(t *testing.T) {
+func Test_TBBRoTPKeys_no_keys(t *testing.T) {
 	keys := TBBRoTPKeys{}
 
 	err := keys.Validate()

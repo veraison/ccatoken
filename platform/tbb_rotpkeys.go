@@ -10,7 +10,7 @@ type TBBRoTPKeys []ITBBRoTPKey
 
 func (o TBBRoTPKeys) Validate() error {
 	if len(o) == 0 {
-		return fmt.Errorf("TBBRoTPK claim is included but empty")
+		return fmt.Errorf("TBBRoTPKeys is included but empty")
 	}
 
 	for i, k := range o {
