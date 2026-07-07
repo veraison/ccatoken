@@ -54,7 +54,6 @@ func isNilTBBRoTPKey(k ITBBRoTPKey) bool {
 	v := reflect.ValueOf(k)
 	if v.Kind() == reflect.Ptr {
 		return v.IsNil()
-	} else {
-		return false
 	}
+	return false
 }
