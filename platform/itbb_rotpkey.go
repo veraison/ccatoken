@@ -2,33 +2,34 @@ package platform
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/veraison/psatoken"
 )
 
-// ITbbRotpkItem defines the interface for a TBB ROTPK item.
-type ITbbRotpkItem interface {
+// ITBBRoTPKey defines the interface for a TBB ROTPK item.
+type ITBBRoTPKey interface {
 	Validate() error
 
 	GetName() (string, error)            // e.g. "CM" or "DM"
-	GetActiveROTPKArray() (int32, error) // active ROTPK array
+	GetActiveRoTPKArray() (int32, error) // active ROTPK array
 	GetIndex() (int32, error)            // index in the active array
 	GetHash() ([]byte, error)            // hash object
 
 	SetName(v string) error
-	SetActiveROTPKArray(v int32) error
+	SetActiveRoTPKArray(v int32) error
 	SetIndex(v int32) error
 	SetHash(v []byte) error
 }
 
-// ValidateTbbRotpkItem returns an error if validation fails for any of the
+// ValidateTBBRoTPKey returns an error if validation fails for any of the
 // fields of a TBB ROTPK item.
-func ValidateTbbRotpkItem(i ITbbRotpkItem) error {
+func ValidateTBBRoTPKey(i ITBBRoTPKey) error {
 	if err := psatoken.FilterError(i.GetName()); err != nil {
 		return fmt.Errorf("description: %w", err)
 	}
 
-	if err := psatoken.FilterError(i.GetActiveROTPKArray()); err != nil {
+	if err := psatoken.FilterError(i.GetActiveRoTPKArray()); err != nil {
 		return fmt.Errorf("active array: %w", err)
 	}
 
@@ -41,4 +42,19 @@ func ValidateTbbRotpkItem(i ITbbRotpkItem) error {
 	}
 
 	return nil
+}
+
+// isNilTBBRoTPKey returns true if the given ITBBRoTPKey is nil or a typed nil.
+// Used to check for nil values in []ITBBRoTPKey aka TBBRoTPKeys.
+func isNilTBBRoTPKey(k ITBBRoTPKey) bool {
+	if k == nil {
+		return true
+	}
+
+	v := reflect.ValueOf(k)
+	if v.Kind() == reflect.Ptr {
+		return v.IsNil()
+	} else {
+		return false
+	}
 }

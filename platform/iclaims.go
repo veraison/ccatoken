@@ -20,6 +20,7 @@ type IClaims interface {
 
 	SetConfig([]byte) error
 	SetHashAlgID(string) error
+	GetTbbRotpk() (TBBRoTPKeys, error)
 }
 
 // ValidateClaims returns an error if the provided IClaims instance does not
@@ -35,6 +36,10 @@ func ValidateClaims(c IClaims) error {
 
 	if err := psatoken.FilterError(c.GetHashAlgID()); err != nil {
 		return fmt.Errorf("validating platform hash algo id: %w", err)
+	}
+
+	if err := psatoken.FilterError(c.GetTbbRotpk()); err != nil {
+		return fmt.Errorf("validating platform tbb rotpk: %w", err)
 	}
 
 	return nil
