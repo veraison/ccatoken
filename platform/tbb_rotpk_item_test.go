@@ -19,13 +19,13 @@ func Test_TBBRoTPKItem_setters_and_getters(t *testing.T) {
 	assert.Equal(t, "ABC", name)
 
 	require.NoError(t, k.SetActiveRoTPKArray(0))
-	assert.Equal(t, int32(0), *k.ActiveArray)
+	assert.Equal(t, int32(0), *k.ActiveArrayIndex)
 	aa, err := k.GetActiveRoTPKArray()
 	require.NoError(t, err)
 	assert.Equal(t, int32(0), aa)
 
 	require.NoError(t, k.SetActiveRoTPKArray(7))
-	assert.Equal(t, int32(7), *k.ActiveArray)
+	assert.Equal(t, int32(7), *k.ActiveArrayIndex)
 	aa, err = k.GetActiveRoTPKArray()
 	require.NoError(t, err)
 	assert.Equal(t, int32(7), aa)

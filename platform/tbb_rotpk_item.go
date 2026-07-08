@@ -4,10 +4,10 @@ import "github.com/veraison/psatoken"
 
 // TBBRoTPKItem represents a single item in the CCA platform TBB ROTPK claim.
 type TBBRoTPKItem struct {
-	Name        *string `cbor:"1,keyasint" json:"description"`  // e.g. "CM" or "DM"
-	ActiveArray *int32  `cbor:"2,keyasint" json:"active-array"` // active ROTPK array
-	Index       *int32  `cbor:"3,keyasint" json:"index"`        // index in the active array
-	Hash        *[]byte `cbor:"4,keyasint" json:"hash"`         // hash object
+	Name             *string `cbor:"1,keyasint" json:"description"`        // e.g. "CM" or "DM"
+	ActiveArrayIndex *int32  `cbor:"2,keyasint" json:"active-array-index"` // active ROTPK array
+	Index            *int32  `cbor:"3,keyasint" json:"index"`              // index in the active array
+	Hash             *[]byte `cbor:"4,keyasint" json:"hash"`               // hash object
 }
 
 func (i TBBRoTPKItem) Validate() error {
@@ -23,11 +23,11 @@ func (i TBBRoTPKItem) GetName() (string, error) {
 }
 
 func (i TBBRoTPKItem) GetActiveRoTPKArray() (int32, error) {
-	if i.ActiveArray == nil {
+	if i.ActiveArrayIndex == nil {
 		return 0, psatoken.ErrMandatoryFieldMissing
 	}
 
-	return *i.ActiveArray, nil
+	return *i.ActiveArrayIndex, nil
 }
 
 func (i TBBRoTPKItem) GetIndex() (int32, error) {
@@ -56,7 +56,7 @@ func (i *TBBRoTPKItem) SetName(v string) error {
 }
 
 func (i *TBBRoTPKItem) SetActiveRoTPKArray(v int32) error {
-	i.ActiveArray = &v
+	i.ActiveArrayIndex = &v
 	return nil
 }
 
