@@ -45,7 +45,7 @@ func ValidateTBBRoTPKItem(i ITBBRoTPKItem) error {
 }
 
 // isNilTBBRoTPKItem returns true if the given ITBBRoTPKItem is nil or a typed nil.
-// Used to check for nil values in []ITBBRoTPKItem aka TBBRoTPKItems.
+// Used to check for nil values in TBBRoTPKItems.
 func isNilTBBRoTPKItem(k ITBBRoTPKItem) bool {
 	if k == nil {
 		return true

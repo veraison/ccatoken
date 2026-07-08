@@ -1,6 +1,7 @@
 package platform
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,18 +33,58 @@ var (
 )
 
 func Test_TBBRoTPKItems(t *testing.T) {
-	keys := TBBRoTPKItems{
-		&testTBBRoTPKItem1,
-		&testTBBRoTPKItem2,
-	}
-
 	require.NoError(t, testTBBRoTPKItem1.Validate())
 	require.NoError(t, testTBBRoTPKItem2.Validate())
+
+	keys := TBBRoTPKItems{}
+	require.NoError(t, keys.Add(&testTBBRoTPKItem1, &testTBBRoTPKItem2))
 	assert.NoError(t, keys.Validate())
+
+	vals, err := keys.Values()
+	require.NoError(t, err)
+	assert.Equal(t, []ITBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
+
+	vals[0] = nil
+	vals, err = keys.Values()
+	require.NoError(t, err)
+	assert.Equal(t, []ITBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
 }
+
+func Test_TBBRoTPKItems_replace(t *testing.T) {
+	keys := TBBRoTPKItems{}
+
+	require.NoError(t, keys.Replace([]ITBBRoTPKItem{&testTBBRoTPKItem1}))
+	vals, err := keys.Values()
+	require.NoError(t, err)
+	assert.Equal(t, []ITBBRoTPKItem{&testTBBRoTPKItem1}, vals)
+}
+
+func Test_TBBRoTPKItems_codec_roundtrip(t *testing.T) {
+	keys := TBBRoTPKItems{}
+	require.NoError(t, keys.Add(&testTBBRoTPKItem1, &testTBBRoTPKItem2))
+
+	jsonBytes, err := json.Marshal(keys)
+	require.NoError(t, err)
+
+	var fromJSON TBBRoTPKItems
+	require.NoError(t, json.Unmarshal(jsonBytes, &fromJSON))
+	jsonVals, err := fromJSON.Values()
+	require.NoError(t, err)
+	assert.Equal(t, []ITBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, jsonVals)
+
+	cborBytes, err := keys.MarshalCBOR()
+	require.NoError(t, err)
+
+	var fromCBOR TBBRoTPKItems
+	require.NoError(t, fromCBOR.UnmarshalCBOR(cborBytes))
+	cborVals, err := fromCBOR.Values()
+	require.NoError(t, err)
+	assert.Equal(t, []ITBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, cborVals)
+}
+
 func Test_TBBRoTPKItems_typed_nil_key(t *testing.T) {
 	var key *TBBRoTPKItem
-	keys := TBBRoTPKItems{key}
+	keys := TBBRoTPKItems{values: []*TBBRoTPKItem{key}}
 
 	err := keys.Validate()
 
@@ -51,25 +92,17 @@ func Test_TBBRoTPKItems_typed_nil_key(t *testing.T) {
 }
 
 func Test_TBBRoTPKItems_nil_key(t *testing.T) {
-	keys := TBBRoTPKItems{nil}
+	keys := TBBRoTPKItems{}
 
-	err := keys.Validate()
+	err := keys.Add(nil)
 
 	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKItems")
 }
 
 func Test_TBBRoTPKItems_empty_key(t *testing.T) {
-	keys := TBBRoTPKItems{&TBBRoTPKItem{}}
+	keys := TBBRoTPKItems{values: []*TBBRoTPKItem{{}}}
 
 	err := keys.Validate()
 
 	assert.EqualError(t, err, "failed at index 0: description: missing mandatory field")
-}
-
-func Test_TBBRoTPKItems_no_keys(t *testing.T) {
-	keys := TBBRoTPKItems{}
-
-	err := keys.Validate()
-
-	assert.EqualError(t, err, "TBBRoTPKItems is included but empty")
 }
