@@ -141,7 +141,7 @@ func (c *ClaimsV2) SetTBBRoTPK(vals []ITBBRoTPKItem) error {
 
 func (c *ClaimsV2) SetPeerSigners(v []byte) error {
 	if len(v) == 0 {
-		return psatoken.ErrOptionalClaimMissing
+		return fmt.Errorf("%w: peer signers", psatoken.ErrWrongSyntax)
 	}
 
 	c.PeerSigners = &v
@@ -158,8 +158,12 @@ func (c *ClaimsV2) GetClientID() (int32, error) {
 }
 
 func (c *ClaimsV2) GetManufacturingConfig() ([]byte, error) {
-	if c.ManufacturingConfig == nil || len(*c.ManufacturingConfig) == 0 {
+	if c.ManufacturingConfig == nil {
 		return nil, psatoken.ErrOptionalClaimMissing
+	}
+
+	if len(*c.ManufacturingConfig) == 0 {
+		return nil, fmt.Errorf("%w: manufacturing config", psatoken.ErrWrongSyntax)
 	}
 
 	return *c.ManufacturingConfig, nil
@@ -174,8 +178,12 @@ func (c *ClaimsV2) GetTBBRoTPK() ([]ITBBRoTPKItem, error) {
 }
 
 func (c *ClaimsV2) GetPeerSigners() ([]byte, error) {
-	if c.PeerSigners == nil || len(*c.PeerSigners) == 0 {
+	if c.PeerSigners == nil {
 		return nil, psatoken.ErrOptionalClaimMissing
+	}
+
+	if len(*c.PeerSigners) == 0 {
+		return nil, fmt.Errorf("%w: peer signers", psatoken.ErrWrongSyntax)
 	}
 
 	return *c.PeerSigners, nil
