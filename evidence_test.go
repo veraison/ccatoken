@@ -400,7 +400,7 @@ func TestEvidence_SetClaims_missing_platform_claims(t *testing.T) {
 
 func TestEvidence_SetClaims_bind_failed(t *testing.T) {
 	emptyRealmClaims := &realm.Claims{}
-	emptyPlatformClaims := &platform.Claims{}
+	emptyPlatformClaims := &platform.ClaimsV1{}
 
 	expectedErr := "tokens binding failed: computing binder value: extracting RAK from the realm token: missing mandatory claim"
 
@@ -411,7 +411,7 @@ func TestEvidence_SetClaims_bind_failed(t *testing.T) {
 }
 
 func TestEvidence_SetClaims_invalid_platform(t *testing.T) {
-	emptyPlatformClaims := &platform.Claims{}
+	emptyPlatformClaims := &platform.ClaimsV1{}
 
 	expectedErr := "validation of cca-platform-claims failed: validating profile: missing mandatory claim"
 

@@ -236,7 +236,7 @@ func Test_CCAPlatform_MarshalJSON_ok(t *testing.T) {
 }
 
 func Test_CCAPlatform_MarshalJSON_not_ok(t *testing.T) {
-	c := &Claims{}
+	c := &ClaimsV1{}
 	expectedErr := `validating profile: missing mandatory claim`
 
 	_, err := ValidateAndEncodeClaimsToCBOR(c)
@@ -344,7 +344,7 @@ func Test_DecodeUnvalidatedCCAClaims(t *testing.T) {
 	}
 
 	tvs := []TestVector{
-		{testEncodedCcaPlatformClaimsMissingMandatoryNonce, &Claims{}},
+		{testEncodedCcaPlatformClaimsMissingMandatoryNonce, &ClaimsV1{}},
 	}
 
 	for _, tv := range tvs {
@@ -382,11 +382,11 @@ func Test_DecodeUnvalidatedJSONCCAClaims(t *testing.T) {
 	}
 	tvs := []TestVector{
 		// valid
-		{"testvectors/json/test-token-valid-full.json", &Claims{}},
+		{"testvectors/json/test-token-valid-full.json", &ClaimsV1{}},
 
 		// invalid
-		{"testvectors/json/test-no-sw-components.json", &Claims{}},
-		{"testvectors/json/test-invalid-psa-claims.json", &Claims{}},
+		{"testvectors/json/test-no-sw-components.json", &ClaimsV1{}},
+		{"testvectors/json/test-invalid-psa-claims.json", &ClaimsV1{}},
 	}
 
 	for _, tv := range tvs {

@@ -11,90 +11,115 @@ import (
 	"github.com/veraison/psatoken"
 )
 
-const ProfileNameV2 = "tag:arm.com,2024:cca_platform#2.0.0"
+const LegacyProfileName = "http://arm.com/CCA-SSD/1.0.0"
+const ProfileName = "tag:arm.com,2023:cca_platform#1.0.0"
 
-// Profile is the psatoken.IProfile implementation for CCA claims. It is
+// ProfileV1 is the psatoken.IProfile implementation for CCA claims. It is
 // registered to associate the claims with the profile name, so that it can be
 // automatically used during unmarshaling.
-type ProfileV2 struct{}
+type ProfileV1 struct{}
 
-func (o ProfileV2) GetName() string {
-	return ProfileNameV2
+func (o ProfileV1) GetName() string {
+	return ProfileName
 }
 
-func (o ProfileV2) GetClaims() psatoken.IClaims {
+func (o ProfileV1) GetClaims() psatoken.IClaims {
 	return NewClaims()
 }
 
-// Claims contains the CCA platform claims. It implements IClaims, which is an
+type LegacyProfileV1 struct{}
+
+func (o LegacyProfileV1) GetName() string {
+	return LegacyProfileName
+}
+
+func (o LegacyProfileV1) GetClaims() psatoken.IClaims {
+	return NewLegacyClaims()
+}
+
+// ClaimsV1 contains the CCA platform claims. It implements IClaims, which is an
 // extension of psatoken.IClaims.
-type ClaimsV2 struct {
-	Claims
-	ClientID            *uint8         `cbor:"2394,keyasint" json:"cca-platform-client-id"`
-	ManufacturingConfig *[]byte        `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
-	TBBRoTPK            *TBBRoTPKItems `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
-	PeerSigners         *[]byte        `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
-	// Extension  *TODO		`cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"` // to find out the type
+type ClaimsV1 struct {
+	Profile           *eat.Profile           `cbor:"265,keyasint" json:"cca-platform-profile"`
+	Challenge         *eat.Nonce             `cbor:"10,keyasint" json:"cca-platform-challenge"`
+	ImplID            *[]byte                `cbor:"2396,keyasint" json:"cca-platform-implementation-id"`
+	InstID            *eat.UEID              `cbor:"256,keyasint" json:"cca-platform-instance-id"`
+	Config            *[]byte                `cbor:"2401,keyasint" json:"cca-platform-config"`
+	SecurityLifeCycle *uint16                `cbor:"2395,keyasint" json:"cca-platform-lifecycle"`
+	SwComponents      psatoken.ISwComponents `cbor:"2399,keyasint" json:"cca-platform-sw-components"`
+
+	VSI       *string `cbor:"2400,keyasint,omitempty" json:"cca-platform-service-indicator,omitempty"`
+	HashAlgID *string `cbor:"2402,keyasint" json:"cca-platform-hash-algo-id"`
+
+	CanonicalProfile string `cbor:"-" json:"-"`
 }
 
 // NewClaims claims returns a new instance of Claims.
-func NewClaimsV2() IClaims {
+func NewClaims() IClaims {
+	return newClaims(ProfileName)
+}
+
+func NewLegacyClaims() IClaims {
+	return newClaims(LegacyProfileName)
+}
+
+func newClaims(profileName string) IClaims {
 	p := eat.Profile{}
-	if err := p.Set(ProfileNameV2); err != nil {
+	if err := p.Set(profileName); err != nil {
 		// should never get here as using known good constant as input
 		panic(err)
 	}
 
-	return &Claims{
+	return &ClaimsV1{
 		Profile:          &p,
 		SwComponents:     &psatoken.SwComponents[*psatoken.SwComponent]{},
-		CanonicalProfile: ProfileNameV2,
+		CanonicalProfile: profileName,
 	}
 }
 
 // Semantic validation
-func (c *ClaimsV2) Validate() error {
+func (c *ClaimsV1) Validate() error {
 	return ValidateClaims(c)
 }
 
 // Codecs
 
 // this type alias is used to prevent infinite recursion during marshaling.
-type claimsV2 ClaimsV2
+type claimsV1 ClaimsV1
 
 // UnmarshalCBOR decodes the claims from CBOR
-func (c *ClaimsV2) UnmarshalCBOR(buf []byte) error {
+func (c *ClaimsV1) UnmarshalCBOR(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we taked it from buf
 
-	return dm.Unmarshal(buf, (*claimsV2)(c))
+	return dm.Unmarshal(buf, (*claimsV1)(c))
 }
 
 // MarshalCBOR encodes the claims to CBOR
-func (c ClaimsV2) MarshalCBOR() ([]byte, error) {
+func (c ClaimsV1) MarshalCBOR() ([]byte, error) {
 	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
 		c.SwComponents = nil
 	}
 
-	return em.Marshal((*claimsV2)(&c))
+	return em.Marshal((*claimsV1)(&c))
 }
 
 // UnmarshalJSON decodes the claims from JSON
-func (c *ClaimsV2) UnmarshalJSON(buf []byte) error {
+func (c *ClaimsV1) UnmarshalJSON(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we taked it from buf
 
-	return json.Unmarshal(buf, (*claimsV2)(c))
+	return json.Unmarshal(buf, (*claimsV1)(c))
 }
 
 // MarshalJSON encodes the claims into JSON
-func (c ClaimsV2) MarshalJSON() ([]byte, error) {
+func (c ClaimsV1) MarshalJSON() ([]byte, error) {
 	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
 		c.SwComponents = nil
 	}
 
-	return json.Marshal((*claimsV2)(&c))
+	return json.Marshal((*claimsV1)(&c))
 }
 
-func (c *ClaimsV2) SetImplID(v []byte) error {
+func (c *ClaimsV1) SetImplID(v []byte) error {
 	if err := psatoken.ValidateImplID(v); err != nil {
 		return err
 	}
@@ -104,7 +129,7 @@ func (c *ClaimsV2) SetImplID(v []byte) error {
 	return nil
 }
 
-func (c *ClaimsV2) SetNonce(v []byte) error {
+func (c *ClaimsV1) SetNonce(v []byte) error {
 	if err := psatoken.ValidatePSAHashType(v); err != nil {
 		return err
 	}
@@ -120,7 +145,7 @@ func (c *ClaimsV2) SetNonce(v []byte) error {
 	return nil
 }
 
-func (c *ClaimsV2) SetInstID(v []byte) error {
+func (c *ClaimsV1) SetInstID(v []byte) error {
 	if err := psatoken.ValidateInstID(v); err != nil {
 		return err
 	}
@@ -132,7 +157,7 @@ func (c *ClaimsV2) SetInstID(v []byte) error {
 	return nil
 }
 
-func (c *ClaimsV2) SetVSI(v string) error {
+func (c *ClaimsV1) SetVSI(v string) error {
 	if err := psatoken.ValidateVSI(v); err != nil {
 		return err
 	}
@@ -142,7 +167,7 @@ func (c *ClaimsV2) SetVSI(v string) error {
 	return nil
 }
 
-func (c *ClaimsV2) SetSecurityLifeCycle(v uint16) error {
+func (c *ClaimsV1) SetSecurityLifeCycle(v uint16) error {
 	if err := ValidateSecurityLifeCycle(v); err != nil {
 		return err
 	}
@@ -152,19 +177,19 @@ func (c *ClaimsV2) SetSecurityLifeCycle(v uint16) error {
 	return nil
 }
 
-func (c *ClaimsV2) SetBootSeed(v []byte) error {
+func (c *ClaimsV1) SetBootSeed(v []byte) error {
 	return fmt.Errorf("%w: boot seed", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *ClaimsV2) SetCertificationReference(v string) error {
+func (c *ClaimsV1) SetCertificationReference(v string) error {
 	return fmt.Errorf("%w: certification reference", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *ClaimsV2) SetClientID(int32) error {
+func (c *ClaimsV1) SetClientID(int32) error {
 	return fmt.Errorf("%w: client id", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *ClaimsV2) SetSoftwareComponents(scs []psatoken.ISwComponent) error {
+func (c *ClaimsV1) SetSoftwareComponents(scs []psatoken.ISwComponent) error {
 	if c.SwComponents == nil {
 		c.SwComponents = &psatoken.SwComponents[*psatoken.SwComponent]{}
 	}
@@ -172,7 +197,7 @@ func (c *ClaimsV2) SetSoftwareComponents(scs []psatoken.ISwComponent) error {
 	return c.SwComponents.Replace(scs)
 }
 
-func (c *ClaimsV2) SetConfig(v []byte) error {
+func (c *ClaimsV1) SetConfig(v []byte) error {
 	if len(v) == 0 {
 		return psatoken.ErrMandatoryClaimMissing
 	}
@@ -182,7 +207,7 @@ func (c *ClaimsV2) SetConfig(v []byte) error {
 	return nil
 }
 
-func (c *ClaimsV2) SetHashAlgID(v string) error {
+func (c *ClaimsV1) SetHashAlgID(v string) error {
 	if err := psatoken.ValidateHashAlgID(v); err != nil {
 		return err
 	}
@@ -196,7 +221,7 @@ func (c *ClaimsV2) SetHashAlgID(v string) error {
 // After successful call to Validate(), getters of mandatory claims are assured
 // to never fail.  Getters of optional claim may still fail with
 // ErrOptionalClaimMissing in case the claim is not present.
-func (c *ClaimsV2) GetProfile() (string, error) {
+func (c *ClaimsV1) GetProfile() (string, error) {
 	if c.Profile == nil {
 		return "", psatoken.ErrMandatoryClaimMissing
 	}
@@ -214,11 +239,11 @@ func (c *ClaimsV2) GetProfile() (string, error) {
 	return profileString, nil
 }
 
-func (c *ClaimsV2) GetClientID() (int32, error) {
+func (c *ClaimsV1) GetClientID() (int32, error) {
 	return -1, fmt.Errorf("%w: client id", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *ClaimsV2) GetSecurityLifeCycle() (uint16, error) {
+func (c *ClaimsV1) GetSecurityLifeCycle() (uint16, error) {
 	if c.SecurityLifeCycle == nil {
 		return 0, psatoken.ErrMandatoryClaimMissing
 	}
@@ -230,7 +255,7 @@ func (c *ClaimsV2) GetSecurityLifeCycle() (uint16, error) {
 	return *c.SecurityLifeCycle, nil
 }
 
-func (c *ClaimsV2) GetImplID() ([]byte, error) {
+func (c *ClaimsV1) GetImplID() ([]byte, error) {
 	if c.ImplID == nil {
 		return nil, psatoken.ErrMandatoryClaimMissing
 	}
@@ -242,15 +267,15 @@ func (c *ClaimsV2) GetImplID() ([]byte, error) {
 	return *c.ImplID, nil
 }
 
-func (c *ClaimsV2) GetBootSeed() ([]byte, error) {
+func (c *ClaimsV1) GetBootSeed() ([]byte, error) {
 	return nil, fmt.Errorf("%w: boot seed", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *ClaimsV2) GetCertificationReference() (string, error) {
+func (c *ClaimsV1) GetCertificationReference() (string, error) {
 	return "", fmt.Errorf("%w: certification reference", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *ClaimsV2) GetSoftwareComponents() ([]psatoken.ISwComponent, error) {
+func (c *ClaimsV1) GetSoftwareComponents() ([]psatoken.ISwComponent, error) {
 	if c.SwComponents == nil || c.SwComponents.IsEmpty() {
 		return nil, fmt.Errorf("%w (MUST have at least one sw component)",
 			psatoken.ErrMandatoryClaimMissing)
@@ -259,7 +284,7 @@ func (c *ClaimsV2) GetSoftwareComponents() ([]psatoken.ISwComponent, error) {
 	return c.SwComponents.Values()
 }
 
-func (c *ClaimsV2) GetNonce() ([]byte, error) {
+func (c *ClaimsV1) GetNonce() ([]byte, error) {
 	v := c.Challenge
 
 	if v == nil {
@@ -280,7 +305,7 @@ func (c *ClaimsV2) GetNonce() ([]byte, error) {
 	return n, nil
 }
 
-func (c *ClaimsV2) GetInstID() ([]byte, error) {
+func (c *ClaimsV1) GetInstID() ([]byte, error) {
 	v := c.InstID
 
 	if v == nil {
@@ -294,7 +319,7 @@ func (c *ClaimsV2) GetInstID() ([]byte, error) {
 	return *v, nil
 }
 
-func (c *ClaimsV2) GetVSI() (string, error) {
+func (c *ClaimsV1) GetVSI() (string, error) {
 	if c.VSI == nil {
 		return "", psatoken.ErrOptionalClaimMissing
 	}
@@ -306,7 +331,7 @@ func (c *ClaimsV2) GetVSI() (string, error) {
 	return *c.VSI, nil
 }
 
-func (c *ClaimsV2) GetConfig() ([]byte, error) {
+func (c *ClaimsV1) GetConfig() ([]byte, error) {
 	v := c.Config
 	if v == nil {
 		return nil, psatoken.ErrMandatoryClaimMissing
@@ -314,7 +339,7 @@ func (c *ClaimsV2) GetConfig() ([]byte, error) {
 	return *v, nil
 }
 
-func (c *ClaimsV2) GetHashAlgID() (string, error) {
+func (c *ClaimsV1) GetHashAlgID() (string, error) {
 	v := c.HashAlgID
 
 	if v == nil {
@@ -327,11 +352,11 @@ func (c *ClaimsV2) GetHashAlgID() (string, error) {
 }
 
 func init() {
-	if err := psatoken.RegisterProfile(Profile{}); err != nil {
+	if err := psatoken.RegisterProfile(ProfileV1{}); err != nil {
 		panic(err)
 	}
 
-	if err := psatoken.RegisterProfile(LegacyProfile{}); err != nil {
+	if err := psatoken.RegisterProfile(LegacyProfileV1{}); err != nil {
 		panic(err)
 	}
 }
