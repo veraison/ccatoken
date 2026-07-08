@@ -1,4 +1,4 @@
-// Copyright 2021-2024 Contributors to the Veraison project.
+// Copyright 2026 Contributors to the Veraison project.
 // SPDX-License-Identifier: Apache-2.0
 
 package platform
@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/veraison/eat"
 	"github.com/veraison/psatoken"
 )
 
@@ -23,7 +22,7 @@ func (o ProfileV2) GetName() string {
 }
 
 func (o ProfileV2) GetClaims() psatoken.IClaims {
-	return NewClaims()
+	return NewClaimsV2()
 }
 
 // Claims contains the CCA platform claims. It implements IClaims, which is an
@@ -39,22 +38,33 @@ type ClaimsV2 struct {
 
 // NewClaims claims returns a new instance of Claims.
 func NewClaimsV2() IClaims {
-	p := eat.Profile{}
-	if err := p.Set(ProfileNameV2); err != nil {
-		// should never get here as using known good constant as input
-		panic(err)
-	}
+	baseClaims := newClaimsV1(ProfileNameV2).(*ClaimsV1)
 
-	return &ClaimsV1{
-		Profile:          &p,
-		SwComponents:     &psatoken.SwComponents[*psatoken.SwComponent]{},
-		CanonicalProfile: ProfileNameV2,
+	return &ClaimsV2{
+		ClaimsV1: *baseClaims,
+		TBBRoTPK: &TBBRoTPKItems{},
 	}
 }
 
 // Semantic validation
 func (c *ClaimsV2) Validate() error {
-	return ValidateClaims(c)
+	if err := ValidateClaims(c); err != nil {
+		return err
+	}
+
+	if err := psatoken.FilterError(c.GetManufacturingConfig()); err != nil {
+		return fmt.Errorf("validating platform manufacturing config: %w", err)
+	}
+
+	if err := psatoken.FilterError(c.GetTBBRoTPK()); err != nil {
+		return fmt.Errorf("validating platform TBB ROTPK: %w", err)
+	}
+
+	if err := psatoken.FilterError(c.GetPeerSigners()); err != nil {
+		return fmt.Errorf("validating platform peer signers: %w", err)
+	}
+
+	return nil
 }
 
 // Codecs
@@ -74,6 +84,9 @@ func (c ClaimsV2) MarshalCBOR() ([]byte, error) {
 	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
 		c.SwComponents = nil
 	}
+	if c.TBBRoTPK != nil && c.TBBRoTPK.IsEmpty() {
+		c.TBBRoTPK = nil
+	}
 
 	return em.Marshal((*claimsV2)(&c))
 }
@@ -90,240 +103,82 @@ func (c ClaimsV2) MarshalJSON() ([]byte, error) {
 	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
 		c.SwComponents = nil
 	}
+	if c.TBBRoTPK != nil && c.TBBRoTPK.IsEmpty() {
+		c.TBBRoTPK = nil
+	}
 
 	return json.Marshal((*claimsV2)(&c))
 }
 
-func (c *ClaimsV2) SetImplID(v []byte) error {
-	if err := psatoken.ValidateImplID(v); err != nil {
-		return err
+func (c *ClaimsV2) SetClientID(v int32) error {
+	if v != 1 {
+		return fmt.Errorf("%w: client id MUST be 1", psatoken.ErrWrongSyntax)
 	}
 
-	c.ImplID = &v
+	clientID := uint8(v)
+	c.ClientID = &clientID
 
 	return nil
 }
 
-func (c *ClaimsV2) SetNonce(v []byte) error {
-	if err := psatoken.ValidatePSAHashType(v); err != nil {
-		return err
-	}
-
-	n := eat.Nonce{}
-
-	if err := n.Add(v); err != nil {
-		return err
-	}
-
-	c.Challenge = &n
-
-	return nil
-}
-
-func (c *ClaimsV2) SetInstID(v []byte) error {
-	if err := psatoken.ValidateInstID(v); err != nil {
-		return err
-	}
-
-	ueid := eat.UEID(v)
-
-	c.InstID = &ueid
-
-	return nil
-}
-
-func (c *ClaimsV2) SetVSI(v string) error {
-	if err := psatoken.ValidateVSI(v); err != nil {
-		return err
-	}
-
-	c.VSI = &v
-
-	return nil
-}
-
-func (c *ClaimsV2) SetSecurityLifeCycle(v uint16) error {
-	if err := ValidateSecurityLifeCycle(v); err != nil {
-		return err
-	}
-
-	c.SecurityLifeCycle = &v
-
-	return nil
-}
-
-func (c *ClaimsV2) SetBootSeed(v []byte) error {
-	return fmt.Errorf("%w: boot seed", psatoken.ErrClaimNotInProfile)
-}
-
-func (c *ClaimsV2) SetCertificationReference(v string) error {
-	return fmt.Errorf("%w: certification reference", psatoken.ErrClaimNotInProfile)
-}
-
-func (c *ClaimsV2) SetClientID(int32) error {
-	return fmt.Errorf("%w: client id", psatoken.ErrClaimNotInProfile)
-}
-
-func (c *ClaimsV2) SetSoftwareComponents(scs []psatoken.ISwComponent) error {
-	if c.SwComponents == nil {
-		c.SwComponents = &psatoken.SwComponents[*psatoken.SwComponent]{}
-	}
-
-	return c.SwComponents.Replace(scs)
-}
-
-func (c *ClaimsV2) SetConfig(v []byte) error {
+func (c *ClaimsV2) SetManufacturingConfig(v []byte) error {
 	if len(v) == 0 {
-		return psatoken.ErrMandatoryClaimMissing
+		return fmt.Errorf("%w: manufacturing config", psatoken.ErrWrongSyntax)
 	}
 
-	c.Config = &v
+	c.ManufacturingConfig = &v
 
 	return nil
 }
 
-func (c *ClaimsV2) SetHashAlgID(v string) error {
-	if err := psatoken.ValidateHashAlgID(v); err != nil {
-		return err
+func (c *ClaimsV2) SetTBBRoTPK(vals []ITBBRoTPKItem) error {
+	if c.TBBRoTPK == nil {
+		c.TBBRoTPK = &TBBRoTPKItems{}
 	}
 
-	c.HashAlgID = &v
-
-	return nil
+	return c.TBBRoTPK.Replace(vals)
 }
 
-// Getters return a validated value or an error
-// After successful call to Validate(), getters of mandatory claims are assured
-// to never fail.  Getters of optional claim may still fail with
-// ErrOptionalClaimMissing in case the claim is not present.
-func (c *ClaimsV2) GetProfile() (string, error) {
-	if c.Profile == nil {
-		return "", psatoken.ErrMandatoryClaimMissing
+func (c *ClaimsV2) SetPeerSigners(v []byte) error {
+	if len(v) == 0 {
+		return psatoken.ErrOptionalClaimMissing
 	}
 
-	profileString, err := c.Profile.Get()
-	if err != nil {
-		return "", err
-	}
+	c.PeerSigners = &v
 
-	if profileString != c.CanonicalProfile {
-		return "", fmt.Errorf("%w: expecting %q, got %q",
-			psatoken.ErrWrongProfile, c.CanonicalProfile, profileString)
-	}
-
-	return profileString, nil
+	return nil
 }
 
 func (c *ClaimsV2) GetClientID() (int32, error) {
-	return -1, fmt.Errorf("%w: client id", psatoken.ErrClaimNotInProfile)
-}
-
-func (c *ClaimsV2) GetSecurityLifeCycle() (uint16, error) {
-	if c.SecurityLifeCycle == nil {
+	if c.ClientID == nil {
 		return 0, psatoken.ErrMandatoryClaimMissing
 	}
 
-	if err := psatoken.ValidateSecurityLifeCycle(*c.SecurityLifeCycle); err != nil {
-		return 0, err
-	}
-
-	return *c.SecurityLifeCycle, nil
+	return int32(*c.ClientID), nil
 }
 
-func (c *ClaimsV2) GetImplID() ([]byte, error) {
-	if c.ImplID == nil {
-		return nil, psatoken.ErrMandatoryClaimMissing
+func (c *ClaimsV2) GetManufacturingConfig() ([]byte, error) {
+	if c.ManufacturingConfig == nil || len(*c.ManufacturingConfig) == 0 {
+		return nil, psatoken.ErrOptionalClaimMissing
 	}
 
-	if err := psatoken.ValidateImplID(*c.ImplID); err != nil {
-		return nil, err
-	}
-
-	return *c.ImplID, nil
+	return *c.ManufacturingConfig, nil
 }
 
-func (c *ClaimsV2) GetBootSeed() ([]byte, error) {
-	return nil, fmt.Errorf("%w: boot seed", psatoken.ErrClaimNotInProfile)
+func (c *ClaimsV2) GetTBBRoTPK() ([]ITBBRoTPKItem, error) {
+	if c.TBBRoTPK == nil || c.TBBRoTPK.IsEmpty() {
+		return nil, psatoken.ErrOptionalClaimMissing
+	}
+
+	return c.TBBRoTPK.Values()
 }
 
-func (c *ClaimsV2) GetCertificationReference() (string, error) {
-	return "", fmt.Errorf("%w: certification reference", psatoken.ErrClaimNotInProfile)
-}
-
-func (c *ClaimsV2) GetSoftwareComponents() ([]psatoken.ISwComponent, error) {
-	if c.SwComponents == nil || c.SwComponents.IsEmpty() {
-		return nil, fmt.Errorf("%w (MUST have at least one sw component)",
-			psatoken.ErrMandatoryClaimMissing)
+func (c *ClaimsV2) GetPeerSigners() ([]byte, error) {
+	if c.PeerSigners == nil || len(*c.PeerSigners) == 0 {
+		return nil, psatoken.ErrOptionalClaimMissing
 	}
 
-	return c.SwComponents.Values()
-}
-
-func (c *ClaimsV2) GetNonce() ([]byte, error) {
-	v := c.Challenge
-
-	if v == nil {
-		return nil, psatoken.ErrMandatoryClaimMissing
-	}
-
-	l := v.Len()
-
-	if l != 1 {
-		return nil, fmt.Errorf("%w: got %d nonces, want 1", psatoken.ErrWrongSyntax, l)
-	}
-
-	n := v.GetI(0)
-	if err := psatoken.ValidateNonce(n); err != nil {
-		return nil, err
-	}
-
-	return n, nil
-}
-
-func (c *ClaimsV2) GetInstID() ([]byte, error) {
-	v := c.InstID
-
-	if v == nil {
-		return nil, psatoken.ErrMandatoryClaimMissing
-	}
-
-	if err := psatoken.ValidateInstID(*v); err != nil {
-		return nil, err
-	}
-
-	return *v, nil
-}
-
-func (c *ClaimsV2) GetVSI() (string, error) {
-	if c.VSI == nil {
-		return "", psatoken.ErrOptionalClaimMissing
-	}
-
-	if err := psatoken.ValidateVSI(*c.VSI); err != nil {
-		return "", err
-	}
-
-	return *c.VSI, nil
-}
-
-func (c *ClaimsV2) GetConfig() ([]byte, error) {
-	v := c.Config
-	if v == nil {
-		return nil, psatoken.ErrMandatoryClaimMissing
-	}
-	return *v, nil
-}
-
-func (c *ClaimsV2) GetHashAlgID() (string, error) {
-	v := c.HashAlgID
-
-	if v == nil {
-		return "", psatoken.ErrMandatoryClaimMissing
-	}
-	if err := psatoken.ValidateHashAlgID(*v); err != nil {
-		return "", err
-	}
-	return *v, nil
+	return *c.PeerSigners, nil
 }
 
 func init() {

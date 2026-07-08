@@ -359,4 +359,8 @@ func init() {
 	if err := psatoken.RegisterProfile(LegacyProfileV1{}); err != nil {
 		panic(err)
 	}
+
+	if err := psatoken.RegisterProfile(ProfileV2{}); err != nil {
+		panic(err)
+	}
 }
