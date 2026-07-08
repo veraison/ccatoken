@@ -9,10 +9,6 @@ import (
 type TBBRoTPKItems []ITBBRoTPKItem
 
 func (o TBBRoTPKItems) Validate() error {
-	if len(o) == 0 {
-		return fmt.Errorf("TBBRoTPKItems is included but empty")
-	}
-
 	for i, k := range o {
 		if isNilTBBRoTPKItem(k) {
 			return fmt.Errorf("failed at index %d: %s", i, "Nil key in TBBRoTPKItems")
