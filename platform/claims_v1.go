@@ -1,4 +1,4 @@
-// Copyright 2021-2024 Contributors to the Veraison project.
+// Copyright 2021-2026 Contributors to the Veraison project.
 // SPDX-License-Identifier: Apache-2.0
 
 package platform
@@ -24,7 +24,7 @@ func (o ProfileV1) GetName() string {
 }
 
 func (o ProfileV1) GetClaims() psatoken.IClaims {
-	return NewClaims()
+	return NewClaimsV1()
 }
 
 type LegacyProfileV1 struct{}
@@ -34,7 +34,7 @@ func (o LegacyProfileV1) GetName() string {
 }
 
 func (o LegacyProfileV1) GetClaims() psatoken.IClaims {
-	return NewLegacyClaims()
+	return NewLegacyClaimsV1()
 }
 
 // ClaimsV1 contains the CCA platform claims. It implements IClaims, which is an
@@ -54,16 +54,16 @@ type ClaimsV1 struct {
 	CanonicalProfile string `cbor:"-" json:"-"`
 }
 
-// NewClaims claims returns a new instance of Claims.
-func NewClaims() IClaims {
-	return newClaims(ProfileName)
+// NewClaimsV1 claims returns a new instance of Claims.
+func NewClaimsV1() IClaims {
+	return newClaimsV1(ProfileName)
 }
 
-func NewLegacyClaims() IClaims {
-	return newClaims(LegacyProfileName)
+func NewLegacyClaimsV1() IClaims {
+	return newClaimsV1(LegacyProfileName)
 }
 
-func newClaims(profileName string) IClaims {
+func newClaimsV1(profileName string) IClaims {
 	p := eat.Profile{}
 	if err := p.Set(profileName); err != nil {
 		// should never get here as using known good constant as input
