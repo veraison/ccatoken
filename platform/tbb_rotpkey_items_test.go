@@ -12,7 +12,7 @@ var (
 	testActiveRoTPKArray1 = int32(1)
 	testIndex1            = int32(0)
 	testHash1             = []byte{0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef}
-	testTBBRoTPKey1       = TBBRoTPKey{
+	testTBBRoTPKItem1     = TBBRoTPKItem{
 		Name:        &testName1,
 		ActiveArray: &testActiveRoTPKArray1,
 		Index:       &testIndex1,
@@ -23,7 +23,7 @@ var (
 	testIndex2            = int32(3)
 	testHash2             = []byte{0xab, 0xcd, 0xef, 0x00, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef,
 		0xab, 0xcd, 0xef, 0x00, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef}
-	testTBBRoTPKey2 = TBBRoTPKey{
+	testTBBRoTPKItem2 = TBBRoTPKItem{
 		Name:        &testName2,
 		ActiveArray: &testActiveRoTPKArray2,
 		Index:       &testIndex2,
@@ -31,45 +31,45 @@ var (
 	}
 )
 
-func Test_TBBRoTPKeys(t *testing.T) {
-	keys := TBBRoTPKeys{
-		&testTBBRoTPKey1,
-		&testTBBRoTPKey2,
+func Test_TBBRoTPKItems(t *testing.T) {
+	keys := TBBRoTPKItems{
+		&testTBBRoTPKItem1,
+		&testTBBRoTPKItem2,
 	}
 
-	require.NoError(t, testTBBRoTPKey1.Validate())
-	require.NoError(t, testTBBRoTPKey2.Validate())
+	require.NoError(t, testTBBRoTPKItem1.Validate())
+	require.NoError(t, testTBBRoTPKItem2.Validate())
 	assert.NoError(t, keys.Validate())
 }
-func Test_TBBRoTPKeys_typed_nil_key(t *testing.T) {
-	var key *TBBRoTPKey
-	keys := TBBRoTPKeys{key}
+func Test_TBBRoTPKItems_typed_nil_key(t *testing.T) {
+	var key *TBBRoTPKItem
+	keys := TBBRoTPKItems{key}
 
 	err := keys.Validate()
 
-	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKeys")
+	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKItems")
 }
 
-func Test_TBBRoTPKeys_nil_key(t *testing.T) {
-	keys := TBBRoTPKeys{nil}
+func Test_TBBRoTPKItems_nil_key(t *testing.T) {
+	keys := TBBRoTPKItems{nil}
 
 	err := keys.Validate()
 
-	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKeys")
+	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKItems")
 }
 
-func Test_TBBRoTPKeys_empty_key(t *testing.T) {
-	keys := TBBRoTPKeys{&TBBRoTPKey{}}
+func Test_TBBRoTPKItems_empty_key(t *testing.T) {
+	keys := TBBRoTPKItems{&TBBRoTPKItem{}}
 
 	err := keys.Validate()
 
 	assert.EqualError(t, err, "failed at index 0: description: missing mandatory field")
 }
 
-func Test_TBBRoTPKeys_no_keys(t *testing.T) {
-	keys := TBBRoTPKeys{}
+func Test_TBBRoTPKItems_no_keys(t *testing.T) {
+	keys := TBBRoTPKItems{}
 
 	err := keys.Validate()
 
-	assert.EqualError(t, err, "TBBRoTPKeys is included but empty")
+	assert.EqualError(t, err, "TBBRoTPKItems is included but empty")
 }

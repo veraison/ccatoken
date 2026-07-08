@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_TBBRoTPKey_setters_and_getters(t *testing.T) {
-	k := TBBRoTPKey{}
+func Test_TBBRoTPKItem_setters_and_getters(t *testing.T) {
+	k := TBBRoTPKItem{}
 	hash := mustHexDecode(t, "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef")            // 32 bytes
 	badHash := mustHexDecode(t, "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef") // 36 bytes (hash must be 32/48/64 bytes)
 

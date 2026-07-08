@@ -20,7 +20,7 @@ type IClaims interface {
 
 	SetConfig([]byte) error
 	SetHashAlgID(string) error
-	GetTbbRotpk() (TBBRoTPKeys, error)
+	GetTbbRotpk() (TBBRoTPKItems, error)
 }
 
 // ValidateClaims returns an error if the provided IClaims instance does not

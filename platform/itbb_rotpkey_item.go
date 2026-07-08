@@ -7,8 +7,8 @@ import (
 	"github.com/veraison/psatoken"
 )
 
-// ITBBRoTPKey defines the interface for a TBB ROTPK item.
-type ITBBRoTPKey interface {
+// ITBBRoTPKItem defines the interface for a TBB ROTPK item.
+type ITBBRoTPKItem interface {
 	Validate() error
 
 	GetName() (string, error)            // e.g. "CM" or "DM"
@@ -22,9 +22,9 @@ type ITBBRoTPKey interface {
 	SetHash(v []byte) error
 }
 
-// ValidateTBBRoTPKey returns an error if validation fails for any of the
+// ValidateTBBRoTPKItem returns an error if validation fails for any of the
 // fields of a TBB ROTPK item.
-func ValidateTBBRoTPKey(i ITBBRoTPKey) error {
+func ValidateTBBRoTPKItem(i ITBBRoTPKItem) error {
 	if err := psatoken.FilterError(i.GetName()); err != nil {
 		return fmt.Errorf("description: %w", err)
 	}
@@ -44,9 +44,9 @@ func ValidateTBBRoTPKey(i ITBBRoTPKey) error {
 	return nil
 }
 
-// isNilTBBRoTPKey returns true if the given ITBBRoTPKey is nil or a typed nil.
-// Used to check for nil values in []ITBBRoTPKey aka TBBRoTPKeys.
-func isNilTBBRoTPKey(k ITBBRoTPKey) bool {
+// isNilTBBRoTPKItem returns true if the given ITBBRoTPKItem is nil or a typed nil.
+// Used to check for nil values in []ITBBRoTPKItem aka TBBRoTPKItems.
+func isNilTBBRoTPKItem(k ITBBRoTPKItem) bool {
 	if k == nil {
 		return true
 	}
