@@ -28,7 +28,7 @@ func (o ProfileV2) GetClaims() psatoken.IClaims {
 // Claims contains the CCA platform claims. It implements IClaims, which is an
 // extension of psatoken.IClaims.
 type ClaimsV2 struct {
-	ClaimsV1
+	Claims
 	ClientID            *uint8         `cbor:"2394,keyasint" json:"cca-platform-client-id"`
 	ManufacturingConfig *[]byte        `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
 	TBBRoTPK            *TBBRoTPKItems `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
@@ -38,10 +38,10 @@ type ClaimsV2 struct {
 
 // NewClaims claims returns a new instance of Claims.
 func NewClaimsV2() IClaims {
-	baseClaims := newClaimsV1(ProfileNameV2).(*ClaimsV1)
+	baseClaims := newClaims(ProfileNameV2).(*Claims)
 
 	return &ClaimsV2{
-		ClaimsV1: *baseClaims,
+		Claims:   *baseClaims,
 		TBBRoTPK: &TBBRoTPKItems{},
 	}
 }
@@ -179,10 +179,4 @@ func (c *ClaimsV2) GetPeerSigners() ([]byte, error) {
 	}
 
 	return *c.PeerSigners, nil
-}
-
-func init() {
-	if err := psatoken.RegisterProfile(ProfileV2{}); err != nil {
-		panic(err)
-	}
 }

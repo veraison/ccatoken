@@ -16,7 +16,7 @@ var (
 )
 
 func mustBuildValidClaims(t *testing.T, includeOptional bool) IClaims {
-	c := NewClaimsV1()
+	c := NewClaims()
 
 	err := c.SetSecurityLifeCycle(testCCALifeCycleSecured)
 	require.NoError(t, err)
@@ -48,7 +48,7 @@ func mustBuildValidClaims(t *testing.T, includeOptional bool) IClaims {
 }
 
 func Test_NewClaims_ok(t *testing.T) {
-	c := NewClaimsV1()
+	c := NewClaims()
 
 	expected := ProfileName
 
@@ -72,7 +72,7 @@ func Test_Claims_Validate_mandatory_only_claims(t *testing.T) {
 }
 
 func Test_Claims_Set_NonValid_Claims(t *testing.T) {
-	c := NewClaimsV1()
+	c := NewClaims()
 
 	err := c.SetBootSeed([]byte("123"))
 	expectedErr := "claim not in profile: boot seed"
@@ -100,7 +100,7 @@ func Test_Claims_Set_NonValid_Claims(t *testing.T) {
 }
 
 func Test_Claims_Get_NonValid_Claims(t *testing.T) {
-	c := NewClaimsV1()
+	c := NewClaims()
 
 	_, err := c.GetBootSeed()
 	expectedErr := "claim not in profile: boot seed"
@@ -117,7 +117,7 @@ func Test_Claims_Get_NonValid_Claims(t *testing.T) {
 }
 
 func Test_CCAPlatform_Claims_MarshalCBOR_invalid(t *testing.T) {
-	c := NewClaimsV1()
+	c := NewClaims()
 	expectedErr := `validating security lifecycle: missing mandatory claim`
 
 	_, err := ValidateAndEncodeClaimsToCBOR(c)
@@ -236,7 +236,7 @@ func Test_CCAPlatform_MarshalJSON_ok(t *testing.T) {
 }
 
 func Test_CCAPlatform_MarshalJSON_not_ok(t *testing.T) {
-	c := &ClaimsV1{}
+	c := &Claims{}
 	expectedErr := `validating profile: missing mandatory claim`
 
 	_, err := ValidateAndEncodeClaimsToCBOR(c)
@@ -344,7 +344,7 @@ func Test_DecodeUnvalidatedCCAClaims(t *testing.T) {
 	}
 
 	tvs := []TestVector{
-		{testEncodedCcaPlatformClaimsMissingMandatoryNonce, &ClaimsV1{}},
+		{testEncodedCcaPlatformClaimsMissingMandatoryNonce, &Claims{}},
 	}
 
 	for _, tv := range tvs {
@@ -357,7 +357,7 @@ func Test_DecodeUnvalidatedCCAClaims(t *testing.T) {
 }
 
 func Test_NewClaims_CcaPlatform_ok(t *testing.T) {
-	c := NewClaimsV1()
+	c := NewClaims()
 
 	p, err := c.GetProfile()
 	assert.NoError(t, err)
@@ -382,11 +382,11 @@ func Test_DecodeUnvalidatedJSONCCAClaims(t *testing.T) {
 	}
 	tvs := []TestVector{
 		// valid
-		{"testvectors/json/test-token-valid-full.json", &ClaimsV1{}},
+		{"testvectors/json/test-token-valid-full.json", &Claims{}},
 
 		// invalid
-		{"testvectors/json/test-no-sw-components.json", &ClaimsV1{}},
-		{"testvectors/json/test-invalid-psa-claims.json", &ClaimsV1{}},
+		{"testvectors/json/test-no-sw-components.json", &Claims{}},
+		{"testvectors/json/test-invalid-psa-claims.json", &Claims{}},
 	}
 
 	for _, tv := range tvs {
@@ -446,7 +446,7 @@ func Test_CcaLifeCycleState(t *testing.T) {
 }
 
 func Test_ToUnvalidated(t *testing.T) {
-	c := NewClaimsV1()
+	c := NewClaims()
 
 	_, err := EncodeClaimsToCBOR(c)
 	assert.NoError(t, err)
