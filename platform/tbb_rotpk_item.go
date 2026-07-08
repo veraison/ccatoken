@@ -1,10 +1,15 @@
 package platform
 
-import "github.com/veraison/psatoken"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/veraison/psatoken"
+)
 
 // TBBRoTPKItem represents a single item in the CCA platform TBB ROTPK claim.
 type TBBRoTPKItem struct {
-	Name             *string `cbor:"1,keyasint" json:"description"`        // e.g. "CM" or "DM"
+	Name             *string `cbor:"1,keyasint" json:"description"`        // "CM" or "DM"
 	ActiveArrayIndex *int32  `cbor:"2,keyasint" json:"active-array-index"` // active ROTPK array
 	Index            *int32  `cbor:"3,keyasint" json:"index"`              // index in the active array
 	Hash             *[]byte `cbor:"4,keyasint" json:"hash"`               // hash object
@@ -14,9 +19,21 @@ func (i TBBRoTPKItem) Validate() error {
 	return ValidateTBBRoTPKItem(&i)
 }
 
+func ValidateTBBRoTPKItemName(n string) error {
+	uppercaseName := strings.ToUpper(n)
+	if uppercaseName != "CM" && uppercaseName != "DM" {
+		return fmt.Errorf("invalid name: %s, must be 'CM' or 'DM'", n)
+	}
+	return nil
+}
+
 func (i TBBRoTPKItem) GetName() (string, error) {
 	if i.Name == nil {
 		return "", psatoken.ErrMandatoryFieldMissing
+	}
+
+	if err := ValidateTBBRoTPKItemName(*i.Name); err != nil {
+		return "", err
 	}
 
 	return *i.Name, nil
@@ -51,6 +68,10 @@ func (i TBBRoTPKItem) GetHash() ([]byte, error) {
 }
 
 func (i *TBBRoTPKItem) SetName(v string) error {
+	if err := ValidateTBBRoTPKItemName(v); err != nil {
+		return err
+	}
+
 	i.Name = &v
 	return nil
 }
