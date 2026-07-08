@@ -104,5 +104,5 @@ func Test_TBBRoTPKItems_empty_key(t *testing.T) {
 
 	err := keys.Validate()
 
-	assert.EqualError(t, err, "failed at index 0: description: missing mandatory field")
+	assert.EqualError(t, err, "failed at index 0: name: missing mandatory field")
 }

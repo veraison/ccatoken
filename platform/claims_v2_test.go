@@ -14,7 +14,7 @@ var (
 	testClientID = int32(1)
 )
 
-func mustBuildValidClaimsV2(t *testing.T) *ClaimsV2 {
+func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
 	c := NewClaimsV2().(*ClaimsV2)
 
 	err := c.SetClientID(testClientID)
@@ -41,6 +41,33 @@ func mustBuildValidClaimsV2(t *testing.T) *ClaimsV2 {
 	err = c.SetConfig(testConfig)
 	require.NoError(t, err)
 
+	if includeOptional {
+		err = c.SetVSI(testVSI)
+		require.NoError(t, err)
+
+		err = c.SetManufacturingConfig(testConfig)
+		require.NoError(t, err)
+
+		tbbRoTPKItem := TBBRoTPKItem{}
+		err = tbbRoTPKItem.SetName("DM")
+		require.NoError(t, err)
+
+		err = tbbRoTPKItem.SetActiveRoTPKArray(0)
+		require.NoError(t, err)
+
+		err = tbbRoTPKItem.SetIndex(0)
+		require.NoError(t, err)
+
+		err = tbbRoTPKItem.SetHash(testMeasurementValue)
+		require.NoError(t, err)
+
+		err = c.SetTBBRoTPK([]ITBBRoTPKItem{&tbbRoTPKItem})
+		require.NoError(t, err)
+
+		err = c.SetPeerSigners(testSignerID)
+		require.NoError(t, err)
+	}
+
 	return c
 }
 
@@ -53,42 +80,45 @@ func Test_NewClaimsV2_ok(t *testing.T) {
 }
 
 func Test_ClaimsV2_Validate_mandatory_only_claims(t *testing.T) {
-	c := mustBuildValidClaimsV2(t)
+	c := mustBuildValidClaimsV2(t, false)
 
 	err := c.Validate()
 	assert.NoError(t, err)
 }
 
 func Test_ClaimsV2_Validate_all_new_claims(t *testing.T) {
-	c := mustBuildValidClaimsV2(t)
-	tbbRoTPKItem := TBBRoTPKItem{}
-
-	require.NoError(t, c.SetManufacturingConfig(testConfig))
-	require.NoError(t, tbbRoTPKItem.SetName("DM"))
-	require.NoError(t, tbbRoTPKItem.SetActiveRoTPKArray(0))
-	require.NoError(t, tbbRoTPKItem.SetIndex(0))
-	require.NoError(t, tbbRoTPKItem.SetHash(testMeasurementValue))
-	require.NoError(t, c.SetTBBRoTPK([]ITBBRoTPKItem{&tbbRoTPKItem}))
-	require.NoError(t, c.SetPeerSigners(testSignerID))
+	c := mustBuildValidClaimsV2(t, true)
 
 	err := c.Validate()
 	assert.NoError(t, err)
 }
 
 func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
-	c := mustBuildValidClaimsV2(t)
+	c := mustBuildValidClaimsV2(t, false)
 	c.ClientID = nil
 	assert.EqualError(t, c.Validate(), "validating client id: missing mandatory claim")
 
-	c = mustBuildValidClaimsV2(t)
+	c = mustBuildValidClaimsV2(t, true)
 	emptyManufacturingConfig := []byte{}
-	assert.EqualError(t, c.SetManufacturingConfig(emptyManufacturingConfig), "wrong syntax: manufacturing config")
+	c.ManufacturingConfig = &emptyManufacturingConfig
+	assert.EqualError(t, c.Validate(), "validating platform manufacturing config: wrong syntax: manufacturing config")
 
-	c = mustBuildValidClaimsV2(t)
+	c = mustBuildValidClaimsV2(t, true)
 	c.TBBRoTPK = &TBBRoTPKItems{values: []*TBBRoTPKItem{{}}}
-	assert.EqualError(t, c.Validate(), "validating platform TBB ROTPK: failed at index 0: description: missing mandatory field")
+	assert.EqualError(t, c.Validate(), "validating platform TBB ROTPK: failed at index 0: name: missing mandatory field")
 
-	c = mustBuildValidClaimsV2(t)
+	c = mustBuildValidClaimsV2(t, true)
+	partialTBBRoTPKItem := TBBRoTPKItem{}
+	err := partialTBBRoTPKItem.SetName("DM")
+	require.NoError(t, err)
+	err = partialTBBRoTPKItem.SetActiveRoTPKArray(0)
+	require.NoError(t, err)
+	err = partialTBBRoTPKItem.SetIndex(0)
+	require.NoError(t, err)
+	c.TBBRoTPK = &TBBRoTPKItems{values: []*TBBRoTPKItem{&partialTBBRoTPKItem}}
+	assert.EqualError(t, c.Validate(), "validating platform TBB ROTPK: failed at index 0: hash: missing mandatory field")
+
+	c = mustBuildValidClaimsV2(t, true)
 	badPeerSigners := []byte{}
 	c.PeerSigners = &badPeerSigners
 	assert.EqualError(t, c.Validate(), "validating platform peer signers: wrong syntax: peer signers")

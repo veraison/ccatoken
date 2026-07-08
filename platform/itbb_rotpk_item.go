@@ -26,11 +26,11 @@ type ITBBRoTPKItem interface {
 // fields of a TBB ROTPK item.
 func ValidateTBBRoTPKItem(i ITBBRoTPKItem) error {
 	if err := psatoken.FilterError(i.GetName()); err != nil {
-		return fmt.Errorf("description: %w", err)
+		return fmt.Errorf("name: %w", err)
 	}
 
 	if err := psatoken.FilterError(i.GetActiveRoTPKArray()); err != nil {
-		return fmt.Errorf("active array: %w", err)
+		return fmt.Errorf("active array index: %w", err)
 	}
 
 	if err := psatoken.FilterError(i.GetIndex()); err != nil {
