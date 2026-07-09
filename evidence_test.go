@@ -40,9 +40,10 @@ func mustBuildValidCcaRealmClaims(t *testing.T) realm.IClaims {
 }
 
 func mustBuildValidPlatformClaims(t *testing.T, includeOptional bool) platform.IClaims {
-	c := platform.NewClaims()
+	c, err := platform.NewClaimsWithProfile(platform.ProfileName)
+	require.NoError(t, err)
 
-	err := c.SetSecurityLifeCycle(testPlatformLifecycleSecured)
+	err = c.SetSecurityLifeCycle(testPlatformLifecycleSecured)
 	require.NoError(t, err)
 
 	err = c.SetImplID(testImplementationID)

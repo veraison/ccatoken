@@ -24,7 +24,7 @@ func (o Profile) GetName() string {
 }
 
 func (o Profile) GetClaims() psatoken.IClaims {
-	return NewClaims()
+	return newClaims(ProfileName)
 }
 
 type LegacyProfile struct{}
@@ -34,7 +34,7 @@ func (o LegacyProfile) GetName() string {
 }
 
 func (o LegacyProfile) GetClaims() psatoken.IClaims {
-	return NewLegacyClaims()
+	return newClaims(LegacyProfileName)
 }
 
 // Claims contains the CCA platform claims. It implements IClaims, which is an
