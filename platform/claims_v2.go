@@ -148,7 +148,7 @@ func (c *ClaimsV2) SetClientID(v int32) error {
 		return fmt.Errorf("%w: client id MUST be 1", psatoken.ErrWrongSyntax)
 	}
 
-	clientID := int32(v)
+	clientID := v
 	c.ClientID = &clientID
 
 	return nil
