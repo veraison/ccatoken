@@ -29,7 +29,7 @@ func (o ProfileV2) GetClaims() psatoken.IClaims {
 // extension of psatoken.IClaims.
 type ClaimsV2 struct {
 	Claims
-	ClientID            *uint8         `cbor:"2394,keyasint" json:"cca-platform-client-id"`
+	ClientID            *int32         `cbor:"2394,keyasint" json:"cca-platform-client-id"`
 	ManufacturingConfig *[]byte        `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
 	TBBRoTPK            *TBBRoTPKItems `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
 	PeerSigners         *[]byte        `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
@@ -115,7 +115,7 @@ func (c *ClaimsV2) SetClientID(v int32) error {
 		return fmt.Errorf("%w: client id MUST be 1", psatoken.ErrWrongSyntax)
 	}
 
-	clientID := uint8(v)
+	clientID := int32(v)
 	c.ClientID = &clientID
 
 	return nil
@@ -154,7 +154,7 @@ func (c *ClaimsV2) GetClientID() (int32, error) {
 		return 0, psatoken.ErrMandatoryClaimMissing
 	}
 
-	return int32(*c.ClientID), nil
+	return *c.ClientID, nil
 }
 
 func (c *ClaimsV2) GetManufacturingConfig() ([]byte, error) {
