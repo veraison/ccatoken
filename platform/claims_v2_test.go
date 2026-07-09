@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -122,4 +123,13 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 	badPeerSigners := []byte{}
 	c.PeerSigners = &badPeerSigners
 	assert.EqualError(t, c.Validate(), "validating platform peer signers: wrong syntax: peer signers")
+}
+
+func Test_ClaimsV2_UnmarshalJSON_ok(t *testing.T) {
+	buf, err := os.ReadFile("testvectors/json_v2/test-token-valid-full.json")
+	require.NoError(t, err)
+
+	_, err = DecodeAndValidateClaimsFromJSON(buf)
+
+	assert.NoError(t, err)
 }

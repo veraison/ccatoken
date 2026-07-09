@@ -36,6 +36,41 @@ type ClaimsV2 struct {
 	// Extension  *TODO		`cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"` // to find out the type
 }
 
+// This type is used to prevent infinite recursion during marshaling.
+// It has the same fields as ClaimsV2, but no methods.
+// Crucially, it does not have Marshal/Unmarshal JSON/CBOR methods,
+// which would otherwise be called recursively by json.Marshal and json.Unmarshal.
+// "type plainClaimsV2 ClaimsV2" does not work as it inherits Marshal/Unmarshal methods from Claims,
+// which results in the new fields in ClaimsV2 being ignored during marshaling/unmarshaling.
+type plainClaimsV2 struct {
+	claims
+	ClientID            *int32         `cbor:"2394,keyasint" json:"cca-platform-client-id"`
+	ManufacturingConfig *[]byte        `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
+	TBBRoTPK            *TBBRoTPKItems `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
+	PeerSigners         *[]byte        `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
+	// Extension  *TODO		`cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"` // to find out the type
+}
+
+func toPlainClaimsV2(c ClaimsV2) plainClaimsV2 {
+	return plainClaimsV2{
+		claims:              claims(c.Claims),
+		ClientID:            c.ClientID,
+		ManufacturingConfig: c.ManufacturingConfig,
+		TBBRoTPK:            c.TBBRoTPK,
+		PeerSigners:         c.PeerSigners,
+	}
+}
+
+func fromPlainClaimsV2(c plainClaimsV2) ClaimsV2 {
+	return ClaimsV2{
+		Claims:              Claims(c.claims),
+		ClientID:            c.ClientID,
+		ManufacturingConfig: c.ManufacturingConfig,
+		TBBRoTPK:            c.TBBRoTPK,
+		PeerSigners:         c.PeerSigners,
+	}
+}
+
 // NewClaims claims returns a new instance of Claims.
 func NewClaimsV2() IClaims {
 	baseClaims := newClaims(ProfileNameV2).(*Claims)
@@ -48,35 +83,23 @@ func NewClaimsV2() IClaims {
 
 // Semantic validation
 func (c *ClaimsV2) Validate() error {
-	if err := ValidateClaims(c); err != nil {
-		return err
-	}
-
-	if err := psatoken.FilterError(c.GetManufacturingConfig()); err != nil {
-		return fmt.Errorf("validating platform manufacturing config: %w", err)
-	}
-
-	if err := psatoken.FilterError(c.GetTBBRoTPK()); err != nil {
-		return fmt.Errorf("validating platform TBB ROTPK: %w", err)
-	}
-
-	if err := psatoken.FilterError(c.GetPeerSigners()); err != nil {
-		return fmt.Errorf("validating platform peer signers: %w", err)
-	}
-
-	return nil
+	return ValidateClaims(c)
 }
 
 // Codecs
-
-// this type alias is used to prevent infinite recursion during marshaling.
-type claimsV2 ClaimsV2
 
 // UnmarshalCBOR decodes the claims from CBOR
 func (c *ClaimsV2) UnmarshalCBOR(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we taked it from buf
 
-	return dm.Unmarshal(buf, (*claimsV2)(c))
+	cV2 := plainClaimsV2{}
+	if err := dm.Unmarshal(buf, &cV2); err != nil {
+		return err
+	}
+
+	*c = fromPlainClaimsV2(cV2)
+
+	return nil
 }
 
 // MarshalCBOR encodes the claims to CBOR
@@ -88,14 +111,23 @@ func (c ClaimsV2) MarshalCBOR() ([]byte, error) {
 		c.TBBRoTPK = nil
 	}
 
-	return em.Marshal((*claimsV2)(&c))
+	cv2 := toPlainClaimsV2(c)
+
+	return em.Marshal((*plainClaimsV2)(&cv2))
 }
 
 // UnmarshalJSON decodes the claims from JSON
 func (c *ClaimsV2) UnmarshalJSON(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we taked it from buf
 
-	return json.Unmarshal(buf, (*claimsV2)(c))
+	cV2 := plainClaimsV2{}
+	if err := json.Unmarshal(buf, &cV2); err != nil {
+		return err
+	}
+
+	*c = fromPlainClaimsV2(cV2)
+
+	return nil
 }
 
 // MarshalJSON encodes the claims into JSON
@@ -107,7 +139,9 @@ func (c ClaimsV2) MarshalJSON() ([]byte, error) {
 		c.TBBRoTPK = nil
 	}
 
-	return json.Marshal((*claimsV2)(&c))
+	cv2 := toPlainClaimsV2(c)
+
+	return json.Marshal((*plainClaimsV2)(&cv2))
 }
 
 func (c *ClaimsV2) SetClientID(v int32) error {
