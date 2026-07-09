@@ -22,7 +22,7 @@ func (o ProfileV2) GetName() string {
 }
 
 func (o ProfileV2) GetClaims() psatoken.IClaims {
-	return NewClaimsV2()
+	return newClaimsV2()
 }
 
 // Claims contains the CCA platform claims. It implements IClaims, which is an
@@ -39,7 +39,7 @@ type ClaimsV2 struct {
 // This type is used to prevent infinite recursion during marshaling.
 // It has the same fields as ClaimsV2, but no methods.
 // Crucially, it does not have Marshal/Unmarshal JSON/CBOR methods,
-// which would otherwise be called recursively by json.Marshal and json.Unmarshal.
+// which would interfere with json.Marshal and json.Unmarshal.
 // "type plainClaimsV2 ClaimsV2" does not work as it inherits Marshal/Unmarshal methods from Claims,
 // which results in the new fields in ClaimsV2 being ignored during marshaling/unmarshaling.
 type plainClaimsV2 struct {
@@ -71,8 +71,7 @@ func fromPlainClaimsV2(c plainClaimsV2) ClaimsV2 {
 	}
 }
 
-// NewClaims claims returns a new instance of Claims.
-func NewClaimsV2() IClaims {
+func newClaimsV2() IClaims {
 	baseClaims := newClaims(ProfileNameV2).(*Claims)
 
 	return &ClaimsV2{

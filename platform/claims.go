@@ -54,11 +54,12 @@ type Claims struct {
 	CanonicalProfile string `cbor:"-" json:"-"`
 }
 
-// NewClaims claims returns a new instance of Claims.
+// Deprecated: use NewClaimsWithProfile instead. NewClaims returns a "tag:arm.com,2023:cca_platform#1.0.0" profile.
 func NewClaims() IClaims {
 	return newClaims(ProfileName)
 }
 
+// Deprecated: use NewClaimsWithProfile instead. NewLegacyClaims returns a "http://arm.com/CCA-SSD/1.0.0" profile.
 func NewLegacyClaims() IClaims {
 	return newClaims(LegacyProfileName)
 }

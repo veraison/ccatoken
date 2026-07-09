@@ -16,9 +16,13 @@ var (
 )
 
 func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
-	c := NewClaimsV2().(*ClaimsV2)
+	ic, err := NewClaimsWithProfile(ProfileNameV2)
+	require.NoError(t, err)
 
-	err := c.SetClientID(testClientID)
+	c, ok := ic.(*ClaimsV2)
+	require.True(t, ok)
+
+	err = c.SetClientID(testClientID)
 	require.NoError(t, err)
 
 	err = c.SetSecurityLifeCycle(testCCALifeCycleSecured)
@@ -73,7 +77,11 @@ func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
 }
 
 func Test_NewClaimsV2_ok(t *testing.T) {
-	c := NewClaimsV2()
+	c, err := NewClaimsWithProfile(ProfileNameV2)
+	require.NoError(t, err)
+
+	c, ok := c.(*ClaimsV2)
+	require.True(t, ok)
 
 	actual, err := c.GetProfile()
 	assert.NoError(t, err)

@@ -30,6 +30,20 @@ type IClaims interface {
 	SetPeerSigners([]byte) error
 }
 
+func NewClaimsWithProfile(profileName string) (IClaims, error) {
+	icPsa, err := psatoken.NewClaims(profileName)
+	if err != nil {
+		return nil, err
+	}
+
+	ic, ok := icPsa.(IClaims)
+	if !ok {
+		return nil, fmt.Errorf("%s is not a CCA platform profile", profileName)
+	}
+
+	return ic, nil
+}
+
 // ValidateClaims returns an error if the provided IClaims instance does not
 // contain a valid set of CCA platform claims.
 func ValidateClaims(c IClaims) error {
