@@ -112,7 +112,7 @@ func (c ClaimsV2) MarshalCBOR() ([]byte, error) {
 
 	cv2 := toPlainClaimsV2(c)
 
-	return em.Marshal((*plainClaimsV2)(&cv2))
+	return em.Marshal(&cv2)
 }
 
 // UnmarshalJSON decodes the claims from JSON
@@ -140,7 +140,7 @@ func (c ClaimsV2) MarshalJSON() ([]byte, error) {
 
 	cv2 := toPlainClaimsV2(c)
 
-	return json.Marshal((*plainClaimsV2)(&cv2))
+	return json.Marshal(&cv2)
 }
 
 func (c *ClaimsV2) SetClientID(v int32) error {
