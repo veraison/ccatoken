@@ -12,6 +12,7 @@ DIAG_FILES="${DIAG_FILES} CcaPlatformClaimsMandatoryOnly"
 DIAG_FILES="${DIAG_FILES} CcaPlatformLegacyClaimsMandatoryOnly"
 DIAG_FILES="${DIAG_FILES} CcaPlatformClaimsInvalidMultiNonce"
 DIAG_FILES="${DIAG_FILES} CcaPlatformClaimsMissingMandatoryNonce"
+DIAG_FILES="${DIAG_FILES} CcaPlatformClaimsV2All"
 
 TV_DOT_GO=${TV_DOT_GO?must be set in the environment.}
 

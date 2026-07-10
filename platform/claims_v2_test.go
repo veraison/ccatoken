@@ -162,3 +162,13 @@ func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 		assert.Error(t, err, "test vector %d failed", i)
 	}
 }
+
+func Test_CCAPlatform_ClaimsV2_MarshalCBOR_all_claims(t *testing.T) {
+	c := mustBuildValidClaimsV2(t, true)
+	expected := mustHexDecode(t, testEncodedCcaPlatformClaimsV2All)
+
+	actual, err := ValidateAndEncodeClaimsToCBOR(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
