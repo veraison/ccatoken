@@ -14,7 +14,7 @@
     "cca-platform-service-indicator" : "https://veraison.example/v1/challenge-response",
     "cca-platform-hash-algo-id": "sha-256",
     "cca-platform-client-id": 1,
-    "cca-platform-manufacturing-config": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDBAQ=",
+    "cca-platform-manufacturing-config": "",
     "cca-platform-peer-signers": "BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAxyABC=",
     "cca-platform-tbb-rotpk": [
             {
@@ -22,12 +22,6 @@
             "active-array-index": 0,
             "index": 0,
             "hash": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDBAQ="
-            },
-            {
-            "name": "CM",
-            "active-array-index": 1,
-            "index": 2,
-            "hash": "XYZDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDBAQ="
             }
         ]
     }

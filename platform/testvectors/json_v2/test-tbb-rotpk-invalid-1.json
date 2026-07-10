@@ -19,15 +19,8 @@
     "cca-platform-tbb-rotpk": [
             {
             "name": "DM",
-            "active-array-index": 0,
             "index": 0,
             "hash": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDBAQ="
-            },
-            {
-            "name": "CM",
-            "active-array-index": 1,
-            "index": 2,
-            "hash": "XYZDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDBAQ="
             }
         ]
     }

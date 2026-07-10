@@ -141,3 +141,24 @@ func Test_ClaimsV2_UnmarshalJSON_ok(t *testing.T) {
 
 	assert.NoError(t, err)
 }
+
+func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
+	tvs := []string{
+		/* 0 */ "testvectors/json_v2/test-client-id-missing.json",
+		/* 1 */ "testvectors/json_v2/test-client-id-invalid.json",
+		/* 2 */ "testvectors/json_v2/test-manufacturing-config-invalid.json",
+		/* 3 */ "testvectors/json_v2/test-peer-signers-invalid.json",
+		/* 4 */ "testvectors/json_v2/test-tbb-rotpk-invalid-1.json",
+		/* 5 */ "testvectors/json_v2/test-tbb-rotpk-invalid-2.json",
+		/* 6 */ "testvectors/json_v2/test-tbb-rotpk-invalid-3.json",
+	}
+
+	for i, fn := range tvs {
+		buf, err := os.ReadFile(fn)
+		require.NoError(t, err)
+
+		_, err = DecodeAndValidateClaimsFromJSON(buf)
+
+		assert.Error(t, err, "test vector %d failed", i)
+	}
+}
