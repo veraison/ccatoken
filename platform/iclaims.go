@@ -65,6 +65,9 @@ func ValidateClaims(c IClaims) error {
 	}
 
 	if profile == "tag:arm.com,2024:cca_platform#2.0.0" {
+		if err := psatoken.FilterError(c.GetClientID()); err != nil {
+			return fmt.Errorf("validating platform client id: %w", err)
+		}
 
 		if err := psatoken.FilterError(c.GetManufacturingConfig()); err != nil {
 			return fmt.Errorf("validating platform manufacturing config: %w", err)
