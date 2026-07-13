@@ -137,9 +137,16 @@ func Test_ClaimsV2_UnmarshalJSON_ok(t *testing.T) {
 	buf, err := os.ReadFile("testvectors/json_v2/test-token-valid-full.json")
 	require.NoError(t, err)
 
-	_, err = DecodeAndValidateClaimsFromJSON(buf)
+	c, err := DecodeAndValidateClaimsFromJSON(buf)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	assertDecodedClaimsV2(t, c, true)
+}
+
+func Test_ClaimsV2_UnmarshalJSON_invalid(t *testing.T) {
+	_, err := DecodeAndValidateClaimsFromJSON(testNotJSON)
+
+	assert.EqualError(t, err, "unexpected end of JSON input")
 }
 
 func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
@@ -203,6 +210,17 @@ func Test_CCAPlatform_ClaimsV2_MarshalJSON_all_claims(t *testing.T) {
 	assert.JSONEq(t, string(expected), string(actual))
 }
 
+func Test_CCAPlatform_ClaimsV2_MarshalJSON_mandatory_only(t *testing.T) {
+	c := mustBuildValidClaimsV2(t, false)
+	expected, err := os.ReadFile("testvectors/json_v2/test-token-valid-mandatory-only.json")
+	require.NoError(t, err)
+
+	actual, err := ValidateAndEncodeClaimsToJSON(c)
+
+	assert.NoError(t, err)
+	assert.JSONEq(t, string(expected), string(actual))
+}
+
 func Test_CCAPlatform_ClaimsV2_MarshalJSON_invalid(t *testing.T) {
 	c := mustBuildValidClaimsV2(t, false)
 	c.ClientID = nil
@@ -215,9 +233,27 @@ func Test_CCAPlatform_ClaimsV2_MarshalJSON_invalid(t *testing.T) {
 func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_mandatory_only(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2MandatoryOnly)
 
+	c, err := DecodeAndValidateClaimsFromCBOR(buf)
+
+	require.NoError(t, err)
+	assertDecodedClaimsV2(t, c, false)
+}
+
+func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_all_claims(t *testing.T) {
+	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2All)
+
+	c, err := DecodeAndValidateClaimsFromCBOR(buf)
+
+	require.NoError(t, err)
+	assertDecodedClaimsV2(t, c, true)
+}
+
+func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_invalid(t *testing.T) {
+	buf := mustHexDecode(t, testNotCBOR)
+
 	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "unexpected EOF")
 }
 
 func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_missing_client_id(t *testing.T) {
@@ -242,4 +278,115 @@ func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_invalid_tbb_rotpk_hash_length(t *te
 	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
 	assert.EqualError(t, err, "validating platform TBB ROTPK: failed at index 0: hash: wrong syntax: length 34 (hash MUST be 32, 48 or 64 bytes)")
+}
+
+func Test_ClaimsV2_Codec_roundtrip(t *testing.T) {
+	for _, includeOptional := range []bool{false, true} {
+		c := mustBuildValidClaimsV2(t, includeOptional)
+
+		t.Run("CBOR", func(t *testing.T) {
+			encoded, err := ValidateAndEncodeClaimsToCBOR(c)
+			require.NoError(t, err)
+
+			decoded, err := DecodeAndValidateClaimsFromCBOR(encoded)
+			require.NoError(t, err)
+			assertDecodedClaimsV2(t, decoded, includeOptional)
+		})
+
+		t.Run("JSON", func(t *testing.T) {
+			encoded, err := ValidateAndEncodeClaimsToJSON(c)
+			require.NoError(t, err)
+
+			decoded, err := DecodeAndValidateClaimsFromJSON(encoded)
+			require.NoError(t, err)
+			assertDecodedClaimsV2(t, decoded, includeOptional)
+		})
+	}
+}
+
+func assertDecodedClaimsV2(t *testing.T, c IClaims, includeOptional bool) {
+	t.Helper()
+
+	_, ok := c.(*ClaimsV2)
+	require.True(t, ok)
+
+	profile, err := c.GetProfile()
+	require.NoError(t, err)
+	assert.Equal(t, ProfileNameV2, profile)
+
+	clientID, err := c.GetClientID()
+	require.NoError(t, err)
+	assert.Equal(t, testClientID, clientID)
+
+	lifecycle, err := c.GetSecurityLifeCycle()
+	require.NoError(t, err)
+	assert.Equal(t, testCCALifeCycleSecured, lifecycle)
+
+	implementationID, err := c.GetImplID()
+	require.NoError(t, err)
+	assert.Equal(t, testImplementationID, implementationID)
+
+	nonce, err := c.GetNonce()
+	require.NoError(t, err)
+	assert.Equal(t, testNonce, nonce)
+
+	instanceID, err := c.GetInstID()
+	require.NoError(t, err)
+	assert.Equal(t, testInstID, instanceID)
+
+	softwareComponents, err := c.GetSoftwareComponents()
+	require.NoError(t, err)
+	assert.Equal(t, testSoftwareComponents, softwareComponents)
+
+	hashAlgID, err := c.GetHashAlgID()
+	require.NoError(t, err)
+	assert.Equal(t, testHashAlgID, hashAlgID)
+
+	config, err := c.GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, testConfig, config)
+
+	if !includeOptional {
+		_, err = c.GetVSI()
+		assert.Error(t, err)
+		_, err = c.GetManufacturingConfig()
+		assert.Error(t, err)
+		_, err = c.GetTBBRoTPK()
+		assert.Error(t, err)
+		_, err = c.GetPeerSigners()
+		assert.Error(t, err)
+		return
+	}
+
+	vsi, err := c.GetVSI()
+	require.NoError(t, err)
+	assert.Equal(t, testVSI, vsi)
+
+	manufacturingConfig, err := c.GetManufacturingConfig()
+	require.NoError(t, err)
+	assert.Equal(t, testConfig, manufacturingConfig)
+
+	peerSigners, err := c.GetPeerSigners()
+	require.NoError(t, err)
+	assert.Equal(t, testSignerID, peerSigners)
+
+	tbbRoTPK, err := c.GetTBBRoTPK()
+	require.NoError(t, err)
+	require.Len(t, tbbRoTPK, 1)
+
+	name, err := tbbRoTPK[0].GetName()
+	require.NoError(t, err)
+	assert.Equal(t, "DM", name)
+
+	activeArrayIndex, err := tbbRoTPK[0].GetActiveRoTPKArray()
+	require.NoError(t, err)
+	assert.Zero(t, activeArrayIndex)
+
+	index, err := tbbRoTPK[0].GetIndex()
+	require.NoError(t, err)
+	assert.Zero(t, index)
+
+	hash, err := tbbRoTPK[0].GetHash()
+	require.NoError(t, err)
+	assert.Equal(t, testMeasurementValue, hash)
 }
