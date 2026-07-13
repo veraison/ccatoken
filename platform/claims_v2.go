@@ -12,8 +12,8 @@ import (
 
 const ProfileNameV2 = "tag:arm.com,2024:cca_platform#2.0.0"
 
-// Profile is the psatoken.IProfile implementation for CCA claims. It is
-// registered to associate the claims with the profile name, so that it can be
+// ProfileV2 is the psatoken.IProfile implementation for CCA claims (2024/2.0.0; draft-ffm-rats-cca-token/03).
+// It is registered to associate the claims with the profile name, so that it can be
 // automatically used during unmarshaling.
 type ProfileV2 struct{}
 

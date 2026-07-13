@@ -76,7 +76,7 @@ func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
 	return c
 }
 
-func Test_NewClaimsV2_ok(t *testing.T) {
+func Test_ClaimsV2_NewClaimsWithProfile_ok(t *testing.T) {
 	c, err := NewClaimsWithProfile(ProfileNameV2)
 	require.NoError(t, err)
 
@@ -170,35 +170,6 @@ func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 	}
 }
 
-func Test_CCAPlatform_ClaimsV2_MarshalCBOR_all_claims(t *testing.T) {
-	c := mustBuildValidClaimsV2(t, true)
-	expected := mustHexDecode(t, testEncodedCcaPlatformClaimsV2All)
-
-	actual, err := ValidateAndEncodeClaimsToCBOR(c)
-
-	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
-}
-
-func Test_CCAPlatform_ClaimsV2_MarshalCBOR_mandatory_only(t *testing.T) {
-	c := mustBuildValidClaimsV2(t, false)
-	expected := mustHexDecode(t, testEncodedCcaPlatformClaimsV2MandatoryOnly)
-
-	actual, err := ValidateAndEncodeClaimsToCBOR(c)
-
-	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
-}
-
-func Test_CCAPlatform_ClaimsV2_MarshalCBOR_invalid(t *testing.T) {
-	c := mustBuildValidClaimsV2(t, false)
-	c.ClientID = nil
-
-	_, err := ValidateAndEncodeClaimsToCBOR(c)
-
-	assert.EqualError(t, err, "validating client id: missing mandatory claim")
-}
-
 func Test_CCAPlatform_ClaimsV2_MarshalJSON_all_claims(t *testing.T) {
 	c := mustBuildValidClaimsV2(t, true)
 	expected, err := os.ReadFile("testvectors/json_v2/test-token-valid-full.json")
@@ -278,6 +249,35 @@ func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_invalid_tbb_rotpk_hash_length(t *te
 	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
 	assert.EqualError(t, err, "validating platform TBB ROTPK: failed at index 0: hash: wrong syntax: length 34 (hash MUST be 32, 48 or 64 bytes)")
+}
+
+func Test_CCAPlatform_ClaimsV2_MarshalCBOR_all_claims(t *testing.T) {
+	c := mustBuildValidClaimsV2(t, true)
+	expected := mustHexDecode(t, testEncodedCcaPlatformClaimsV2All)
+
+	actual, err := ValidateAndEncodeClaimsToCBOR(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func Test_CCAPlatform_ClaimsV2_MarshalCBOR_mandatory_only(t *testing.T) {
+	c := mustBuildValidClaimsV2(t, false)
+	expected := mustHexDecode(t, testEncodedCcaPlatformClaimsV2MandatoryOnly)
+
+	actual, err := ValidateAndEncodeClaimsToCBOR(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func Test_CCAPlatform_ClaimsV2_MarshalCBOR_invalid(t *testing.T) {
+	c := mustBuildValidClaimsV2(t, false)
+	c.ClientID = nil
+
+	_, err := ValidateAndEncodeClaimsToCBOR(c)
+
+	assert.EqualError(t, err, "validating client id: missing mandatory claim")
 }
 
 func Test_ClaimsV2_Codec_roundtrip(t *testing.T) {

@@ -14,7 +14,7 @@ import (
 const LegacyProfileName = "http://arm.com/CCA-SSD/1.0.0"
 const ProfileName = "tag:arm.com,2023:cca_platform#1.0.0"
 
-// Profile is the psatoken.IProfile implementation for CCA claims. It is
+// Profile is the psatoken.IProfile implementation for CCA claims (2023/1.0.0). It is
 // registered to associate the claims with the profile name, so that it can be
 // automatically used during unmarshaling.
 type Profile struct{}
