@@ -352,32 +352,26 @@ func (c *Claims) GetHashAlgID() (string, error) {
 	return *v, nil
 }
 
-// GetManufacturingConfig implements [IClaims].
 func (c *Claims) GetManufacturingConfig() ([]byte, error) {
 	return nil, fmt.Errorf("%w: manufacturing config", psatoken.ErrClaimNotInProfile)
 }
 
-// GetPeerSigners implements [IClaims].
 func (c *Claims) GetPeerSigners() ([]byte, error) {
 	return nil, fmt.Errorf("%w: peer signers", psatoken.ErrClaimNotInProfile)
 }
 
-// GetTBBRoTPK implements [IClaims].
 func (c *Claims) GetTBBRoTPK() ([]ITBBRoTPKItem, error) {
 	return nil, fmt.Errorf("%w: TBB RoTPK", psatoken.ErrClaimNotInProfile)
 }
 
-// SetManufacturingConfig implements [IClaims].
 func (c *Claims) SetManufacturingConfig([]byte) error {
 	return fmt.Errorf("%w: manufacturing config", psatoken.ErrClaimNotInProfile)
 }
 
-// SetPeerSigners implements [IClaims].
 func (c *Claims) SetPeerSigners([]byte) error {
 	return fmt.Errorf("%w: peer signers", psatoken.ErrClaimNotInProfile)
 }
 
-// SetTBBRoTPK implements [IClaims].
 func (c *Claims) SetTBBRoTPK([]ITBBRoTPKItem) error {
 	return fmt.Errorf("%w: TBB RoTPK", psatoken.ErrClaimNotInProfile)
 }
