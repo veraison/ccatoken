@@ -173,6 +173,45 @@ func Test_CCAPlatform_ClaimsV2_MarshalCBOR_all_claims(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func Test_CCAPlatform_ClaimsV2_MarshalCBOR_mandatory_only(t *testing.T) {
+	c := mustBuildValidClaimsV2(t, false)
+	expected := mustHexDecode(t, testEncodedCcaPlatformClaimsV2MandatoryOnly)
+
+	actual, err := ValidateAndEncodeClaimsToCBOR(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func Test_CCAPlatform_ClaimsV2_MarshalCBOR_invalid(t *testing.T) {
+	c := mustBuildValidClaimsV2(t, false)
+	c.ClientID = nil
+
+	_, err := ValidateAndEncodeClaimsToCBOR(c)
+
+	assert.EqualError(t, err, "validating client id: missing mandatory claim")
+}
+
+func Test_CCAPlatform_ClaimsV2_MarshalJSON_all_claims(t *testing.T) {
+	c := mustBuildValidClaimsV2(t, true)
+	expected, err := os.ReadFile("testvectors/json_v2/test-token-valid-full.json")
+	require.NoError(t, err)
+
+	actual, err := ValidateAndEncodeClaimsToJSON(c)
+
+	assert.NoError(t, err)
+	assert.JSONEq(t, string(expected), string(actual))
+}
+
+func Test_CCAPlatform_ClaimsV2_MarshalJSON_invalid(t *testing.T) {
+	c := mustBuildValidClaimsV2(t, false)
+	c.ClientID = nil
+
+	_, err := ValidateAndEncodeClaimsToJSON(c)
+
+	assert.EqualError(t, err, "validating client id: missing mandatory claim")
+}
+
 func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_mandatory_only(t *testing.T) {
 	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2MandatoryOnly)
 
