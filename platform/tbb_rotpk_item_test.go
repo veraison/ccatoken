@@ -7,10 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_TBBRoTPKItem_setters_and_getters(t *testing.T) {
+func Test_TBBRoTPKItem_name_setter_and_getter(t *testing.T) {
 	k := TBBRoTPKItem{}
-	hash := mustHexDecode(t, "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef")            // 32 bytes
-	badHash := mustHexDecode(t, "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef") // 36 bytes (hash must be 32/48/64 bytes)
 
 	require.NoError(t, k.SetName("DM"))
 	assert.Equal(t, "DM", *k.Name)
@@ -26,6 +24,10 @@ func Test_TBBRoTPKItem_setters_and_getters(t *testing.T) {
 
 	err = k.SetName("ABC")
 	assert.EqualError(t, err, "invalid name: ABC, must be 'CM' or 'DM'")
+}
+
+func Test_TBBRoTPKItem_active_array_index_setter_and_getter(t *testing.T) {
+	k := TBBRoTPKItem{}
 
 	require.NoError(t, k.SetActiveRoTPKArray(0))
 	assert.Equal(t, int32(0), *k.ActiveArrayIndex)
@@ -38,6 +40,10 @@ func Test_TBBRoTPKItem_setters_and_getters(t *testing.T) {
 	aa, err = k.GetActiveRoTPKArray()
 	require.NoError(t, err)
 	assert.Equal(t, int32(7), aa)
+}
+
+func Test_TBBRoTPKItem_index_setter_and_getter(t *testing.T) {
+	k := TBBRoTPKItem{}
 
 	require.NoError(t, k.SetIndex(0))
 	assert.Equal(t, int32(0), *k.Index)
@@ -50,6 +56,12 @@ func Test_TBBRoTPKItem_setters_and_getters(t *testing.T) {
 	i, err = k.GetIndex()
 	require.NoError(t, err)
 	assert.Equal(t, int32(1), i)
+}
+
+func Test_TBBRoTPKItem_hash_setter_and_getter(t *testing.T) {
+	k := TBBRoTPKItem{}
+	hash := mustHexDecode(t, "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef")            // 32 bytes
+	badHash := mustHexDecode(t, "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef") // 36 bytes (hash must be 32/48/64 bytes)
 
 	require.NoError(t, k.SetHash(hash))
 	assert.Equal(t, hash, *k.Hash)
