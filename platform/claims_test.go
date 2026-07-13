@@ -245,7 +245,7 @@ func Test_CCAPlatform_MarshalJSON_not_ok(t *testing.T) {
 	c := &Claims{}
 	expectedErr := `validating profile: missing mandatory claim`
 
-	_, err := ValidateAndEncodeClaimsToCBOR(c)
+	_, err := ValidateAndEncodeClaimsToJSON(c)
 
 	assert.EqualError(t, err, expectedErr)
 }
