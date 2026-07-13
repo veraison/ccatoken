@@ -25,58 +25,54 @@ func (o ProfileV2) GetClaims() psatoken.IClaims {
 	return newClaimsV2()
 }
 
-// Claims contains the CCA platform claims. It implements IClaims, which is an
-// extension of psatoken.IClaims.
-type ClaimsV2 struct {
-	Claims
+type addedClaimsV2 struct {
 	ClientID            *int32         `cbor:"2394,keyasint" json:"cca-platform-client-id"`
 	ManufacturingConfig *[]byte        `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
 	TBBRoTPK            *TBBRoTPKItems `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
 	PeerSigners         *[]byte        `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
 	// Extension  *TODO		`cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"` // to find out the type
+}
+
+// ClaimsV2 contains the CCA platform claims for tag:arm.com,2024:cca_platform#2.0.0.
+// It implements IClaims, which is an extension of psatoken.IClaims.
+type ClaimsV2 struct {
+	Claims
+	addedClaimsV2
 }
 
 // This type is used to prevent infinite recursion during marshaling.
 // It has the same fields as ClaimsV2, but no methods.
-// Crucially, it does not have Marshal/Unmarshal JSON/CBOR methods,
+// Crucially, it does not have Marshal/Unmarshal JSON/CBOR methods inherited from Claims,
 // which would interfere with json.Marshal and json.Unmarshal.
-// "type plainClaimsV2 ClaimsV2" does not work as it inherits Marshal/Unmarshal methods from Claims,
-// which results in the new fields in ClaimsV2 being ignored during marshaling/unmarshaling.
 type plainClaimsV2 struct {
 	claims
-	ClientID            *int32         `cbor:"2394,keyasint" json:"cca-platform-client-id"`
-	ManufacturingConfig *[]byte        `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
-	TBBRoTPK            *TBBRoTPKItems `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
-	PeerSigners         *[]byte        `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
-	// Extension  *TODO		`cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"` // to find out the type
+	addedClaimsV2
 }
 
 func toPlainClaimsV2(c ClaimsV2) plainClaimsV2 {
 	return plainClaimsV2{
-		claims:              claims(c.Claims),
-		ClientID:            c.ClientID,
-		ManufacturingConfig: c.ManufacturingConfig,
-		TBBRoTPK:            c.TBBRoTPK,
-		PeerSigners:         c.PeerSigners,
+		claims:        claims(c.Claims),
+		addedClaimsV2: c.addedClaimsV2,
 	}
 }
 
 func fromPlainClaimsV2(c plainClaimsV2) ClaimsV2 {
 	return ClaimsV2{
-		Claims:              Claims(c.claims),
-		ClientID:            c.ClientID,
-		ManufacturingConfig: c.ManufacturingConfig,
-		TBBRoTPK:            c.TBBRoTPK,
-		PeerSigners:         c.PeerSigners,
+		Claims:        Claims(c.claims),
+		addedClaimsV2: c.addedClaimsV2,
 	}
 }
 
 func newClaimsV2() IClaims {
-	baseClaims := newClaims(ProfileNameV2).(*Claims)
+	// Create a Claims V1 object though with the V2 profile name
+	baseClaims := newClaimsV1(ProfileNameV2).(*Claims)
 
+	// Create and return a Claims V2 object
 	return &ClaimsV2{
-		Claims:   *baseClaims,
-		TBBRoTPK: &TBBRoTPKItems{},
+		Claims: *baseClaims,
+		addedClaimsV2: addedClaimsV2{
+			TBBRoTPK: &TBBRoTPKItems{},
+		},
 	}
 }
 
@@ -119,11 +115,10 @@ func (c ClaimsV2) MarshalCBOR() ([]byte, error) {
 func (c *ClaimsV2) UnmarshalJSON(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we taked it from buf
 
-	cV2 := plainClaimsV2{}
+	cV2 := toPlainClaimsV2(*(newClaimsV2().(*ClaimsV2)))
 	if err := json.Unmarshal(buf, &cV2); err != nil {
 		return err
 	}
-
 	*c = fromPlainClaimsV2(cV2)
 
 	return nil
@@ -185,6 +180,9 @@ func (c *ClaimsV2) SetPeerSigners(v []byte) error {
 func (c *ClaimsV2) GetClientID() (int32, error) {
 	if c.ClientID == nil {
 		return 0, psatoken.ErrMandatoryClaimMissing
+	}
+	if *c.ClientID != 1 {
+		return 0, fmt.Errorf("%w: client id MUST be 1", psatoken.ErrWrongSyntax)
 	}
 
 	return *c.ClientID, nil

@@ -24,7 +24,7 @@ func (o Profile) GetName() string {
 }
 
 func (o Profile) GetClaims() psatoken.IClaims {
-	return newClaims(ProfileName)
+	return newClaimsV1(ProfileName)
 }
 
 type LegacyProfile struct{}
@@ -34,7 +34,7 @@ func (o LegacyProfile) GetName() string {
 }
 
 func (o LegacyProfile) GetClaims() psatoken.IClaims {
-	return newClaims(LegacyProfileName)
+	return newClaimsV1(LegacyProfileName)
 }
 
 // Claims contains the CCA platform claims. It implements IClaims, which is an
@@ -56,15 +56,15 @@ type Claims struct {
 
 // Deprecated: use NewClaimsWithProfile instead. NewClaims returns a "tag:arm.com,2023:cca_platform#1.0.0" profile.
 func NewClaims() IClaims {
-	return newClaims(ProfileName)
+	return newClaimsV1(ProfileName)
 }
 
 // Deprecated: use NewClaimsWithProfile instead. NewLegacyClaims returns a "http://arm.com/CCA-SSD/1.0.0" profile.
 func NewLegacyClaims() IClaims {
-	return newClaims(LegacyProfileName)
+	return newClaimsV1(LegacyProfileName)
 }
 
-func newClaims(profileName string) IClaims {
+func newClaimsV1(profileName string) IClaims {
 	p := eat.Profile{}
 	if err := p.Set(profileName); err != nil {
 		// should never get here as using known good constant as input

@@ -16,5 +16,12 @@
     "cca-platform-client-id": 1,
     "cca-platform-manufacturing-config": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDBAQ=",
     "cca-platform-peer-signers": "BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAxyABC=",
-    "cca-platform-tbb-rotpk": []
+    "cca-platform-tbb-rotpk": [
+            {
+            "name": "Abc123",
+            "active-array-index": 0,
+            "index": 0,
+            "hash": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDBAQ="
+            }
+      ]
     }
