@@ -12,7 +12,7 @@ DIAG_FILES="${DIAG_FILES} CcaPlatformClaimsMandatoryOnly"
 DIAG_FILES="${DIAG_FILES} CcaPlatformLegacyClaimsMandatoryOnly"
 DIAG_FILES="${DIAG_FILES} CcaPlatformClaimsInvalidMultiNonce"
 DIAG_FILES="${DIAG_FILES} CcaPlatformClaimsMissingMandatoryNonce"
-DIAG_FILES="${DIAG_FILES} CcaPlatformClaimsV2All"
+DIAG_FILES="${DIAG_FILES} ../cbor_v2/CcaPlatformClaimsV2All"
 
 TV_DOT_GO=${TV_DOT_GO?must be set in the environment.}
 
@@ -20,9 +20,11 @@ printf "package platform\n\n" > ${TV_DOT_GO}
 
 for t in ${DIAG_FILES}
 do
-	echo "// automatically generated from $t.diag" >> ${TV_DOT_GO}
-	echo "var testEncoded${t} = "'`' >> ${TV_DOT_GO}
-	cat ${t}.diag | diag2cbor.rb | xxd -p >> ${TV_DOT_GO}
+	fullpath=${t}
+	filename=${t##*/}
+	echo "// automatically generated from $fullpath.diag" >> ${TV_DOT_GO}
+	echo "var testEncoded${filename} = "'`' >> ${TV_DOT_GO}
+	cat ${fullpath}.diag | diag2cbor.rb | xxd -p >> ${TV_DOT_GO}
 	echo '`' >> ${TV_DOT_GO}
 	gofmt -w ${TV_DOT_GO}
 done
