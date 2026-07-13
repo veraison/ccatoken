@@ -114,8 +114,8 @@ a919010978237461673a61726d2e636f6d2c323032343a6363615f706c61
 0962677368612d32353619095a01
 `
 
-// automatically generated from ../cbor_v2/CcaPlatformClaimsV2MissingClientId.diag
-var testEncodedCcaPlatformClaimsV2MissingClientId = `
+// automatically generated from ../cbor_v2/CcaPlatformClaimsV2MissingClientID.diag
+var testEncodedCcaPlatformClaimsV2MissingClientID = `
 ac19010978237461673a61726d2e636f6d2c323032343a6363615f706c61
 74666f726d23322e302e300a582001010101010101010101010101010101
 0101010101010101010101010101010119095c5820000000000000000000

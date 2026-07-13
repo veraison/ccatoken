@@ -14,7 +14,7 @@ DIAG_FILES="${DIAG_FILES} CcaPlatformClaimsInvalidMultiNonce"
 DIAG_FILES="${DIAG_FILES} CcaPlatformClaimsMissingMandatoryNonce"
 DIAG_FILES="${DIAG_FILES} ../cbor_v2/CcaPlatformClaimsV2All"
 DIAG_FILES="${DIAG_FILES} ../cbor_v2/CcaPlatformClaimsV2MandatoryOnly"
-DIAG_FILES="${DIAG_FILES} ../cbor_v2/CcaPlatformClaimsV2MissingClientId"
+DIAG_FILES="${DIAG_FILES} ../cbor_v2/CcaPlatformClaimsV2MissingClientID"
 DIAG_FILES="${DIAG_FILES} ../cbor_v2/CcaPlatformClaimsV2InvalidMfgConfig"
 DIAG_FILES="${DIAG_FILES} ../cbor_v2/CcaPlatformClaimsV2InvalidTbbRotpkHashLength"
 

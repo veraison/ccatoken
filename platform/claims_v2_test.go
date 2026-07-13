@@ -257,7 +257,7 @@ func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_invalid(t *testing.T) {
 }
 
 func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_missing_client_id(t *testing.T) {
-	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2MissingClientId)
+	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2MissingClientID)
 
 	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
