@@ -134,7 +134,7 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 }
 
 func Test_ClaimsV2_UnmarshalJSON_ok(t *testing.T) {
-	buf, err := os.ReadFile("testvectors/json_v2/test-token-valid-full.json")
+	buf, err := os.ReadFile("testvectors/json/v2/test-token-valid-full.json")
 	require.NoError(t, err)
 
 	c, err := DecodeAndValidateClaimsFromJSON(buf)
@@ -151,13 +151,13 @@ func Test_ClaimsV2_UnmarshalJSON_invalid(t *testing.T) {
 
 func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 	tvs := []string{
-		/* 0 */ "testvectors/json_v2/test-client-id-missing.json",
-		/* 1 */ "testvectors/json_v2/test-client-id-invalid.json",
-		/* 2 */ "testvectors/json_v2/test-manufacturing-config-invalid.json",
-		/* 3 */ "testvectors/json_v2/test-peer-signers-invalid.json",
-		/* 4 */ "testvectors/json_v2/test-tbb-rotpk-invalid-1.json",
-		/* 5 */ "testvectors/json_v2/test-tbb-rotpk-invalid-2.json",
-		/* 6 */ "testvectors/json_v2/test-tbb-rotpk-invalid-3.json",
+		/* 0 */ "testvectors/json/v2/test-client-id-missing.json",
+		/* 1 */ "testvectors/json/v2/test-client-id-invalid.json",
+		/* 2 */ "testvectors/json/v2/test-manufacturing-config-invalid.json",
+		/* 3 */ "testvectors/json/v2/test-peer-signers-invalid.json",
+		/* 4 */ "testvectors/json/v2/test-tbb-rotpk-invalid-1.json",
+		/* 5 */ "testvectors/json/v2/test-tbb-rotpk-invalid-2.json",
+		/* 6 */ "testvectors/json/v2/test-tbb-rotpk-invalid-3.json",
 	}
 
 	for i, fn := range tvs {
@@ -172,7 +172,7 @@ func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 
 func Test_CCAPlatform_ClaimsV2_MarshalJSON_all_claims(t *testing.T) {
 	c := mustBuildValidClaimsV2(t, true)
-	expected, err := os.ReadFile("testvectors/json_v2/test-token-valid-full.json")
+	expected, err := os.ReadFile("testvectors/json/v2/test-token-valid-full.json")
 	require.NoError(t, err)
 
 	actual, err := ValidateAndEncodeClaimsToJSON(c)
@@ -183,7 +183,7 @@ func Test_CCAPlatform_ClaimsV2_MarshalJSON_all_claims(t *testing.T) {
 
 func Test_CCAPlatform_ClaimsV2_MarshalJSON_mandatory_only(t *testing.T) {
 	c := mustBuildValidClaimsV2(t, false)
-	expected, err := os.ReadFile("testvectors/json_v2/test-token-valid-mandatory-only.json")
+	expected, err := os.ReadFile("testvectors/json/v2/test-token-valid-mandatory-only.json")
 	require.NoError(t, err)
 
 	actual, err := ValidateAndEncodeClaimsToJSON(c)

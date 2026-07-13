@@ -3,7 +3,7 @@
 
 OUTPUT := ../../pretty_test_vectors.go
 
-DEPS := $(wildcard *.diag ../cbor_v2/*.diag)
+DEPS := $(wildcard *.diag v2/*.diag)
 
 all: $(OUTPUT)
 

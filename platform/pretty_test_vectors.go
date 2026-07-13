@@ -83,7 +83,7 @@ a8190109781c687474703a2f2f61726d2e636f6d2f4343412d5353442f31
 726573706f6e7365190962677368612d323536
 `
 
-// automatically generated from ../cbor_v2/CcaPlatformClaimsV2All.diag
+// automatically generated from v2/CcaPlatformClaimsV2All.diag
 var testEncodedCcaPlatformClaimsV2All = `
 ad19010978237461673a61726d2e636f6d2c323032343a6363615f706c61
 74666f726d23322e302e300a582001010101010101010101010101010101
@@ -101,7 +101,7 @@ ad19010978237461673a61726d2e636f6d2c323032343a6363615f706c61
 04040404040404
 `
 
-// automatically generated from ../cbor_v2/CcaPlatformClaimsV2MandatoryOnly.diag
+// automatically generated from v2/CcaPlatformClaimsV2MandatoryOnly.diag
 var testEncodedCcaPlatformClaimsV2MandatoryOnly = `
 a919010978237461673a61726d2e636f6d2c323032343a6363615f706c61
 74666f726d23322e302e300a582001010101010101010101010101010101
@@ -114,7 +114,7 @@ a919010978237461673a61726d2e636f6d2c323032343a6363615f706c61
 0962677368612d32353619095a01
 `
 
-// automatically generated from ../cbor_v2/CcaPlatformClaimsV2MissingClientID.diag
+// automatically generated from v2/CcaPlatformClaimsV2MissingClientID.diag
 var testEncodedCcaPlatformClaimsV2MissingClientID = `
 ac19010978237461673a61726d2e636f6d2c323032343a6363615f706c61
 74666f726d23322e302e300a582001010101010101010101010101010101
@@ -132,7 +132,7 @@ ac19010978237461673a61726d2e636f6d2c323032343a6363615f706c61
 040404
 `
 
-// automatically generated from ../cbor_v2/CcaPlatformClaimsV2InvalidMfgConfig.diag
+// automatically generated from v2/CcaPlatformClaimsV2InvalidMfgConfig.diag
 var testEncodedCcaPlatformClaimsV2InvalidMfgConfig = `
 ac19010978237461673a61726d2e636f6d2c323032343a6363615f706c61
 74666f726d23322e302e300a582001010101010101010101010101010101
@@ -148,7 +148,7 @@ ac19010978237461673a61726d2e636f6d2c323032343a6363615f706c61
 030303030303030303030303030303030303030303030303030303
 `
 
-// automatically generated from ../cbor_v2/CcaPlatformClaimsV2InvalidTbbRotpkHashLength.diag
+// automatically generated from v2/CcaPlatformClaimsV2InvalidTbbRotpkHashLength.diag
 var testEncodedCcaPlatformClaimsV2InvalidTbbRotpkHashLength = `
 ad19010978237461673a61726d2e636f6d2c323032343a6363615f706c61
 74666f726d23322e302e300a582001010101010101010101010101010101
