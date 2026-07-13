@@ -172,3 +172,35 @@ func Test_CCAPlatform_ClaimsV2_MarshalCBOR_all_claims(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
+
+func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_mandatory_only(t *testing.T) {
+	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2MandatoryOnly)
+
+	_, err := DecodeAndValidateClaimsFromCBOR(buf)
+
+	assert.NoError(t, err)
+}
+
+func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_missing_client_id(t *testing.T) {
+	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2MissingClientId)
+
+	_, err := DecodeAndValidateClaimsFromCBOR(buf)
+
+	assert.EqualError(t, err, "validating client id: missing mandatory claim")
+}
+
+func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_invalid_manufacturing_config(t *testing.T) {
+	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2InvalidMfgConfig)
+
+	_, err := DecodeAndValidateClaimsFromCBOR(buf)
+
+	assert.EqualError(t, err, "validating platform manufacturing config: wrong syntax: manufacturing config")
+}
+
+func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_invalid_tbb_rotpk_hash_length(t *testing.T) {
+	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2InvalidTbbRotpkHashLength)
+
+	_, err := DecodeAndValidateClaimsFromCBOR(buf)
+
+	assert.EqualError(t, err, "validating platform TBB ROTPK: failed at index 0: hash: wrong syntax: length 34 (hash MUST be 32, 48 or 64 bytes)")
+}

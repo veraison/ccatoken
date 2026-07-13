@@ -87,7 +87,7 @@ func (c *ClaimsV2) Validate() error {
 func (c *ClaimsV2) UnmarshalCBOR(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we taked it from buf
 
-	cV2 := plainClaimsV2{}
+	cV2 := toPlainClaimsV2(*(newClaimsV2().(*ClaimsV2)))
 	if err := dm.Unmarshal(buf, &cV2); err != nil {
 		return err
 	}
