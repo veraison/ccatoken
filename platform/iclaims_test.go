@@ -17,4 +17,8 @@ func Test_DecodeClaims(t *testing.T) {
 	buf = mustHexDecode(t, testEncodedCcaPlatformClaimsInvalidMultiNonce)
 	_, err = DecodeAndValidateClaimsFromCBOR(buf)
 	assert.EqualError(t, err, "validating nonce: wrong syntax: got 2 nonces, want 1")
+
+	buf = mustHexDecode(t, testEncodedCcaPlatformClaimsV2All)
+	_, err = DecodeAndValidateClaimsFromCBOR(buf)
+	assert.NoError(t, err)
 }
