@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	testClientID = int32(1)
+	testClientID     = int32(1)
+	testTBBRoTPKName = "DM"
 )
 
 func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
@@ -54,7 +55,7 @@ func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
 		require.NoError(t, err)
 
 		tbbRoTPKItem := TBBRoTPKItem{}
-		err = tbbRoTPKItem.SetName("DM")
+		err = tbbRoTPKItem.SetName(testTBBRoTPKName)
 		require.NoError(t, err)
 
 		err = tbbRoTPKItem.SetActiveRoTPKArray(0)
@@ -118,7 +119,7 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 
 	c = mustBuildValidClaimsV2(t, true)
 	partialTBBRoTPKItem := TBBRoTPKItem{}
-	err := partialTBBRoTPKItem.SetName("DM")
+	err := partialTBBRoTPKItem.SetName(testTBBRoTPKName)
 	require.NoError(t, err)
 	err = partialTBBRoTPKItem.SetActiveRoTPKArray(0)
 	require.NoError(t, err)
@@ -376,7 +377,7 @@ func assertDecodedClaimsV2(t *testing.T, c IClaims, includeOptional bool) {
 
 	name, err := tbbRoTPK[0].GetName()
 	require.NoError(t, err)
-	assert.Equal(t, "DM", name)
+	assert.Equal(t, testTBBRoTPKName, name)
 
 	activeArrayIndex, err := tbbRoTPK[0].GetActiveRoTPKArray()
 	require.NoError(t, err)
