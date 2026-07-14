@@ -49,14 +49,14 @@ type plainClaimsV2 struct {
 	addedClaimsV2
 }
 
-func toPlainClaimsV2(c ClaimsV2) plainClaimsV2 {
+func toPlainClaimsV2(c *ClaimsV2) plainClaimsV2 {
 	return plainClaimsV2{
 		claims:        claims(c.Claims),
 		addedClaimsV2: c.addedClaimsV2,
 	}
 }
 
-func fromPlainClaimsV2(c plainClaimsV2) ClaimsV2 {
+func fromPlainClaimsV2(c *plainClaimsV2) ClaimsV2 {
 	return ClaimsV2{
 		Claims:        Claims(c.claims),
 		addedClaimsV2: c.addedClaimsV2,
@@ -87,12 +87,12 @@ func (c *ClaimsV2) Validate() error {
 func (c *ClaimsV2) UnmarshalCBOR(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we taked it from buf
 
-	cV2 := toPlainClaimsV2(*(newClaimsV2().(*ClaimsV2)))
+	cV2 := toPlainClaimsV2((newClaimsV2().(*ClaimsV2)))
 	if err := dm.Unmarshal(buf, &cV2); err != nil {
 		return err
 	}
 
-	*c = fromPlainClaimsV2(cV2)
+	*c = fromPlainClaimsV2(&cV2)
 
 	return nil
 }
@@ -106,7 +106,7 @@ func (c ClaimsV2) MarshalCBOR() ([]byte, error) {
 		c.TBBRoTPK = nil
 	}
 
-	cv2 := toPlainClaimsV2(c)
+	cv2 := toPlainClaimsV2(&c)
 
 	return em.Marshal(&cv2)
 }
@@ -115,11 +115,11 @@ func (c ClaimsV2) MarshalCBOR() ([]byte, error) {
 func (c *ClaimsV2) UnmarshalJSON(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we taked it from buf
 
-	cV2 := toPlainClaimsV2(*(newClaimsV2().(*ClaimsV2)))
+	cV2 := toPlainClaimsV2((newClaimsV2().(*ClaimsV2)))
 	if err := json.Unmarshal(buf, &cV2); err != nil {
 		return err
 	}
-	*c = fromPlainClaimsV2(cV2)
+	*c = fromPlainClaimsV2(&cV2)
 
 	return nil
 }
@@ -133,7 +133,7 @@ func (c ClaimsV2) MarshalJSON() ([]byte, error) {
 		c.TBBRoTPK = nil
 	}
 
-	cv2 := toPlainClaimsV2(c)
+	cv2 := toPlainClaimsV2(&c)
 
 	return json.Marshal(&cv2)
 }
