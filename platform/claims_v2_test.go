@@ -12,9 +12,11 @@ import (
 )
 
 var (
-	testClientID     = int32(1)
-	testTBBRoTPKName = "DM"
-	testTBBRoTPKHash = []byte{
+	testClientID                 = int32(1)
+	testTBBRoTPKName             = "DM"
+	testTBBRoTPKActiveArrayIndex = int32(0)
+	testTBBRoTPKIndex            = int32(0)
+	testTBBRoTPKHash             = []byte{
 		7, 7, 7, 7, 7, 7, 7, 7,
 		7, 7, 7, 7, 7, 7, 7, 7,
 		7, 7, 7, 7, 7, 7, 7, 7,
@@ -65,10 +67,10 @@ func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
 		err = tbbRoTPKItem.SetName(testTBBRoTPKName)
 		require.NoError(t, err)
 
-		err = tbbRoTPKItem.SetActiveRoTPKArray(0)
+		err = tbbRoTPKItem.SetActiveRoTPKArray(testTBBRoTPKActiveArrayIndex)
 		require.NoError(t, err)
 
-		err = tbbRoTPKItem.SetIndex(0)
+		err = tbbRoTPKItem.SetIndex(testTBBRoTPKIndex)
 		require.NoError(t, err)
 
 		err = tbbRoTPKItem.SetHash(testTBBRoTPKHash)
@@ -128,9 +130,9 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 	partialTBBRoTPKItem := TBBRoTPKItem{}
 	err := partialTBBRoTPKItem.SetName(testTBBRoTPKName)
 	require.NoError(t, err)
-	err = partialTBBRoTPKItem.SetActiveRoTPKArray(0)
+	err = partialTBBRoTPKItem.SetActiveRoTPKArray(testTBBRoTPKActiveArrayIndex)
 	require.NoError(t, err)
-	err = partialTBBRoTPKItem.SetIndex(0)
+	err = partialTBBRoTPKItem.SetIndex(testTBBRoTPKIndex)
 	require.NoError(t, err)
 	c.TBBRoTPK = &TBBRoTPKItems{values: []*TBBRoTPKItem{&partialTBBRoTPKItem}}
 	assert.EqualError(t, c.Validate(), "validating platform TBB ROTPK: failed at index 0: hash: missing mandatory field")
