@@ -15,13 +15,13 @@
     "cca-platform-hash-algo-id": "sha-256",
     "cca-platform-client-id": 1,
     "cca-platform-manufacturing-config": "AQID",
-    "cca-platform-peer-signers": "BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ=",
+    "cca-platform-peer-signers": "BQUFBQU=",
     "cca-platform-tbb-rotpk": [
             {
             "name": "DM",
             "active-array-index": 0,
             "index": 0,
-            "hash": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM="
+            "hash": "BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc="
             }
         ]
     }

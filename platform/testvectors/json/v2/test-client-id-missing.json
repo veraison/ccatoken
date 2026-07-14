@@ -14,13 +14,13 @@
     "cca-platform-service-indicator" : "https://veraison.example/v1/challenge-response",
     "cca-platform-hash-algo-id": "sha-256",
     "cca-platform-manufacturing-config": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDBAQ=",
-    "cca-platform-peer-signers": "BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAxyABC=",
+    "cca-platform-peer-signers": "BQUFBQU=",
     "cca-platform-tbb-rotpk": [
             {
             "name": "DM",
             "active-array-index": 0,
             "index": 0,
-            "hash": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDBAQ="
+            "hash": "BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc="
             }
         ]
     }

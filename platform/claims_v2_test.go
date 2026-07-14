@@ -14,6 +14,13 @@ import (
 var (
 	testClientID     = int32(1)
 	testTBBRoTPKName = "DM"
+	testTBBRoTPKHash = []byte{
+		7, 7, 7, 7, 7, 7, 7, 7,
+		7, 7, 7, 7, 7, 7, 7, 7,
+		7, 7, 7, 7, 7, 7, 7, 7,
+		7, 7, 7, 7, 7, 7, 7, 7,
+	}
+	testPeerSigners = []byte{5, 5, 5, 5, 5}
 )
 
 func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
@@ -64,13 +71,13 @@ func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
 		err = tbbRoTPKItem.SetIndex(0)
 		require.NoError(t, err)
 
-		err = tbbRoTPKItem.SetHash(testMeasurementValue)
+		err = tbbRoTPKItem.SetHash(testTBBRoTPKHash)
 		require.NoError(t, err)
 
 		err = c.SetTBBRoTPK([]ITBBRoTPKItem{&tbbRoTPKItem})
 		require.NoError(t, err)
 
-		err = c.SetPeerSigners(testSignerID)
+		err = c.SetPeerSigners(testPeerSigners)
 		require.NoError(t, err)
 	}
 
@@ -156,9 +163,9 @@ func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 		/* 1 */ "testvectors/json/v2/test-client-id-invalid.json",
 		/* 2 */ "testvectors/json/v2/test-manufacturing-config-invalid.json",
 		/* 3 */ "testvectors/json/v2/test-peer-signers-invalid.json",
-		/* 4 */ "testvectors/json/v2/test-tbb-rotpk-invalid-1.json",
-		/* 5 */ "testvectors/json/v2/test-tbb-rotpk-invalid-2.json",
-		/* 6 */ "testvectors/json/v2/test-tbb-rotpk-invalid-3.json",
+		/* 4 */ "testvectors/json/v2/test-tbb-rotpk-invalid-bad-hash.json",
+		/* 5 */ "testvectors/json/v2/test-tbb-rotpk-invalid-bad-name.json",
+		/* 6 */ "testvectors/json/v2/test-tbb-rotpk-invalid-no-active-arr.json",
 	}
 
 	for i, fn := range tvs {
@@ -369,7 +376,7 @@ func assertDecodedClaimsV2(t *testing.T, c IClaims, includeOptional bool) {
 
 	peerSigners, err := c.GetPeerSigners()
 	require.NoError(t, err)
-	assert.Equal(t, testSignerID, peerSigners)
+	assert.Equal(t, testPeerSigners, peerSigners)
 
 	tbbRoTPK, err := c.GetTBBRoTPK()
 	require.NoError(t, err)
@@ -389,5 +396,5 @@ func assertDecodedClaimsV2(t *testing.T, c IClaims, includeOptional bool) {
 
 	hash, err := tbbRoTPK[0].GetHash()
 	require.NoError(t, err)
-	assert.Equal(t, testMeasurementValue, hash)
+	assert.Equal(t, testTBBRoTPKHash, hash)
 }
