@@ -8,24 +8,24 @@ import (
 
 type ExtensionDevice struct {
 	// HashAlgorithm identifies the hash algorithm used for the digest fields
-	HashAlgorithm            *string `cbor:"1,keyasint,omitempty" json:"hashAlgorithm,omitempty"`
-	DeviceMeasurementsDigest *[]byte `cbor:"2,keyasint" json:"deviceMeasurementsDigest"`
-	CertificateChainDigest   *[]byte `cbor:"3,keyasint" json:"certificateChainDigest"`
+	HashAlgorithm            *string `cbor:"1,keyasint,omitempty" json:"hash-algorithm,omitempty"`
+	DeviceMeasurementsDigest *[]byte `cbor:"2,keyasint" json:"device-measurements-digest"`
+	CertificateChainDigest   *[]byte `cbor:"3,keyasint" json:"certificate-chain-digest"`
 
 	// UsesIDE indicates whether the platform device uses Integrity & Data Encryption.
-	UsesIDE *bool `cbor:"4,keyasint" json:"usesIDE"`
+	UsesIDE *bool `cbor:"4,keyasint" json:"uses-ide"`
 
 	// Protocol identifies the protocol used to communicate with the device.
 	Protocol *Protocol `cbor:"5,keyasint" json:"protocol"`
 
 	// VCADigest is required when Protocol is one of the protocols-support-vca, otherwise no VCADigest field is expected
-	VCADigest *[]byte `cbor:"6,keyasint,omitempty" json:"vcaDigest,omitempty"`
+	VCADigest *[]byte `cbor:"6,keyasint,omitempty" json:"vca-digest,omitempty"`
 
 	// DeviceType identifies the type of platform extension device.
-	DeviceType *DeviceType `cbor:"7,keyasint" json:"deviceType"`
+	DeviceType *DeviceType `cbor:"7,keyasint" json:"device-type"`
 
 	// EncryptionType is required for cxl-type-3, otherwise no EncryptionType field is expected
-	EncryptionType *EncryptionType `cbor:"8,keyasint,omitempty" json:"encryptionType,omitempty"`
+	EncryptionType *EncryptionType `cbor:"8,keyasint,omitempty" json:"encryption-type,omitempty"`
 }
 
 type Protocol string
