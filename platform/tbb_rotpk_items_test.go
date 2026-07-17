@@ -32,13 +32,20 @@ var (
 	}
 )
 
-func Test_TBBRoTPKItems(t *testing.T) {
+func Test_TBBRoTPKItems_Add(t *testing.T) {
 	require.NoError(t, testTBBRoTPKItem1.Validate())
 	require.NoError(t, testTBBRoTPKItem2.Validate())
 
 	keys := TBBRoTPKItems{}
 	require.NoError(t, keys.Add(&testTBBRoTPKItem1, &testTBBRoTPKItem2))
-	assert.NoError(t, keys.Validate())
+	assert.Len(t, keys.values, 2)
+	assert.Equal(t, keys.values[0], &testTBBRoTPKItem1)
+	assert.Equal(t, keys.values[1], &testTBBRoTPKItem2)
+}
+
+func Test_TBBRoTPKItems_Values(t *testing.T) {
+	keys := TBBRoTPKItems{}
+	require.NoError(t, keys.Add(&testTBBRoTPKItem1, &testTBBRoTPKItem2))
 
 	vals, err := keys.Values()
 	require.NoError(t, err)
@@ -50,7 +57,16 @@ func Test_TBBRoTPKItems(t *testing.T) {
 	assert.Equal(t, []ITBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
 }
 
-func Test_TBBRoTPKItems_replace(t *testing.T) {
+func Test_TBBRoTPKItems_Validate(t *testing.T) {
+	require.NoError(t, testTBBRoTPKItem1.Validate())
+	require.NoError(t, testTBBRoTPKItem2.Validate())
+
+	keys := TBBRoTPKItems{}
+	require.NoError(t, keys.Add(&testTBBRoTPKItem1, &testTBBRoTPKItem2))
+	assert.NoError(t, keys.Validate())
+}
+
+func Test_TBBRoTPKItems_Replace(t *testing.T) {
 	keys := TBBRoTPKItems{}
 
 	require.NoError(t, keys.Replace([]ITBBRoTPKItem{&testTBBRoTPKItem1}))
