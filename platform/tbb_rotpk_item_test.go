@@ -60,15 +60,12 @@ func Test_TBBRoTPKItem_index_setter_and_getter(t *testing.T) {
 
 func Test_TBBRoTPKItem_hash_setter_and_getter(t *testing.T) {
 	k := TBBRoTPKItem{}
-	hash := mustHexDecode(t, "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef")            // 32 bytes
-	badHash := mustHexDecode(t, "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef") // 36 bytes (hash must be 32/48/64 bytes)
-
-	require.NoError(t, k.SetHash(hash))
-	assert.Equal(t, hash, *k.Hash)
+	require.NoError(t, k.SetHash(testHash1))
+	assert.Equal(t, testHash1, *k.Hash)
 	h, err := k.GetHash()
 	require.NoError(t, err)
-	assert.Equal(t, hash, h)
+	assert.Equal(t, testHash1, h)
 
-	err = k.SetHash(badHash)
+	err = k.SetHash(testBadHash)
 	assert.EqualError(t, err, "wrong syntax: length 36 (hash MUST be 32, 48 or 64 bytes)")
 }
