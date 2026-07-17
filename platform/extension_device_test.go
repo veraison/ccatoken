@@ -53,12 +53,12 @@ func Test_ExtensionDevice_SetAndGetCertificateChainDigest(t *testing.T) {
 func Test_ExtensionDevice_SetAndGetUsesIDE(t *testing.T) {
 	d := ExtensionDevice{}
 
-	ide, err := d.GetUsesIDE()
+	_, err := d.GetUsesIDE()
 	assert.EqualError(t, err, "missing mandatory field")
 
 	require.NoError(t, d.SetUsesIDE(true))
 	assert.Equal(t, true, *d.UsesIDE)
-	ide, err = d.GetUsesIDE()
+	ide, err := d.GetUsesIDE()
 	require.NoError(t, err)
 	assert.Equal(t, true, ide)
 }
@@ -148,12 +148,14 @@ func Test_ExtensionDevice_DeviceTypeRequiringEncryptionType(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, HostSideEncryption, et)
 
-	d.SetEncryptionType(TargetSideEncryption)
+	err = d.SetEncryptionType(TargetSideEncryption)
+	require.NoError(t, err)
 	et, err = d.GetEncryptionType()
 	require.NoError(t, err)
 	assert.Equal(t, TargetSideEncryption, et)
 
-	d.SetEncryptionType(NoEncryption)
+	err = d.SetEncryptionType(NoEncryption)
+	require.NoError(t, err)
 	et, err = d.GetEncryptionType()
 	require.NoError(t, err)
 	assert.Equal(t, NoEncryption, et)
@@ -174,9 +176,10 @@ func Test_ExtensionDevice_DeviceTypeMissingEncryptionType(t *testing.T) {
 
 func Test_ExtensionDevice_DeviceTypeNotRequiringEncryptionType(t *testing.T) {
 	d := ExtensionDevice{}
-	d.SetDeviceType(testDeviceType)
+	err := d.SetDeviceType(testDeviceType)
+	require.NoError(t, err)
 
-	_, err := d.GetDeviceType()
+	_, err = d.GetDeviceType()
 	require.NoError(t, err)
 
 	_, err = d.GetEncryptionType()

@@ -14,12 +14,14 @@ func Test_ExtensionDevices_Add(t *testing.T) {
 	d2 := mustBuildExtensionDevice8Fields(t)
 	d3 := mustBuildExtensionDevice8Fields(t)
 
-	ds.Add(&d1, &d2)
+	err := ds.Add(&d1, &d2)
+	require.NoError(t, err)
 	assert.Len(t, ds.values, 2)
 	assert.Equal(t, *ds.values[0], d1)
 	assert.Equal(t, *ds.values[1], d2)
 
-	ds.Add(&d3)
+	err = ds.Add(&d3)
+	require.NoError(t, err)
 	assert.Len(t, ds.values, 3)
 	assert.Equal(t, *ds.values[2], d2)
 }
@@ -31,9 +33,10 @@ func Test_ExtensionDevices_Validate(t *testing.T) {
 	d2 := mustBuildExtensionDevice8Fields(t)
 	d3 := mustBuildExtensionDevice8Fields(t)
 
-	ds.Add(&d1, &d2, &d3)
+	err := ds.Add(&d1, &d2, &d3)
+	require.NoError(t, err)
 
-	err := ds.Validate()
+	err = ds.Validate()
 	assert.NoError(t, err)
 }
 
