@@ -170,26 +170,48 @@ func (d ExtensionDevice) GetUsesIDE() (bool, error) {
 	return *d.UsesIDE, nil
 }
 
-// Whether VCA digest is required depends on the protocol.
-// Hence, get and set both fields together so that the validation logic is unambiguous.
-func (d ExtensionDevice) GetProtocolAndVCADigest() (Protocol, []byte, error) {
+func (d ExtensionDevice) GetProtocol() (Protocol, error) {
 	err := ValidateProtocolAndVCADigest(d.Protocol, d.VCADigest)
 	if err != nil {
-		return "", nil, err
+		return "", err
 	}
 
-	return *d.Protocol, *d.VCADigest, nil
+	return *d.Protocol, nil
 }
 
-// Whether encryption type is required depends on the device type.
-// Hence, get and set both fields together so that the validation logic is unambiguous.
-func (d ExtensionDevice) GetDeviceTypeAndEncryptionType() (DeviceType, EncryptionType, error) {
-	err := ValidateDeviceTypeAndEncryption(d.DeviceType, d.EncryptionType)
+func (d ExtensionDevice) GetVCADigest() ([]byte, error) {
+	err := ValidateProtocolAndVCADigest(d.Protocol, d.VCADigest)
 	if err != nil {
-		return "", -1, err
+		return nil, err
 	}
 
-	return *d.DeviceType, *d.EncryptionType, nil
+	if !d.Protocol.RequiresVCADigest() {
+		return nil, psatoken.ErrFieldNotInProfile
+	}
+
+	return *d.VCADigest, nil
+}
+
+func (d ExtensionDevice) GetDeviceType() (DeviceType, error) {
+	err := ValidateDeviceTypeAndEncryption(d.DeviceType, d.EncryptionType)
+	if err != nil {
+		return "", err
+	}
+
+	return *d.DeviceType, nil
+}
+
+func (d ExtensionDevice) GetEncryptionType() (EncryptionType, error) {
+	err := ValidateDeviceTypeAndEncryption(d.DeviceType, d.EncryptionType)
+	if err != nil {
+		return 0, err
+	}
+
+	if !d.DeviceType.RequiresEncryptionType() {
+		return 0, psatoken.ErrFieldNotInProfile
+	}
+
+	return *d.EncryptionType, nil
 }
 
 func (d *ExtensionDevice) SetHashAlgorithm(v string) error {
@@ -218,30 +240,62 @@ func (d *ExtensionDevice) SetUsesIDE(v bool) error {
 	return nil
 }
 
-// Whether VCA digest is required depends on the protocol.
-// Hence, get and set both fields together so that the validation logic is unambiguous.
-func (d *ExtensionDevice) SetProtocolAndVCADigest(p Protocol, v []byte) error {
-	err := ValidateProtocolAndVCADigest(&p, &v)
-	if err != nil {
-		return err
+// Protocol can only be set once. If it is already set, return an error.
+// This is to keep the validation logic for protocol and VCA digest simple.
+func (d *ExtensionDevice) SetProtocol(p Protocol) error {
+	if d.Protocol != nil {
+		return fmt.Errorf("protocol is already set")
 	}
-
 	d.Protocol = &p
-	d.VCADigest = &v
 
 	return nil
 }
 
-// Whether encryption type is required depends on the device type.
-// Hence, get and set both fields together so that the validation logic is unambiguous.
-func (d *ExtensionDevice) SetDeviceTypeAndEncryptionType(t DeviceType, e EncryptionType) error {
-	err := ValidateDeviceTypeAndEncryption(&t, &e)
+func (d *ExtensionDevice) SetVCADigest(h []byte) error {
+	if d.Protocol == nil {
+		return fmt.Errorf("protocol must be set before setting VCA digest")
+	}
+
+	if !d.Protocol.RequiresVCADigest() {
+		return fmt.Errorf("VCA digest is not expected for protocol %s", *d.Protocol)
+	}
+
+	err := ValidateProtocolAndVCADigest(d.Protocol, &h)
 	if err != nil {
 		return err
 	}
 
+	d.VCADigest = &h
+
+	return nil
+}
+
+// Device type can only be set once. If it is already set, return an error.
+// This is to keep the validation logic for device type and encryption type simple.
+func (d *ExtensionDevice) SetDeviceType(t DeviceType) error {
+	if d.DeviceType != nil {
+		return fmt.Errorf("device type is already set")
+	}
+
 	d.DeviceType = &t
-	d.EncryptionType = &e
+
+	return nil
+}
+
+func (d *ExtensionDevice) SetEncryptionType(t EncryptionType) error {
+	if d.DeviceType == nil {
+		return fmt.Errorf("device type must be set before setting encryption type")
+	}
+
+	if !d.DeviceType.RequiresEncryptionType() {
+		return fmt.Errorf("encryption type is not expected for device type %s", *d.DeviceType)
+	}
+
+	if t != HostSideEncryption && t != TargetSideEncryption && t != NoEncryption {
+		return fmt.Errorf("invalid encryption type: %d", t)
+	}
+
+	d.EncryptionType = &t
 
 	return nil
 }

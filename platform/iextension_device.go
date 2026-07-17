@@ -13,15 +13,19 @@ type IExtensionDevice interface {
 	GetDeviceMeasurementsDigest() ([]byte, error)
 	GetCertificateChainDigest() ([]byte, error)
 	GetUsesIDE() (bool, error)
-	GetProtocolAndVCADigest() (Protocol, []byte, error)
-	GetDeviceTypeAndEncryptionType() (DeviceType, EncryptionType, error)
+	GetProtocol() (Protocol, error)
+	GetVCADigest() ([]byte, error)
+	GetDeviceType() (DeviceType, error)
+	GetEncryptionType() (EncryptionType, error)
 
 	SetHashAlgorithm(v string) error
 	SetDeviceMeasurementsDigest(v []byte) error
 	SetCertificateChainDigest(v []byte) error
 	SetUsesIDE(v bool) error
-	SetProtocolAndVCADigest(p Protocol, v []byte) error
-	SetDeviceTypeAndEncryptionType(t DeviceType, e EncryptionType) error
+	SetProtocol(p Protocol) error
+	SetVCADigest(v []byte) error
+	SetDeviceType(t DeviceType) error
+	SetEncryptionType(e EncryptionType) error
 }
 
 func ValidateExtensionDevice(d IExtensionDevice) error {
@@ -41,12 +45,20 @@ func ValidateExtensionDevice(d IExtensionDevice) error {
 		return fmt.Errorf("usesIDE: %w", err)
 	}
 
-	if _p, _, err := d.GetProtocolAndVCADigest(); psatoken.FilterError(_p, err) != nil {
-		return fmt.Errorf("protocol and VCA digest: %w", err)
+	if err := psatoken.FilterError(d.GetProtocol()); err != nil {
+		return fmt.Errorf("protocol: %w", err)
 	}
 
-	if _t, _, err := d.GetDeviceTypeAndEncryptionType(); psatoken.FilterError(_t, err) != nil {
-		return fmt.Errorf("device type and encryption: %w", err)
+	if err := psatoken.FilterError(d.GetVCADigest()); err != nil {
+		return fmt.Errorf("VCA digest: %w", err)
+	}
+
+	if err := psatoken.FilterError(d.GetDeviceType()); err != nil {
+		return fmt.Errorf("device type: %w", err)
+	}
+
+	if err := psatoken.FilterError(d.GetEncryptionType()); err != nil {
+		return fmt.Errorf("encryption type: %w", err)
 	}
 
 	return nil
