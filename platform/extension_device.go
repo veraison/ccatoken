@@ -186,7 +186,7 @@ func (d ExtensionDevice) GetVCADigest() ([]byte, error) {
 	}
 
 	if !d.Protocol.RequiresVCADigest() {
-		return nil, psatoken.ErrFieldNotInProfile
+		return nil, fmt.Errorf("%w: VCA digest not expected for protocol %s", psatoken.ErrFieldNotInProfile, *d.Protocol)
 	}
 
 	return *d.VCADigest, nil
@@ -208,7 +208,7 @@ func (d ExtensionDevice) GetEncryptionType() (EncryptionType, error) {
 	}
 
 	if !d.DeviceType.RequiresEncryptionType() {
-		return 0, psatoken.ErrFieldNotInProfile
+		return 0, fmt.Errorf("%w: encryption type not expected for device type %s", psatoken.ErrFieldNotInProfile, *d.DeviceType)
 	}
 
 	return *d.EncryptionType, nil
@@ -244,7 +244,7 @@ func (d *ExtensionDevice) SetUsesIDE(v bool) error {
 // This is to keep the validation logic for protocol and VCA digest simple.
 func (d *ExtensionDevice) SetProtocol(p Protocol) error {
 	if d.Protocol != nil {
-		return fmt.Errorf("protocol is already set")
+		return fmt.Errorf("protocol can only be set once and is already set to %s", *d.Protocol)
 	}
 	d.Protocol = &p
 
@@ -257,7 +257,7 @@ func (d *ExtensionDevice) SetVCADigest(h []byte) error {
 	}
 
 	if !d.Protocol.RequiresVCADigest() {
-		return fmt.Errorf("VCA digest is not expected for protocol %s", *d.Protocol)
+		return fmt.Errorf("%w: VCA digest is not expected for protocol %s", psatoken.ErrFieldNotInProfile, *d.Protocol)
 	}
 
 	err := ValidateProtocolAndVCADigest(d.Protocol, &h)
@@ -274,7 +274,7 @@ func (d *ExtensionDevice) SetVCADigest(h []byte) error {
 // This is to keep the validation logic for device type and encryption type simple.
 func (d *ExtensionDevice) SetDeviceType(t DeviceType) error {
 	if d.DeviceType != nil {
-		return fmt.Errorf("device type is already set")
+		return fmt.Errorf("device type can only be set once and is already set to %s", *d.DeviceType)
 	}
 
 	d.DeviceType = &t
@@ -288,7 +288,7 @@ func (d *ExtensionDevice) SetEncryptionType(t EncryptionType) error {
 	}
 
 	if !d.DeviceType.RequiresEncryptionType() {
-		return fmt.Errorf("encryption type is not expected for device type %s", *d.DeviceType)
+		return fmt.Errorf("%w: encryption type is not expected for device type %s", psatoken.ErrFieldNotInProfile, *d.DeviceType)
 	}
 
 	if t != HostSideEncryption && t != TargetSideEncryption && t != NoEncryption {
