@@ -224,3 +224,17 @@ func mustBuildExtensionDevice8Fields(t *testing.T) ExtensionDevice {
 
 	return d
 }
+
+func mustBuildExtensionDevice6Fields(t *testing.T) ExtensionDevice {
+	d := ExtensionDevice{}
+	require.NoError(t, d.SetHashAlgorithm(testHashAlgID))
+	require.NoError(t, d.SetDeviceMeasurementsDigest(testHash1))
+	require.NoError(t, d.SetCertificateChainDigest(testHash2))
+	require.NoError(t, d.SetUsesIDE(testUsesIDE))
+	require.NoError(t, d.SetProtocol(testProtocol))
+	require.NoError(t, d.SetDeviceType(testDeviceType))
+
+	require.NoError(t, d.Validate())
+
+	return d
+}

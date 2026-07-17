@@ -1,0 +1,63 @@
+package platform
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func Test_ExtensionDevices_Add(t *testing.T) {
+	ds := ExtensionDevices{}
+
+	d1 := mustBuildExtensionDevice6Fields(t)
+	d2 := mustBuildExtensionDevice8Fields(t)
+	d3 := mustBuildExtensionDevice8Fields(t)
+
+	ds.Add(&d1, &d2)
+	assert.Len(t, ds.values, 2)
+	assert.Equal(t, *ds.values[0], d1)
+	assert.Equal(t, *ds.values[1], d2)
+
+	ds.Add(&d3)
+	assert.Len(t, ds.values, 3)
+	assert.Equal(t, *ds.values[2], d2)
+}
+
+func Test_ExtensionDevices_Validate(t *testing.T) {
+	ds := ExtensionDevices{}
+
+	d1 := mustBuildExtensionDevice6Fields(t)
+	d2 := mustBuildExtensionDevice8Fields(t)
+	d3 := mustBuildExtensionDevice8Fields(t)
+
+	ds.Add(&d1, &d2, &d3)
+
+	err := ds.Validate()
+	assert.NoError(t, err)
+}
+
+func Test_ExtensionDevices_Replace(t *testing.T) {
+	ds := ExtensionDevices{}
+
+	d1 := mustBuildExtensionDevice6Fields(t)
+	d2 := mustBuildExtensionDevice8Fields(t)
+
+	require.NoError(t, ds.Replace([]IExtensionDevice{&d1}))
+	assert.Len(t, ds.values, 1)
+	require.Equal(t, ds.values[0], &d1)
+
+	require.NoError(t, ds.Replace([]IExtensionDevice{&d2}))
+	assert.Len(t, ds.values, 1)
+	require.Equal(t, ds.values[0], &d2)
+}
+
+func Test_ExtensionDevices_InvalidDevice(t *testing.T) {
+	ds := ExtensionDevices{}
+
+	d := mustBuildExtensionDevice6Fields(t)
+	d.CertificateChainDigest = nil
+
+	require.EqualError(t, ds.Add(&d), "failed at index 0: certificate chain digest: missing mandatory field")
+	require.Error(t, ds.Replace([]IExtensionDevice{&d}), "failed at index 0: certificate chain digest: missing mandatory field")
+}
