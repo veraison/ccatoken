@@ -173,6 +173,9 @@ func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 		/* 4 */ "testvectors/json/v2/test-tbb-rotpk-invalid-bad-hash.json",
 		/* 5 */ "testvectors/json/v2/test-tbb-rotpk-invalid-bad-name.json",
 		/* 6 */ "testvectors/json/v2/test-tbb-rotpk-invalid-no-active-arr.json",
+		/* 7 */ "testvectors/json/v2/test-extension-certificate-hash-invalid.json",
+		/* 8 */ "testvectors/json/v2/test-extension-encryption-type-when-unrequired.json",
+		/* 9 */ "testvectors/json/v2/test-extension-vcadigest-missing.json",
 	}
 
 	for i, fn := range tvs {
@@ -264,6 +267,22 @@ func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_invalid_tbb_rotpk_hash_length(t *te
 	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
 	assert.EqualError(t, err, "validating platform TBB ROTPK: failed at index 0: hash: wrong syntax: length 34 (hash MUST be 32, 48 or 64 bytes)")
+}
+
+func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_missing_extension_vca_digest(t *testing.T) {
+	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2MissingExtensionVCADigest)
+
+	_, err := DecodeAndValidateClaimsFromCBOR(buf)
+
+	assert.EqualError(t, err, "validating platform extension: failed at index 0: protocol: protocol spdm-1.2.0 requires a VCA digest")
+}
+
+func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_unrequired_extension_encryption_type(t *testing.T) {
+	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2UnrequiredExtensionEncryptionType)
+
+	_, err := DecodeAndValidateClaimsFromCBOR(buf)
+
+	assert.EqualError(t, err, "validating platform extension: failed at index 0: device type: encryption type is not expected for device type other-device-2")
 }
 
 func Test_CCAPlatform_ClaimsV2_MarshalCBOR_all_claims(t *testing.T) {
