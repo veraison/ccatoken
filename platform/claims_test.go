@@ -103,6 +103,23 @@ func Test_Claims_Set_NonValid_Claims(t *testing.T) {
 	err = c.SetHashAlgID("")
 	expectedErr = "wrong syntax: empty string"
 	assert.EqualError(t, err, expectedErr)
+
+	// V2 claims should not be in V1 profile
+	err = c.SetManufacturingConfig([]byte("123"))
+	expectedErr = "claim not in profile: manufacturing config"
+	assert.EqualError(t, err, expectedErr)
+
+	err = c.SetExtension([]IExtensionDevice{})
+	expectedErr = "claim not in profile: extension"
+	assert.EqualError(t, err, expectedErr)
+
+	err = c.SetTBBRoTPK([]ITBBRoTPKItem{})
+	expectedErr = "claim not in profile: TBB RoTPK"
+	assert.EqualError(t, err, expectedErr)
+
+	err = c.SetPeerSigners([]byte("123"))
+	expectedErr = "claim not in profile: peer signers"
+	assert.EqualError(t, err, expectedErr)
 }
 
 func Test_Claims_Get_NonValid_Claims(t *testing.T) {
@@ -120,6 +137,22 @@ func Test_Claims_Get_NonValid_Claims(t *testing.T) {
 	expectedErr = "claim not in profile: client id"
 	assert.EqualError(t, err, expectedErr)
 
+	// V2 claims should not be in V1 profile
+	_, err = c.GetManufacturingConfig()
+	expectedErr = "claim not in profile: manufacturing config"
+	assert.EqualError(t, err, expectedErr)
+
+	_, err = c.GetExtension()
+	expectedErr = "claim not in profile: extension"
+	assert.EqualError(t, err, expectedErr)
+
+	_, err = c.GetTBBRoTPK()
+	expectedErr = "claim not in profile: TBB RoTPK"
+	assert.EqualError(t, err, expectedErr)
+
+	_, err = c.GetPeerSigners()
+	expectedErr = "claim not in profile: peer signers"
+	assert.EqualError(t, err, expectedErr)
 }
 
 func Test_CCAPlatform_Claims_MarshalCBOR_invalid(t *testing.T) {

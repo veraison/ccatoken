@@ -63,6 +63,11 @@ func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
 		err = c.SetManufacturingConfig(testConfig)
 		require.NoError(t, err)
 
+		extensionDevice := mustBuildExtensionDevice8Fields(t)
+		extensionDevice2 := mustBuildExtensionDevice6Fields(t)
+		err = c.SetExtension([]IExtensionDevice{&extensionDevice, &extensionDevice2})
+		require.NoError(t, err)
+
 		tbbRoTPKItem := TBBRoTPKItem{}
 		err = tbbRoTPKItem.SetName(testTBBRoTPKName)
 		require.NoError(t, err)

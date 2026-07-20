@@ -26,11 +26,11 @@ func (o ProfileV2) GetClaims() psatoken.IClaims {
 }
 
 type addedClaimsV2 struct {
-	ClientID            *int32         `cbor:"2394,keyasint" json:"cca-platform-client-id"`
-	ManufacturingConfig *[]byte        `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
-	TBBRoTPK            *TBBRoTPKItems `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
-	PeerSigners         *[]byte        `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
-	// Extension  *TODO		`cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"` // to find out the type
+	ClientID            *int32            `cbor:"2394,keyasint" json:"cca-platform-client-id"`
+	ManufacturingConfig *[]byte           `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
+	Extension           *ExtensionDevices `cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"`
+	TBBRoTPK            *TBBRoTPKItems    `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
+	PeerSigners         *[]byte           `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
 }
 
 // ClaimsV2 contains the CCA platform claims for tag:arm.com,2024:cca_platform#2.0.0.
@@ -71,7 +71,8 @@ func newClaimsV2() IClaims {
 	return &ClaimsV2{
 		Claims: *baseClaims,
 		addedClaimsV2: addedClaimsV2{
-			TBBRoTPK: &TBBRoTPKItems{},
+			Extension: &ExtensionDevices{},
+			TBBRoTPK:  &TBBRoTPKItems{},
 		},
 	}
 }
@@ -102,6 +103,9 @@ func (c ClaimsV2) MarshalCBOR() ([]byte, error) {
 	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
 		c.SwComponents = nil
 	}
+	if c.Extension != nil && c.Extension.IsEmpty() {
+		c.Extension = nil
+	}
 	if c.TBBRoTPK != nil && c.TBBRoTPK.IsEmpty() {
 		c.TBBRoTPK = nil
 	}
@@ -128,6 +132,9 @@ func (c *ClaimsV2) UnmarshalJSON(buf []byte) error {
 func (c ClaimsV2) MarshalJSON() ([]byte, error) {
 	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
 		c.SwComponents = nil
+	}
+	if c.Extension != nil && c.Extension.IsEmpty() {
+		c.Extension = nil
 	}
 	if c.TBBRoTPK != nil && c.TBBRoTPK.IsEmpty() {
 		c.TBBRoTPK = nil
@@ -157,6 +164,14 @@ func (c *ClaimsV2) SetManufacturingConfig(v []byte) error {
 	c.ManufacturingConfig = &v
 
 	return nil
+}
+
+func (c *ClaimsV2) SetExtension(vals []IExtensionDevice) error {
+	if c.Extension == nil {
+		c.Extension = &ExtensionDevices{}
+	}
+
+	return c.Extension.Replace(vals)
 }
 
 func (c *ClaimsV2) SetTBBRoTPK(vals []ITBBRoTPKItem) error {
@@ -198,6 +213,14 @@ func (c *ClaimsV2) GetManufacturingConfig() ([]byte, error) {
 	}
 
 	return *c.ManufacturingConfig, nil
+}
+
+func (c *ClaimsV2) GetExtension() ([]IExtensionDevice, error) {
+	if c.Extension == nil || c.Extension.IsEmpty() {
+		return nil, psatoken.ErrOptionalClaimMissing
+	}
+
+	return c.Extension.Values()
 }
 
 func (c *ClaimsV2) GetTBBRoTPK() ([]ITBBRoTPKItem, error) {

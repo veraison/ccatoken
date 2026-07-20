@@ -19,6 +19,7 @@ type IClaims interface {
 	GetHashAlgID() (string, error)
 	GetClientID() (int32, error)
 	GetManufacturingConfig() ([]byte, error)
+	GetExtension() ([]IExtensionDevice, error)
 	GetTBBRoTPK() ([]ITBBRoTPKItem, error)
 	GetPeerSigners() ([]byte, error)
 
@@ -26,6 +27,7 @@ type IClaims interface {
 	SetHashAlgID(string) error
 	SetClientID(int32) error
 	SetManufacturingConfig([]byte) error
+	SetExtension([]IExtensionDevice) error
 	SetTBBRoTPK([]ITBBRoTPKItem) error
 	SetPeerSigners([]byte) error
 }
@@ -71,6 +73,10 @@ func ValidateClaims(c IClaims) error {
 
 		if err := psatoken.FilterError(c.GetManufacturingConfig()); err != nil {
 			return fmt.Errorf("validating platform manufacturing config: %w", err)
+		}
+
+		if err := psatoken.FilterError(c.GetExtension()); err != nil {
+			return fmt.Errorf("validating platform extension: %w", err)
 		}
 
 		if err := psatoken.FilterError(c.GetTBBRoTPK()); err != nil {
