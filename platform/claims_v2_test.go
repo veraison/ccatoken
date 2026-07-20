@@ -274,7 +274,7 @@ func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_missing_extension_vca_digest(t *tes
 
 	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
-	assert.EqualError(t, err, "validating platform extension: failed at index 0: protocol: protocol spdm-1.2.0 requires a VCA digest")
+	assert.EqualError(t, err, "validating platform extension: failed at index 0: VCA digest: protocol spdm-1.2.0 requires a VCA digest")
 }
 
 func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_unrequired_extension_encryption_type(t *testing.T) {
@@ -282,7 +282,7 @@ func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_unrequired_extension_encryption_typ
 
 	_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
-	assert.EqualError(t, err, "validating platform extension: failed at index 0: device type: encryption type is not expected for device type other-device-2")
+	assert.EqualError(t, err, "validating platform extension: failed at index 0: encryption type: encryption type is not expected for device type other-device-2")
 }
 
 func Test_CCAPlatform_ClaimsV2_MarshalCBOR_all_claims(t *testing.T) {

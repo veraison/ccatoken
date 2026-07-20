@@ -45,21 +45,20 @@ func ValidateExtensionDevice(d IExtensionDevice) error {
 		return fmt.Errorf("usesIDE: %w", err)
 	}
 
-	if err := psatoken.FilterError(d.GetProtocol()); err != nil {
-		return fmt.Errorf("protocol: %w", err)
-	}
-
 	if err := psatoken.FilterError(d.GetVCADigest()); err != nil {
 		return fmt.Errorf("VCA digest: %w", err)
 	}
 
-	if err := psatoken.FilterError(d.GetDeviceType()); err != nil {
-		return fmt.Errorf("device type: %w", err)
+	if err := psatoken.FilterError(d.GetProtocol()); err != nil {
+		return fmt.Errorf("protocol: %w", err)
 	}
 
 	if err := psatoken.FilterError(d.GetEncryptionType()); err != nil {
 		return fmt.Errorf("encryption type: %w", err)
 	}
 
+	if err := psatoken.FilterError(d.GetDeviceType()); err != nil {
+		return fmt.Errorf("device type: %w", err)
+	}
 	return nil
 }
