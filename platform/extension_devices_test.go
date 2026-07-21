@@ -64,3 +64,11 @@ func Test_ExtensionDevices_InvalidDevice(t *testing.T) {
 	require.EqualError(t, ds.Add(&d), "failed at index 0: certificate chain digest: missing mandatory field")
 	require.Error(t, ds.Replace([]IExtensionDevice{&d}), "failed at index 0: certificate chain digest: missing mandatory field")
 }
+
+func Test_ExtensionDevices_typed_nil_key(t *testing.T) {
+	var key *ExtensionDevice = nil
+	keys := ExtensionDevices{}
+	err := keys.Add(key)
+
+	assert.EqualError(t, err, "failed at index 0: Nil key in ExtensionDevices")
+}
