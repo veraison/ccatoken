@@ -38,9 +38,9 @@ func Test_TBBRoTPKItems_Add(t *testing.T) {
 
 	keys := TBBRoTPKItems{}
 	require.NoError(t, keys.Add(&testTBBRoTPKItem1, &testTBBRoTPKItem2))
-	assert.Len(t, keys.values, 2)
-	assert.Equal(t, keys.values[0], &testTBBRoTPKItem1)
-	assert.Equal(t, keys.values[1], &testTBBRoTPKItem2)
+	assert.Len(t, keys, 2)
+	assert.Equal(t, keys[0], &testTBBRoTPKItem1)
+	assert.Equal(t, keys[1], &testTBBRoTPKItem2)
 }
 
 func Test_TBBRoTPKItems_Values(t *testing.T) {
@@ -88,11 +88,11 @@ func Test_TBBRoTPKItems_codec_roundtrip(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, jsonVals)
 
-	cborBytes, err := keys.MarshalCBOR()
+	cborBytes, err := em.Marshal(keys)
 	require.NoError(t, err)
 
 	var fromCBOR TBBRoTPKItems
-	require.NoError(t, fromCBOR.UnmarshalCBOR(cborBytes))
+	require.NoError(t, dm.Unmarshal(cborBytes, &fromCBOR))
 	cborVals, err := fromCBOR.Values()
 	require.NoError(t, err)
 	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, cborVals)
@@ -107,7 +107,8 @@ func Test_TBBRoTPKItems_nil_key(t *testing.T) {
 }
 
 func Test_TBBRoTPKItems_empty_key(t *testing.T) {
-	keys := TBBRoTPKItems{values: []*TBBRoTPKItem{{}}}
+	var keys TBBRoTPKItems
+	keys = []*TBBRoTPKItem{{}}
 
 	err := keys.Validate()
 

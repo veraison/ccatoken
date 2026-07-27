@@ -123,7 +123,9 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 	assert.EqualError(t, c.Validate(), "validating platform manufacturing config: wrong syntax: manufacturing config")
 
 	c = mustBuildValidClaimsV2(t, true)
-	c.TBBRoTPK = &TBBRoTPKItems{values: []*TBBRoTPKItem{{}}}
+	var tbbRotPk TBBRoTPKItems
+	tbbRotPk = []*TBBRoTPKItem{{}}
+	c.TBBRoTPK = &tbbRotPk
 	assert.EqualError(t, c.Validate(), "validating platform TBB ROTPK: failed at index 0: name: missing mandatory field")
 
 	c = mustBuildValidClaimsV2(t, true)
@@ -134,7 +136,9 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 	require.NoError(t, err)
 	err = partialTBBRoTPKItem.SetIndex(testTBBRoTPKIndex)
 	require.NoError(t, err)
-	c.TBBRoTPK = &TBBRoTPKItems{values: []*TBBRoTPKItem{&partialTBBRoTPKItem}}
+
+	tbbRotPk = []*TBBRoTPKItem{&partialTBBRoTPKItem}
+	c.TBBRoTPK = &tbbRotPk
 	assert.EqualError(t, c.Validate(), "validating platform TBB ROTPK: failed at index 0: hash: missing mandatory field")
 
 	c = mustBuildValidClaimsV2(t, true)

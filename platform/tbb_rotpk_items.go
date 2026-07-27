@@ -1,17 +1,14 @@
 package platform
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
 // TBBRoTPKItems provides a container for marshaling purposes.
-type TBBRoTPKItems struct {
-	values []*TBBRoTPKItem
-}
+type TBBRoTPKItems []*TBBRoTPKItem
 
 func (o TBBRoTPKItems) Validate() error {
-	for i, k := range o.values {
+	for i, k := range o {
 		if k == nil {
 			return fmt.Errorf("failed at index %d: %s", i, "Nil key in TBBRoTPKItems")
 		}
@@ -25,9 +22,9 @@ func (o TBBRoTPKItems) Validate() error {
 }
 
 func (o TBBRoTPKItems) Values() ([]*TBBRoTPKItem, error) {
-	ret := make([]*TBBRoTPKItem, len(o.values))
+	ret := make([]*TBBRoTPKItem, len(o))
 
-	for i, k := range o.values {
+	for i, k := range o {
 		if k == nil {
 			return nil, fmt.Errorf("failed at index %d: %s", i, "Nil key in TBBRoTPKItems")
 		}
@@ -48,7 +45,7 @@ func (o *TBBRoTPKItems) Add(vals ...*TBBRoTPKItem) error {
 		return err
 	}
 
-	o.values = append(o.values, toAdd...)
+	*o = append(*o, toAdd...)
 
 	return nil
 }
@@ -59,29 +56,13 @@ func (o *TBBRoTPKItems) Replace(vals []*TBBRoTPKItem) error {
 		return err
 	}
 
-	o.values = newVals
+	*o = newVals
 
 	return nil
 }
 
 func (o TBBRoTPKItems) IsEmpty() bool {
-	return len(o.values) == 0
-}
-
-func (o TBBRoTPKItems) MarshalCBOR() ([]byte, error) {
-	return em.Marshal(o.values)
-}
-
-func (o *TBBRoTPKItems) UnmarshalCBOR(v []byte) error {
-	return dm.Unmarshal(v, &o.values)
-}
-
-func (o TBBRoTPKItems) MarshalJSON() ([]byte, error) {
-	return json.Marshal(o.values)
-}
-
-func (o *TBBRoTPKItems) UnmarshalJSON(v []byte) error {
-	return json.Unmarshal(v, &o.values)
+	return len(o) == 0
 }
 
 func validateTBBRoTPKItems(vals []*TBBRoTPKItem) ([]*TBBRoTPKItem, error) {
