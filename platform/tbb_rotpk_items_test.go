@@ -49,12 +49,12 @@ func Test_TBBRoTPKItems_Values(t *testing.T) {
 
 	vals, err := keys.Values()
 	require.NoError(t, err)
-	assert.Equal(t, []ITBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
+	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
 
 	vals[0] = nil
 	vals, err = keys.Values()
 	require.NoError(t, err)
-	assert.Equal(t, []ITBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
+	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
 }
 
 func Test_TBBRoTPKItems_Validate(t *testing.T) {
@@ -69,10 +69,10 @@ func Test_TBBRoTPKItems_Validate(t *testing.T) {
 func Test_TBBRoTPKItems_Replace(t *testing.T) {
 	keys := TBBRoTPKItems{}
 
-	require.NoError(t, keys.Replace([]ITBBRoTPKItem{&testTBBRoTPKItem1}))
+	require.NoError(t, keys.Replace([]*TBBRoTPKItem{&testTBBRoTPKItem1}))
 	vals, err := keys.Values()
 	require.NoError(t, err)
-	assert.Equal(t, []ITBBRoTPKItem{&testTBBRoTPKItem1}, vals)
+	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1}, vals)
 }
 
 func Test_TBBRoTPKItems_codec_roundtrip(t *testing.T) {
@@ -86,7 +86,7 @@ func Test_TBBRoTPKItems_codec_roundtrip(t *testing.T) {
 	require.NoError(t, json.Unmarshal(jsonBytes, &fromJSON))
 	jsonVals, err := fromJSON.Values()
 	require.NoError(t, err)
-	assert.Equal(t, []ITBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, jsonVals)
+	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, jsonVals)
 
 	cborBytes, err := keys.MarshalCBOR()
 	require.NoError(t, err)
@@ -95,16 +95,7 @@ func Test_TBBRoTPKItems_codec_roundtrip(t *testing.T) {
 	require.NoError(t, fromCBOR.UnmarshalCBOR(cborBytes))
 	cborVals, err := fromCBOR.Values()
 	require.NoError(t, err)
-	assert.Equal(t, []ITBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, cborVals)
-}
-
-func Test_TBBRoTPKItems_typed_nil_key(t *testing.T) {
-	var key *TBBRoTPKItem
-	keys := TBBRoTPKItems{values: []*TBBRoTPKItem{key}}
-
-	err := keys.Validate()
-
-	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKItems")
+	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, cborVals)
 }
 
 func Test_TBBRoTPKItems_nil_key(t *testing.T) {

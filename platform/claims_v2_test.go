@@ -76,7 +76,7 @@ func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
 		err = tbbRoTPKItem.SetHash(testTBBRoTPKHash)
 		require.NoError(t, err)
 
-		err = c.SetTBBRoTPK([]ITBBRoTPKItem{&tbbRoTPKItem})
+		err = c.SetTBBRoTPK([]*TBBRoTPKItem{&tbbRoTPKItem})
 		require.NoError(t, err)
 
 		err = c.SetPeerSigners(testPeerSigners)
