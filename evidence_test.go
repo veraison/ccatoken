@@ -2,7 +2,6 @@ package ccatoken
 
 import (
 	"crypto"
-	//"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -84,7 +83,6 @@ func TestEvidence_sign_and_verify_ok(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
@@ -114,7 +112,6 @@ func TestEvidence_sign_and_verify_bad_binder(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
@@ -140,7 +137,6 @@ func TestEvidence_sign_and_verify_platform_key_mismatch(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
@@ -171,7 +167,6 @@ func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 	ccaToken, err := EvidenceIn.ValidateAndSign(pSigner, rSigner)
 	assert.NoError(t, err, "signing failed")
 
-	//fmt.Printf("CCA evidence : %x\n", ccaToken)
 
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
