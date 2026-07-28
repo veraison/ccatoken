@@ -1,16 +1,13 @@
 package platform
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
-type ExtensionDevices struct {
-	values []*ExtensionDevice
-}
+type ExtensionDevices []*ExtensionDevice
 
 func (o ExtensionDevices) Validate() error {
-	for i, k := range o.values {
+	for i, k := range o {
 		if k == nil {
 			return fmt.Errorf("failed at index %d: %s", i, "Nil key in ExtensionDevices")
 		}
@@ -24,9 +21,9 @@ func (o ExtensionDevices) Validate() error {
 }
 
 func (o ExtensionDevices) Values() ([]*ExtensionDevice, error) {
-	ret := make([]*ExtensionDevice, len(o.values))
+	ret := make([]*ExtensionDevice, len(o))
 
-	for i, k := range o.values {
+	for i, k := range o {
 		if k == nil {
 			return nil, fmt.Errorf("failed at index %d: %s", i, "Nil key in ExtensionDevices")
 		}
@@ -47,7 +44,7 @@ func (o *ExtensionDevices) Add(vals ...*ExtensionDevice) error {
 		return err
 	}
 
-	o.values = append(o.values, toAdd...)
+	*o = append(*o, toAdd...)
 
 	return nil
 }
@@ -58,29 +55,13 @@ func (o *ExtensionDevices) Replace(vals []*ExtensionDevice) error {
 		return err
 	}
 
-	o.values = newVals
+	*o = newVals
 
 	return nil
 }
 
 func (o ExtensionDevices) IsEmpty() bool {
-	return len(o.values) == 0
-}
-
-func (o ExtensionDevices) MarshalCBOR() ([]byte, error) {
-	return em.Marshal(o.values)
-}
-
-func (o *ExtensionDevices) UnmarshalCBOR(v []byte) error {
-	return dm.Unmarshal(v, &o.values)
-}
-
-func (o ExtensionDevices) MarshalJSON() ([]byte, error) {
-	return json.Marshal(o.values)
-}
-
-func (o *ExtensionDevices) UnmarshalJSON(v []byte) error {
-	return json.Unmarshal(v, &o.values)
+	return len(o) == 0
 }
 
 func validateExtensionDevices(vals []*ExtensionDevice) ([]*ExtensionDevice, error) {

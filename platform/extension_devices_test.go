@@ -16,14 +16,14 @@ func Test_ExtensionDevices_Add(t *testing.T) {
 
 	err := ds.Add(&d1, &d2)
 	require.NoError(t, err)
-	assert.Len(t, ds.values, 2)
-	assert.Equal(t, *ds.values[0], d1)
-	assert.Equal(t, *ds.values[1], d2)
+	assert.Len(t, ds, 2)
+	assert.Equal(t, *ds[0], d1)
+	assert.Equal(t, *ds[1], d2)
 
 	err = ds.Add(&d3)
 	require.NoError(t, err)
-	assert.Len(t, ds.values, 3)
-	assert.Equal(t, *ds.values[2], d2)
+	assert.Len(t, ds, 3)
+	assert.Equal(t, *ds[2], d3)
 }
 
 func Test_ExtensionDevices_Validate(t *testing.T) {
@@ -47,12 +47,12 @@ func Test_ExtensionDevices_Replace(t *testing.T) {
 	d2 := mustBuildExtensionDevice8Fields(t)
 
 	require.NoError(t, ds.Replace([]*ExtensionDevice{&d1}))
-	assert.Len(t, ds.values, 1)
-	require.Equal(t, ds.values[0], &d1)
+	assert.Len(t, ds, 1)
+	require.Equal(t, ds[0], &d1)
 
 	require.NoError(t, ds.Replace([]*ExtensionDevice{&d2}))
-	assert.Len(t, ds.values, 1)
-	require.Equal(t, ds.values[0], &d2)
+	assert.Len(t, ds, 1)
+	require.Equal(t, ds[0], &d2)
 }
 
 func Test_ExtensionDevices_InvalidDevice(t *testing.T) {

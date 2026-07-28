@@ -4,7 +4,6 @@ import (
 	"fmt"
 )
 
-// TBBRoTPKItems provides a container for marshaling purposes.
 type TBBRoTPKItems []*TBBRoTPKItem
 
 func (o TBBRoTPKItems) Validate() error {
