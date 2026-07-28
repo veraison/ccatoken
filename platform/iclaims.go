@@ -20,7 +20,7 @@ type IClaims interface {
 	GetClientID() (int32, error)
 	GetManufacturingConfig() ([]byte, error)
 	GetExtension() ([]IExtensionDevice, error)
-	GetTBBRoTPK() ([]ITBBRoTPKItem, error)
+	GetTBBRoTPK() ([]*TBBRoTPKItem, error)
 	GetPeerSigners() ([]byte, error)
 
 	SetConfig([]byte) error
@@ -28,7 +28,7 @@ type IClaims interface {
 	SetClientID(int32) error
 	SetManufacturingConfig([]byte) error
 	SetExtension([]IExtensionDevice) error
-	SetTBBRoTPK([]ITBBRoTPKItem) error
+	SetTBBRoTPK([]*TBBRoTPKItem) error
 	SetPeerSigners([]byte) error
 }
 

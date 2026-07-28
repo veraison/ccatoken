@@ -174,7 +174,7 @@ func (c *ClaimsV2) SetExtension(vals []IExtensionDevice) error {
 	return c.Extension.Replace(vals)
 }
 
-func (c *ClaimsV2) SetTBBRoTPK(vals []ITBBRoTPKItem) error {
+func (c *ClaimsV2) SetTBBRoTPK(vals []*TBBRoTPKItem) error {
 	if c.TBBRoTPK == nil {
 		c.TBBRoTPK = &TBBRoTPKItems{}
 	}
@@ -223,7 +223,7 @@ func (c *ClaimsV2) GetExtension() ([]IExtensionDevice, error) {
 	return c.Extension.Values()
 }
 
-func (c *ClaimsV2) GetTBBRoTPK() ([]ITBBRoTPKItem, error) {
+func (c *ClaimsV2) GetTBBRoTPK() ([]*TBBRoTPKItem, error) {
 	if c.TBBRoTPK == nil || c.TBBRoTPK.IsEmpty() {
 		return nil, psatoken.ErrOptionalClaimMissing
 	}

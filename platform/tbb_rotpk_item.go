@@ -15,8 +15,25 @@ type TBBRoTPKItem struct {
 	Hash             *[]byte `cbor:"4,keyasint" json:"hash"`               // hash object
 }
 
+// Validate returns an error if validation fails for any of the fields.
 func (i TBBRoTPKItem) Validate() error {
-	return ValidateTBBRoTPKItem(&i)
+	if err := psatoken.FilterError(i.GetName()); err != nil {
+		return fmt.Errorf("name: %w", err)
+	}
+
+	if err := psatoken.FilterError(i.GetActiveRoTPKArray()); err != nil {
+		return fmt.Errorf("active array index: %w", err)
+	}
+
+	if err := psatoken.FilterError(i.GetIndex()); err != nil {
+		return fmt.Errorf("index: %w", err)
+	}
+
+	if err := psatoken.FilterError(i.GetHash()); err != nil {
+		return fmt.Errorf("hash: %w", err)
+	}
+
+	return nil
 }
 
 func ValidateTBBRoTPKItemName(n string) error {

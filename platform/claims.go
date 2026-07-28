@@ -364,7 +364,7 @@ func (c *Claims) GetExtension() ([]IExtensionDevice, error) {
 	return nil, fmt.Errorf("%w: extension", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *Claims) GetTBBRoTPK() ([]ITBBRoTPKItem, error) {
+func (c *Claims) GetTBBRoTPK() ([]*TBBRoTPKItem, error) {
 	return nil, fmt.Errorf("%w: TBB RoTPK", psatoken.ErrClaimNotInProfile)
 }
 
@@ -380,7 +380,7 @@ func (c *Claims) SetExtension([]IExtensionDevice) error {
 	return fmt.Errorf("%w: extension", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *Claims) SetTBBRoTPK([]ITBBRoTPKItem) error {
+func (c *Claims) SetTBBRoTPK([]*TBBRoTPKItem) error {
 	return fmt.Errorf("%w: TBB RoTPK", psatoken.ErrClaimNotInProfile)
 }
 

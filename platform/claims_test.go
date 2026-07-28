@@ -113,7 +113,7 @@ func Test_Claims_Set_NonValid_Claims(t *testing.T) {
 	expectedErr = "claim not in profile: extension"
 	assert.EqualError(t, err, expectedErr)
 
-	err = c.SetTBBRoTPK([]ITBBRoTPKItem{})
+	err = c.SetTBBRoTPK([]*TBBRoTPKItem{})
 	expectedErr = "claim not in profile: TBB RoTPK"
 	assert.EqualError(t, err, expectedErr)
 
