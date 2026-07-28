@@ -3,19 +3,15 @@ package platform
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 )
 
-// ExtensionDevices is the standard implementation of IExtensionDevices interface that
-// should suffice for most purposes. This provides a container of concrete types
-// for marshaling purposes.
 type ExtensionDevices struct {
 	values []*ExtensionDevice
 }
 
 func (o ExtensionDevices) Validate() error {
 	for i, k := range o.values {
-		if isNilExtensionDevice(k) {
+		if k == nil {
 			return fmt.Errorf("failed at index %d: %s", i, "Nil key in ExtensionDevices")
 		}
 
@@ -27,11 +23,11 @@ func (o ExtensionDevices) Validate() error {
 	return nil
 }
 
-func (o ExtensionDevices) Values() ([]IExtensionDevice, error) {
-	ret := make([]IExtensionDevice, len(o.values))
+func (o ExtensionDevices) Values() ([]*ExtensionDevice, error) {
+	ret := make([]*ExtensionDevice, len(o.values))
 
 	for i, k := range o.values {
-		if isNilExtensionDevice(k) {
+		if k == nil {
 			return nil, fmt.Errorf("failed at index %d: %s", i, "Nil key in ExtensionDevices")
 		}
 
@@ -45,8 +41,8 @@ func (o ExtensionDevices) Values() ([]IExtensionDevice, error) {
 	return ret, nil
 }
 
-func (o *ExtensionDevices) Add(vals ...IExtensionDevice) error {
-	toAdd, err := validateAndConvertExtensionDevices(vals)
+func (o *ExtensionDevices) Add(vals ...*ExtensionDevice) error {
+	toAdd, err := validateExtensionDevices(vals)
 	if err != nil {
 		return err
 	}
@@ -56,8 +52,8 @@ func (o *ExtensionDevices) Add(vals ...IExtensionDevice) error {
 	return nil
 }
 
-func (o *ExtensionDevices) Replace(vals []IExtensionDevice) error {
-	newVals, err := validateAndConvertExtensionDevices(vals)
+func (o *ExtensionDevices) Replace(vals []*ExtensionDevice) error {
+	newVals, err := validateExtensionDevices(vals)
 	if err != nil {
 		return err
 	}
@@ -87,11 +83,11 @@ func (o *ExtensionDevices) UnmarshalJSON(v []byte) error {
 	return json.Unmarshal(v, &o.values)
 }
 
-func validateAndConvertExtensionDevices(vals []IExtensionDevice) ([]*ExtensionDevice, error) {
+func validateExtensionDevices(vals []*ExtensionDevice) ([]*ExtensionDevice, error) {
 	ret := make([]*ExtensionDevice, len(vals))
 
 	for i, k := range vals {
-		if isNilExtensionDevice(k) {
+		if k == nil {
 			return nil, fmt.Errorf("failed at index %d: %s", i, "Nil key in ExtensionDevices")
 		}
 
@@ -99,13 +95,7 @@ func validateAndConvertExtensionDevices(vals []IExtensionDevice) ([]*ExtensionDe
 			return nil, fmt.Errorf("failed at index %d: %w", i, err)
 		}
 
-		ta, ok := k.(*ExtensionDevice)
-		if !ok {
-			return nil, fmt.Errorf("incorrect type at index %d; must be %s",
-				i, reflect.TypeOf(ExtensionDevice{}).Name())
-		}
-
-		ret[i] = ta
+		ret[i] = k
 	}
 
 	return ret, nil

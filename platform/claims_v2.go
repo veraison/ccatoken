@@ -166,7 +166,7 @@ func (c *ClaimsV2) SetManufacturingConfig(v []byte) error {
 	return nil
 }
 
-func (c *ClaimsV2) SetExtension(vals []IExtensionDevice) error {
+func (c *ClaimsV2) SetExtension(vals []*ExtensionDevice) error {
 	if c.Extension == nil {
 		c.Extension = &ExtensionDevices{}
 	}
@@ -215,7 +215,7 @@ func (c *ClaimsV2) GetManufacturingConfig() ([]byte, error) {
 	return *c.ManufacturingConfig, nil
 }
 
-func (c *ClaimsV2) GetExtension() ([]IExtensionDevice, error) {
+func (c *ClaimsV2) GetExtension() ([]*ExtensionDevice, error) {
 	if c.Extension == nil || c.Extension.IsEmpty() {
 		return nil, psatoken.ErrOptionalClaimMissing
 	}

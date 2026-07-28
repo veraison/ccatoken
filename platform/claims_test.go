@@ -109,7 +109,7 @@ func Test_Claims_Set_NonValid_Claims(t *testing.T) {
 	expectedErr = "claim not in profile: manufacturing config"
 	assert.EqualError(t, err, expectedErr)
 
-	err = c.SetExtension([]IExtensionDevice{})
+	err = c.SetExtension([]*ExtensionDevice{})
 	expectedErr = "claim not in profile: extension"
 	assert.EqualError(t, err, expectedErr)
 

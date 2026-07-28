@@ -19,7 +19,7 @@ type IClaims interface {
 	GetHashAlgID() (string, error)
 	GetClientID() (int32, error)
 	GetManufacturingConfig() ([]byte, error)
-	GetExtension() ([]IExtensionDevice, error)
+	GetExtension() ([]*ExtensionDevice, error)
 	GetTBBRoTPK() ([]*TBBRoTPKItem, error)
 	GetPeerSigners() ([]byte, error)
 
@@ -27,7 +27,7 @@ type IClaims interface {
 	SetHashAlgID(string) error
 	SetClientID(int32) error
 	SetManufacturingConfig([]byte) error
-	SetExtension([]IExtensionDevice) error
+	SetExtension([]*ExtensionDevice) error
 	SetTBBRoTPK([]*TBBRoTPKItem) error
 	SetPeerSigners([]byte) error
 }

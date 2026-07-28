@@ -46,11 +46,11 @@ func Test_ExtensionDevices_Replace(t *testing.T) {
 	d1 := mustBuildExtensionDevice6Fields(t)
 	d2 := mustBuildExtensionDevice8Fields(t)
 
-	require.NoError(t, ds.Replace([]IExtensionDevice{&d1}))
+	require.NoError(t, ds.Replace([]*ExtensionDevice{&d1}))
 	assert.Len(t, ds.values, 1)
 	require.Equal(t, ds.values[0], &d1)
 
-	require.NoError(t, ds.Replace([]IExtensionDevice{&d2}))
+	require.NoError(t, ds.Replace([]*ExtensionDevice{&d2}))
 	assert.Len(t, ds.values, 1)
 	require.Equal(t, ds.values[0], &d2)
 }
@@ -62,7 +62,7 @@ func Test_ExtensionDevices_InvalidDevice(t *testing.T) {
 	d.CertificateChainDigest = nil
 
 	require.EqualError(t, ds.Add(&d), "failed at index 0: certificate chain digest: missing mandatory field")
-	require.Error(t, ds.Replace([]IExtensionDevice{&d}), "failed at index 0: certificate chain digest: missing mandatory field")
+	require.Error(t, ds.Replace([]*ExtensionDevice{&d}), "failed at index 0: certificate chain digest: missing mandatory field")
 }
 
 func Test_ExtensionDevices_typed_nil_key(t *testing.T) {

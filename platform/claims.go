@@ -360,7 +360,7 @@ func (c *Claims) GetPeerSigners() ([]byte, error) {
 	return nil, fmt.Errorf("%w: peer signers", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *Claims) GetExtension() ([]IExtensionDevice, error) {
+func (c *Claims) GetExtension() ([]*ExtensionDevice, error) {
 	return nil, fmt.Errorf("%w: extension", psatoken.ErrClaimNotInProfile)
 }
 
@@ -376,7 +376,7 @@ func (c *Claims) SetPeerSigners([]byte) error {
 	return fmt.Errorf("%w: peer signers", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *Claims) SetExtension([]IExtensionDevice) error {
+func (c *Claims) SetExtension([]*ExtensionDevice) error {
 	return fmt.Errorf("%w: extension", psatoken.ErrClaimNotInProfile)
 }
 
