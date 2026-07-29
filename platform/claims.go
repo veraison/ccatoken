@@ -1,4 +1,4 @@
-// Copyright 2021-2024 Contributors to the Veraison project.
+// Copyright 2021-2026 Contributors to the Veraison project.
 // SPDX-License-Identifier: Apache-2.0
 
 package platform
@@ -14,7 +14,7 @@ import (
 const LegacyProfileName = "http://arm.com/CCA-SSD/1.0.0"
 const ProfileName = "tag:arm.com,2023:cca_platform#1.0.0"
 
-// Profile is the psatoken.IProfile implementation for CCA claims. It is
+// Profile is the psatoken.IProfile implementation for CCA claims (2023/1.0.0). It is
 // registered to associate the claims with the profile name, so that it can be
 // automatically used during unmarshaling.
 type Profile struct{}
@@ -24,7 +24,7 @@ func (o Profile) GetName() string {
 }
 
 func (o Profile) GetClaims() psatoken.IClaims {
-	return NewClaims()
+	return newClaimsV1(ProfileName)
 }
 
 type LegacyProfile struct{}
@@ -34,7 +34,7 @@ func (o LegacyProfile) GetName() string {
 }
 
 func (o LegacyProfile) GetClaims() psatoken.IClaims {
-	return NewLegacyClaims()
+	return newClaimsV1(LegacyProfileName)
 }
 
 // Claims contains the CCA platform claims. It implements IClaims, which is an
@@ -54,16 +54,21 @@ type Claims struct {
 	CanonicalProfile string `cbor:"-" json:"-"`
 }
 
-// NewClaims claims returns a new instance of Claims.
+// NewClaims returns a Claims object with the profile name "tag:arm.com,2023:cca_platform#1.0.0".
+//
+// Deprecated: use NewClaimsWithProfile instead.
 func NewClaims() IClaims {
-	return newClaims(ProfileName)
+	return newClaimsV1(ProfileName)
 }
 
+// NewLegacyClaims returns a Claims object with the profile name "http://arm.com/CCA-SSD/1.0.0".
+//
+// Deprecated: use NewClaimsWithProfile instead.
 func NewLegacyClaims() IClaims {
-	return newClaims(LegacyProfileName)
+	return newClaimsV1(LegacyProfileName)
 }
 
-func newClaims(profileName string) IClaims {
+func newClaimsV1(profileName string) IClaims {
 	p := eat.Profile{}
 	if err := p.Set(profileName); err != nil {
 		// should never get here as using known good constant as input
@@ -351,12 +356,40 @@ func (c *Claims) GetHashAlgID() (string, error) {
 	return *v, nil
 }
 
+func (c *Claims) GetManufacturingConfig() ([]byte, error) {
+	return nil, fmt.Errorf("%w: manufacturing config", psatoken.ErrClaimNotInProfile)
+}
+
+func (c *Claims) GetPeerSigners() ([]byte, error) {
+	return nil, fmt.Errorf("%w: peer signers", psatoken.ErrClaimNotInProfile)
+}
+
+func (c *Claims) GetTBBRoTPK() (TBBRoTPKItems, error) {
+	return nil, fmt.Errorf("%w: TBB RoTPK", psatoken.ErrClaimNotInProfile)
+}
+
+func (c *Claims) SetManufacturingConfig([]byte) error {
+	return fmt.Errorf("%w: manufacturing config", psatoken.ErrClaimNotInProfile)
+}
+
+func (c *Claims) SetPeerSigners([]byte) error {
+	return fmt.Errorf("%w: peer signers", psatoken.ErrClaimNotInProfile)
+}
+
+func (c *Claims) SetTBBRoTPK(TBBRoTPKItems) error {
+	return fmt.Errorf("%w: TBB RoTPK", psatoken.ErrClaimNotInProfile)
+}
+
 func init() {
 	if err := psatoken.RegisterProfile(Profile{}); err != nil {
 		panic(err)
 	}
 
 	if err := psatoken.RegisterProfile(LegacyProfile{}); err != nil {
+		panic(err)
+	}
+
+	if err := psatoken.RegisterProfile(ProfileV2{}); err != nil {
 		panic(err)
 	}
 }

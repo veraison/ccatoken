@@ -1,4 +1,4 @@
-// Copyright 2024 Contributors to the Veraison project.
+// Copyright 2024-2026 Contributors to the Veraison project.
 // SPDX-License-Identifier: Apache-2.0
 
 package platform
@@ -17,9 +17,31 @@ type IClaims interface {
 
 	GetConfig() ([]byte, error)
 	GetHashAlgID() (string, error)
+	GetClientID() (int32, error)
+	GetManufacturingConfig() ([]byte, error)
+	GetTBBRoTPK() (TBBRoTPKItems, error)
+	GetPeerSigners() ([]byte, error)
 
 	SetConfig([]byte) error
 	SetHashAlgID(string) error
+	SetClientID(int32) error
+	SetManufacturingConfig([]byte) error
+	SetTBBRoTPK(TBBRoTPKItems) error
+	SetPeerSigners([]byte) error
+}
+
+func NewClaimsWithProfile(profileName string) (IClaims, error) {
+	icPsa, err := psatoken.NewClaims(profileName)
+	if err != nil {
+		return nil, err
+	}
+
+	ic, ok := icPsa.(IClaims)
+	if !ok {
+		return nil, fmt.Errorf("%s is not a CCA platform profile", profileName)
+	}
+
+	return ic, nil
 }
 
 // ValidateClaims returns an error if the provided IClaims instance does not
@@ -35,6 +57,21 @@ func ValidateClaims(c IClaims) error {
 
 	if err := psatoken.FilterError(c.GetHashAlgID()); err != nil {
 		return fmt.Errorf("validating platform hash algo id: %w", err)
+	}
+
+	if _, ok := c.(*ClaimsV2); ok {
+		if err := psatoken.FilterError(c.GetManufacturingConfig()); err != nil {
+			return fmt.Errorf("validating platform manufacturing config: %w", err)
+		}
+
+		if err := psatoken.FilterError(c.GetTBBRoTPK()); err != nil {
+			return fmt.Errorf("validating platform TBB ROTPK: %w", err)
+		}
+
+		if err := psatoken.FilterError(c.GetPeerSigners()); err != nil {
+			return fmt.Errorf("validating platform peer signers: %w", err)
+		}
+
 	}
 
 	return nil

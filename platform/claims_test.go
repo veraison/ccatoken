@@ -1,4 +1,4 @@
-// Copyright 2022-2024 Contributors to the Veraison project.
+// Copyright 2022-2026 Contributors to the Veraison project.
 // SPDX-License-Identifier: Apache-2.0
 
 package platform
@@ -16,7 +16,7 @@ var (
 )
 
 func mustBuildValidClaims(t *testing.T, includeOptional bool) IClaims {
-	c := NewClaims()
+	c := mustNewClaims(t)
 
 	err := c.SetSecurityLifeCycle(testCCALifeCycleSecured)
 	require.NoError(t, err)
@@ -47,8 +47,14 @@ func mustBuildValidClaims(t *testing.T, includeOptional bool) IClaims {
 	return c
 }
 
+func mustNewClaims(t *testing.T) IClaims {
+	c, err := NewClaimsWithProfile(ProfileName)
+	require.NoError(t, err)
+	return c
+}
+
 func Test_NewClaims_ok(t *testing.T) {
-	c := NewClaims()
+	c := mustNewClaims(t)
 
 	expected := ProfileName
 
@@ -72,7 +78,7 @@ func Test_Claims_Validate_mandatory_only_claims(t *testing.T) {
 }
 
 func Test_Claims_Set_NonValid_Claims(t *testing.T) {
-	c := NewClaims()
+	c := mustNewClaims(t)
 
 	err := c.SetBootSeed([]byte("123"))
 	expectedErr := "claim not in profile: boot seed"
@@ -100,7 +106,7 @@ func Test_Claims_Set_NonValid_Claims(t *testing.T) {
 }
 
 func Test_Claims_Get_NonValid_Claims(t *testing.T) {
-	c := NewClaims()
+	c := mustNewClaims(t)
 
 	_, err := c.GetBootSeed()
 	expectedErr := "claim not in profile: boot seed"
@@ -117,7 +123,7 @@ func Test_Claims_Get_NonValid_Claims(t *testing.T) {
 }
 
 func Test_CCAPlatform_Claims_MarshalCBOR_invalid(t *testing.T) {
-	c := NewClaims()
+	c := mustNewClaims(t)
 	expectedErr := `validating security lifecycle: missing mandatory claim`
 
 	_, err := ValidateAndEncodeClaimsToCBOR(c)
@@ -239,7 +245,7 @@ func Test_CCAPlatform_MarshalJSON_not_ok(t *testing.T) {
 	c := &Claims{}
 	expectedErr := `validating profile: missing mandatory claim`
 
-	_, err := ValidateAndEncodeClaimsToCBOR(c)
+	_, err := ValidateAndEncodeClaimsToJSON(c)
 
 	assert.EqualError(t, err, expectedErr)
 }
@@ -357,7 +363,7 @@ func Test_DecodeUnvalidatedCCAClaims(t *testing.T) {
 }
 
 func Test_NewClaims_CcaPlatform_ok(t *testing.T) {
-	c := NewClaims()
+	c := mustNewClaims(t)
 
 	p, err := c.GetProfile()
 	assert.NoError(t, err)
@@ -446,7 +452,7 @@ func Test_CcaLifeCycleState(t *testing.T) {
 }
 
 func Test_ToUnvalidated(t *testing.T) {
-	c := NewClaims()
+	c := mustNewClaims(t)
 
 	_, err := EncodeClaimsToCBOR(c)
 	assert.NoError(t, err)

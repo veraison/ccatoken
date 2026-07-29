@@ -1,4 +1,4 @@
-// Copyright 2024 Contributors to the Veraison project.
+// Copyright 2024-2026 Contributors to the Veraison project.
 // SPDX-License-Identifier: Apache-2.0
 
 package platform
@@ -17,4 +17,8 @@ func Test_DecodeClaims(t *testing.T) {
 	buf = mustHexDecode(t, testEncodedCcaPlatformClaimsInvalidMultiNonce)
 	_, err = DecodeAndValidateClaimsFromCBOR(buf)
 	assert.EqualError(t, err, "validating nonce: wrong syntax: got 2 nonces, want 1")
+
+	buf = mustHexDecode(t, testEncodedCcaPlatformClaimsV2All)
+	_, err = DecodeAndValidateClaimsFromCBOR(buf)
+	assert.NoError(t, err)
 }
