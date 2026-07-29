@@ -13,6 +13,7 @@ import (
 
 var (
 	testClientID                 = int32(1)
+	testBadClientID              = int32(0)
 	testTBBRoTPKName             = "DM"
 	testTBBRoTPKActiveArrayIndex = int32(0)
 	testTBBRoTPKIndex            = int32(0)
@@ -117,6 +118,9 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 	c.ClientID = nil
 	assert.EqualError(t, c.Validate(), "validating client id: missing mandatory claim")
 
+	err := c.SetClientID(testBadClientID)
+	assert.EqualError(t, err, "wrong syntax: client id MUST be 1")
+
 	c = mustBuildValidClaimsV2(t, true)
 	emptyManufacturingConfig := []byte{}
 	c.ManufacturingConfig = &emptyManufacturingConfig
@@ -130,7 +134,7 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 
 	c = mustBuildValidClaimsV2(t, true)
 	partialTBBRoTPKItem := TBBRoTPKItem{}
-	err := partialTBBRoTPKItem.SetName(testTBBRoTPKName)
+	err = partialTBBRoTPKItem.SetName(testTBBRoTPKName)
 	require.NoError(t, err)
 	err = partialTBBRoTPKItem.SetActiveRoTPKArray(testTBBRoTPKActiveArrayIndex)
 	require.NoError(t, err)
@@ -174,13 +178,23 @@ func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 		/* 6 */ "testvectors/json/v2/test-tbb-rotpk-invalid-no-active-arr.json",
 	}
 
+	expectedErrors := []string{
+		/* 0 */ "validating client id: missing mandatory claim",
+		/* 1 */ "validating client id: wrong syntax: client id MUST be 1",
+		/* 2 */ "validating platform manufacturing config: wrong syntax: manufacturing config",
+		/* 3 */ "validating platform peer signers: wrong syntax: peer signers",
+		/* 4 */ "validating platform TBB ROTPK: failed at index 0: hash: wrong syntax: length 33 (hash MUST be 32, 48 or 64 bytes)",
+		/* 5 */ "validating platform TBB ROTPK: failed at index 0: name: invalid name: Abc123, must be 'CM' or 'DM'",
+		/* 6 */ "validating platform TBB ROTPK: failed at index 0: active array index: missing mandatory field",
+	}
+
 	for i, fn := range tvs {
 		buf, err := os.ReadFile(fn)
 		require.NoError(t, err)
 
 		_, err = DecodeAndValidateClaimsFromJSON(buf)
 
-		assert.Error(t, err, "test vector %d failed", i)
+		assert.EqualError(t, err, expectedErrors[i])
 	}
 }
 

@@ -1,3 +1,6 @@
+// Copyright 2026 Contributors to the Veraison project.
+// SPDX-License-Identifier: Apache-2.0
+
 package platform
 
 import (
@@ -21,18 +24,9 @@ func (o TBBRoTPKItems) Validate() error {
 }
 
 func (o TBBRoTPKItems) Values() ([]*TBBRoTPKItem, error) {
-	ret := make([]*TBBRoTPKItem, len(o))
-
-	for i, k := range o {
-		if k == nil {
-			return nil, fmt.Errorf("failed at index %d: %s", i, "Nil key in TBBRoTPKItems")
-		}
-
-		if err := k.Validate(); err != nil {
-			return nil, fmt.Errorf("failed at index %d: %w", i, err)
-		}
-
-		ret[i] = k
+	ret, err := validateTBBRoTPKItems(o)
+	if err != nil {
+		return nil, err
 	}
 
 	return ret, nil

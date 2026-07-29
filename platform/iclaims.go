@@ -59,12 +59,7 @@ func ValidateClaims(c IClaims) error {
 		return fmt.Errorf("validating platform hash algo id: %w", err)
 	}
 
-	profile, err := c.GetProfile()
-	if err != nil {
-		return fmt.Errorf("could not get profile: %w", err)
-	}
-
-	if profile == "tag:arm.com,2024:cca_platform#2.0.0" {
+	if _, ok := c.(*ClaimsV2); ok {
 		if err := psatoken.FilterError(c.GetClientID()); err != nil {
 			return fmt.Errorf("validating platform client id: %w", err)
 		}
