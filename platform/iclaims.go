@@ -60,10 +60,6 @@ func ValidateClaims(c IClaims) error {
 	}
 
 	if _, ok := c.(*ClaimsV2); ok {
-		if err := psatoken.FilterError(c.GetClientID()); err != nil {
-			return fmt.Errorf("validating platform client id: %w", err)
-		}
-
 		if err := psatoken.FilterError(c.GetManufacturingConfig()); err != nil {
 			return fmt.Errorf("validating platform manufacturing config: %w", err)
 		}
