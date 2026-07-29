@@ -16,17 +16,7 @@ func (o TBBRoTPKItems) Validate() error {
 		return psatoken.ErrOptionalClaimMissing
 	}
 
-	for i, k := range o {
-		if k == nil {
-			return fmt.Errorf("failed at index %d: %s", i, "Nil key in TBBRoTPKItems")
-		}
-
-		if err := k.Validate(); err != nil {
-			return fmt.Errorf("failed at index %d: %w", i, err)
-		}
-	}
-
-	return nil
+	return validateTBBRoTPKItems(o)
 }
 
 func (o TBBRoTPKItems) Values() (TBBRoTPKItems, error) {
