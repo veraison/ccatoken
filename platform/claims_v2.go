@@ -83,7 +83,7 @@ func (c *ClaimsV2) Validate() error {
 
 // UnmarshalCBOR decodes the claims from CBOR
 func (c *ClaimsV2) UnmarshalCBOR(buf []byte) error {
-	c.Profile = nil // clear profile to make sure we taked it from buf
+	c.Profile = nil // clear profile to make sure we took it from buf
 
 	cV2 := toPlainClaimsV2((newClaimsV2().(*ClaimsV2)))
 	if err := dm.Unmarshal(buf, &cV2); err != nil {
@@ -111,7 +111,7 @@ func (c ClaimsV2) MarshalCBOR() ([]byte, error) {
 
 // UnmarshalJSON decodes the claims from JSON
 func (c *ClaimsV2) UnmarshalJSON(buf []byte) error {
-	c.Profile = nil // clear profile to make sure we taked it from buf
+	c.Profile = nil // clear profile to make sure we took it from buf
 
 	cV2 := toPlainClaimsV2((newClaimsV2().(*ClaimsV2)))
 	if err := json.Unmarshal(buf, &cV2); err != nil {

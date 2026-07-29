@@ -40,7 +40,7 @@ func (o TBBRoTPKItems) IsEmpty() bool {
 func validateTBBRoTPKItems(vals TBBRoTPKItems) error {
 	for i, k := range vals {
 		if k == nil {
-			return fmt.Errorf("failed at index %d: %s", i, "Nil key in TBBRoTPKItems")
+			return fmt.Errorf("failed at index %d: %s", i, "nil key in TBBRoTPKItems")
 		}
 
 		if err := k.Validate(); err != nil {

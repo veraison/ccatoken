@@ -39,6 +39,9 @@ func Test_TBBRoTPKItems_Copy(t *testing.T) {
 	keys := TBBRoTPKItems{}
 	keys = append(keys, &testTBBRoTPKItem1, &testTBBRoTPKItem2)
 
+	c := ClaimsV2{}
+	c.SetTBBRoTPK([]*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2})
+
 	vals, err := keys.Copy()
 	require.NoError(t, err)
 	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
@@ -56,7 +59,7 @@ func Test_TBBRoTPKItems_Validate(t *testing.T) {
 	assert.NoError(t, keys.Validate())
 
 	keys[1] = nil
-	assert.EqualError(t, keys.Validate(), "failed at index 1: Nil key in TBBRoTPKItems")
+	assert.EqualError(t, keys.Validate(), "failed at index 1: nil key in TBBRoTPKItems")
 }
 
 func Test_TBBRoTPKItems_codec_roundtrip(t *testing.T) {
@@ -84,7 +87,7 @@ func Test_TBBRoTPKItems_nil_key(t *testing.T) {
 
 	err := keys.Validate()
 
-	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKItems")
+	assert.EqualError(t, err, "failed at index 0: nil key in TBBRoTPKItems")
 }
 
 func Test_TBBRoTPKItems_empty_key(t *testing.T) {
