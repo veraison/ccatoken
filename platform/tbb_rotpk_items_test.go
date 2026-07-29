@@ -39,9 +39,6 @@ func Test_TBBRoTPKItems_Copy(t *testing.T) {
 	keys := TBBRoTPKItems{}
 	keys = append(keys, &testTBBRoTPKItem1, &testTBBRoTPKItem2)
 
-	c := ClaimsV2{}
-	c.SetTBBRoTPK([]*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2})
-
 	vals, err := keys.Copy()
 	require.NoError(t, err)
 	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
