@@ -49,12 +49,12 @@ func Test_TBBRoTPKItems_Values(t *testing.T) {
 
 	vals, err := keys.Values()
 	require.NoError(t, err)
-	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
+	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
 
 	vals[0] = nil
 	vals, err = keys.Values()
 	require.NoError(t, err)
-	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
+	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
 }
 
 func Test_TBBRoTPKItems_Validate(t *testing.T) {
@@ -69,10 +69,10 @@ func Test_TBBRoTPKItems_Validate(t *testing.T) {
 func Test_TBBRoTPKItems_Replace(t *testing.T) {
 	keys := TBBRoTPKItems{}
 
-	require.NoError(t, keys.Replace([]*TBBRoTPKItem{&testTBBRoTPKItem1}))
+	require.NoError(t, keys.Replace(TBBRoTPKItems{&testTBBRoTPKItem1}))
 	vals, err := keys.Values()
 	require.NoError(t, err)
-	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1}, vals)
+	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1}, vals)
 }
 
 func Test_TBBRoTPKItems_codec_roundtrip(t *testing.T) {
@@ -86,7 +86,7 @@ func Test_TBBRoTPKItems_codec_roundtrip(t *testing.T) {
 	require.NoError(t, json.Unmarshal(jsonBytes, &fromJSON))
 	jsonVals, err := fromJSON.Values()
 	require.NoError(t, err)
-	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, jsonVals)
+	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, jsonVals)
 
 	cborBytes, err := em.Marshal(keys)
 	require.NoError(t, err)
@@ -95,7 +95,7 @@ func Test_TBBRoTPKItems_codec_roundtrip(t *testing.T) {
 	require.NoError(t, dm.Unmarshal(cborBytes, &fromCBOR))
 	cborVals, err := fromCBOR.Values()
 	require.NoError(t, err)
-	assert.Equal(t, []*TBBRoTPKItem{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, cborVals)
+	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, cborVals)
 }
 
 func Test_TBBRoTPKItems_nil_key(t *testing.T) {
@@ -107,8 +107,7 @@ func Test_TBBRoTPKItems_nil_key(t *testing.T) {
 }
 
 func Test_TBBRoTPKItems_empty_key(t *testing.T) {
-	var keys TBBRoTPKItems
-	keys = []*TBBRoTPKItem{{}}
+	keys := TBBRoTPKItems{{}}
 
 	err := keys.Validate()
 

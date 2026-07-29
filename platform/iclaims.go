@@ -19,14 +19,14 @@ type IClaims interface {
 	GetHashAlgID() (string, error)
 	GetClientID() (int32, error)
 	GetManufacturingConfig() ([]byte, error)
-	GetTBBRoTPK() ([]*TBBRoTPKItem, error)
+	GetTBBRoTPK() (TBBRoTPKItems, error)
 	GetPeerSigners() ([]byte, error)
 
 	SetConfig([]byte) error
 	SetHashAlgID(string) error
 	SetClientID(int32) error
 	SetManufacturingConfig([]byte) error
-	SetTBBRoTPK([]*TBBRoTPKItem) error
+	SetTBBRoTPK(TBBRoTPKItems) error
 	SetPeerSigners([]byte) error
 }
 

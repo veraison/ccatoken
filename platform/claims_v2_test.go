@@ -77,7 +77,7 @@ func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
 		err = tbbRoTPKItem.SetHash(testTBBRoTPKHash)
 		require.NoError(t, err)
 
-		err = c.SetTBBRoTPK([]*TBBRoTPKItem{&tbbRoTPKItem})
+		err = c.SetTBBRoTPK(TBBRoTPKItems{&tbbRoTPKItem})
 		require.NoError(t, err)
 
 		err = c.SetPeerSigners(testPeerSigners)
@@ -121,6 +121,9 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 	err := c.SetClientID(testBadClientID)
 	assert.EqualError(t, err, "wrong syntax: client id MUST be 1")
 
+	err = c.SetTBBRoTPK(TBBRoTPKItems{})
+	assert.EqualError(t, err, "wrong syntax: TBB RoTPK: should not set empty value")
+
 	c = mustBuildValidClaimsV2(t, true)
 	emptyManufacturingConfig := []byte{}
 	c.ManufacturingConfig = &emptyManufacturingConfig
@@ -128,7 +131,7 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 
 	c = mustBuildValidClaimsV2(t, true)
 	var tbbRotPk TBBRoTPKItems
-	tbbRotPk = []*TBBRoTPKItem{{}}
+	tbbRotPk = TBBRoTPKItems{{}}
 	c.TBBRoTPK = &tbbRotPk
 	assert.EqualError(t, c.Validate(), "validating platform TBB ROTPK: failed at index 0: name: missing mandatory field")
 
@@ -141,7 +144,7 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 	err = partialTBBRoTPKItem.SetIndex(testTBBRoTPKIndex)
 	require.NoError(t, err)
 
-	tbbRotPk = []*TBBRoTPKItem{&partialTBBRoTPKItem}
+	tbbRotPk = TBBRoTPKItems{&partialTBBRoTPKItem}
 	c.TBBRoTPK = &tbbRotPk
 	assert.EqualError(t, c.Validate(), "validating platform TBB ROTPK: failed at index 0: hash: missing mandatory field")
 

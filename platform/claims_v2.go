@@ -69,10 +69,8 @@ func newClaimsV2() IClaims {
 
 	// Create and return a Claims V2 object
 	return &ClaimsV2{
-		Claims: *baseClaims,
-		addedClaimsV2: addedClaimsV2{
-			TBBRoTPK: &TBBRoTPKItems{},
-		},
+		Claims:        *baseClaims,
+		addedClaimsV2: addedClaimsV2{},
 	}
 }
 
@@ -159,7 +157,11 @@ func (c *ClaimsV2) SetManufacturingConfig(v []byte) error {
 	return nil
 }
 
-func (c *ClaimsV2) SetTBBRoTPK(vals []*TBBRoTPKItem) error {
+func (c *ClaimsV2) SetTBBRoTPK(vals TBBRoTPKItems) error {
+	if len(vals) == 0 {
+		return fmt.Errorf("%w: TBB RoTPK: should not set empty value", psatoken.ErrWrongSyntax)
+	}
+
 	if c.TBBRoTPK == nil {
 		c.TBBRoTPK = &TBBRoTPKItems{}
 	}
@@ -200,7 +202,7 @@ func (c *ClaimsV2) GetManufacturingConfig() ([]byte, error) {
 	return *c.ManufacturingConfig, nil
 }
 
-func (c *ClaimsV2) GetTBBRoTPK() ([]*TBBRoTPKItem, error) {
+func (c *ClaimsV2) GetTBBRoTPK() (TBBRoTPKItems, error) {
 	if c.TBBRoTPK == nil || c.TBBRoTPK.IsEmpty() {
 		return nil, psatoken.ErrOptionalClaimMissing
 	}

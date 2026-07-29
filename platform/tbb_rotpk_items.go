@@ -5,11 +5,17 @@ package platform
 
 import (
 	"fmt"
+
+	"github.com/veraison/psatoken"
 )
 
 type TBBRoTPKItems []*TBBRoTPKItem
 
 func (o TBBRoTPKItems) Validate() error {
+	if len(o) == 0 {
+		return psatoken.ErrOptionalClaimMissing
+	}
+
 	for i, k := range o {
 		if k == nil {
 			return fmt.Errorf("failed at index %d: %s", i, "Nil key in TBBRoTPKItems")
@@ -23,13 +29,13 @@ func (o TBBRoTPKItems) Validate() error {
 	return nil
 }
 
-func (o TBBRoTPKItems) Values() ([]*TBBRoTPKItem, error) {
+func (o TBBRoTPKItems) Values() (TBBRoTPKItems, error) {
 	err := validateTBBRoTPKItems(o)
 	if err != nil {
 		return nil, err
 	}
 
-	ret := make([]*TBBRoTPKItem, len(o))
+	ret := make(TBBRoTPKItems, len(o))
 	copy(ret, o)
 
 	return ret, nil
@@ -46,7 +52,7 @@ func (o *TBBRoTPKItems) Add(vals ...*TBBRoTPKItem) error {
 	return nil
 }
 
-func (o *TBBRoTPKItems) Replace(vals []*TBBRoTPKItem) error {
+func (o *TBBRoTPKItems) Replace(vals TBBRoTPKItems) error {
 	err := validateTBBRoTPKItems(vals)
 	if err != nil {
 		return err
@@ -61,7 +67,7 @@ func (o TBBRoTPKItems) IsEmpty() bool {
 	return len(o) == 0
 }
 
-func validateTBBRoTPKItems(vals []*TBBRoTPKItem) error {
+func validateTBBRoTPKItems(vals TBBRoTPKItems) error {
 	for i, k := range vals {
 		if k == nil {
 			return fmt.Errorf("failed at index %d: %s", i, "Nil key in TBBRoTPKItems")

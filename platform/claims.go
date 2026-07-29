@@ -360,7 +360,7 @@ func (c *Claims) GetPeerSigners() ([]byte, error) {
 	return nil, fmt.Errorf("%w: peer signers", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *Claims) GetTBBRoTPK() ([]*TBBRoTPKItem, error) {
+func (c *Claims) GetTBBRoTPK() (TBBRoTPKItems, error) {
 	return nil, fmt.Errorf("%w: TBB RoTPK", psatoken.ErrClaimNotInProfile)
 }
 
@@ -372,7 +372,7 @@ func (c *Claims) SetPeerSigners([]byte) error {
 	return fmt.Errorf("%w: peer signers", psatoken.ErrClaimNotInProfile)
 }
 
-func (c *Claims) SetTBBRoTPK([]*TBBRoTPKItem) error {
+func (c *Claims) SetTBBRoTPK(TBBRoTPKItems) error {
 	return fmt.Errorf("%w: TBB RoTPK", psatoken.ErrClaimNotInProfile)
 }
 
