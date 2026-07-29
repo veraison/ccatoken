@@ -19,7 +19,9 @@ func (o TBBRoTPKItems) Validate() error {
 	return validateTBBRoTPKItems(o)
 }
 
-func (o TBBRoTPKItems) Values() (TBBRoTPKItems, error) {
+// Returns a shallow copy of the TBBRoTPKItems slice.
+// Validates the items before copying. Returns an error if validation fails.
+func (o TBBRoTPKItems) Copy() (TBBRoTPKItems, error) {
 	err := validateTBBRoTPKItems(o)
 	if err != nil {
 		return nil, err
@@ -29,28 +31,6 @@ func (o TBBRoTPKItems) Values() (TBBRoTPKItems, error) {
 	copy(ret, o)
 
 	return ret, nil
-}
-
-func (o *TBBRoTPKItems) Add(vals ...*TBBRoTPKItem) error {
-	err := validateTBBRoTPKItems(vals)
-	if err != nil {
-		return err
-	}
-
-	*o = append(*o, vals...)
-
-	return nil
-}
-
-func (o *TBBRoTPKItems) Replace(vals TBBRoTPKItems) error {
-	err := validateTBBRoTPKItems(vals)
-	if err != nil {
-		return err
-	}
-
-	*o = vals
-
-	return nil
 }
 
 func (o TBBRoTPKItems) IsEmpty() bool {

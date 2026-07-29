@@ -162,11 +162,13 @@ func (c *ClaimsV2) SetTBBRoTPK(vals TBBRoTPKItems) error {
 		return fmt.Errorf("%w: TBB RoTPK: should not set empty value", psatoken.ErrWrongSyntax)
 	}
 
-	if c.TBBRoTPK == nil {
-		c.TBBRoTPK = &TBBRoTPKItems{}
+	copiedVals, err := vals.Copy()
+	if err != nil {
+		return err
 	}
+	c.TBBRoTPK = &copiedVals
 
-	return c.TBBRoTPK.Replace(vals)
+	return nil
 }
 
 func (c *ClaimsV2) SetPeerSigners(v []byte) error {
@@ -202,12 +204,13 @@ func (c *ClaimsV2) GetManufacturingConfig() ([]byte, error) {
 	return *c.ManufacturingConfig, nil
 }
 
+// Returns a shallow copy of the TBBRoTPKItems slice.
 func (c *ClaimsV2) GetTBBRoTPK() (TBBRoTPKItems, error) {
 	if c.TBBRoTPK == nil || c.TBBRoTPK.IsEmpty() {
 		return nil, psatoken.ErrOptionalClaimMissing
 	}
 
-	return c.TBBRoTPK.Values()
+	return c.TBBRoTPK.Copy()
 }
 
 func (c *ClaimsV2) GetPeerSigners() ([]byte, error) {

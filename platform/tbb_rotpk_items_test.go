@@ -35,76 +35,54 @@ var (
 	}
 )
 
-func Test_TBBRoTPKItems_Add(t *testing.T) {
-	require.NoError(t, testTBBRoTPKItem1.Validate())
-	require.NoError(t, testTBBRoTPKItem2.Validate())
-
+func Test_TBBRoTPKItems_Copy(t *testing.T) {
 	keys := TBBRoTPKItems{}
-	require.NoError(t, keys.Add(&testTBBRoTPKItem1, &testTBBRoTPKItem2))
-	assert.Len(t, keys, 2)
-	assert.Equal(t, keys[0], &testTBBRoTPKItem1)
-	assert.Equal(t, keys[1], &testTBBRoTPKItem2)
-}
+	keys = append(keys, &testTBBRoTPKItem1, &testTBBRoTPKItem2)
 
-func Test_TBBRoTPKItems_Values(t *testing.T) {
-	keys := TBBRoTPKItems{}
-	require.NoError(t, keys.Add(&testTBBRoTPKItem1, &testTBBRoTPKItem2))
-
-	vals, err := keys.Values()
+	vals, err := keys.Copy()
 	require.NoError(t, err)
 	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
 
 	vals[0] = nil
-	vals, err = keys.Values()
-	require.NoError(t, err)
-	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, vals)
+	assert.Equal(t, TBBRoTPKItems{nil, &testTBBRoTPKItem2}, vals)
+	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, keys)
 }
 
 func Test_TBBRoTPKItems_Validate(t *testing.T) {
 	require.NoError(t, testTBBRoTPKItem1.Validate())
 	require.NoError(t, testTBBRoTPKItem2.Validate())
 
-	keys := TBBRoTPKItems{}
-	require.NoError(t, keys.Add(&testTBBRoTPKItem1, &testTBBRoTPKItem2))
+	keys := TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}
 	assert.NoError(t, keys.Validate())
-}
 
-func Test_TBBRoTPKItems_Replace(t *testing.T) {
-	keys := TBBRoTPKItems{}
-
-	require.NoError(t, keys.Replace(TBBRoTPKItems{&testTBBRoTPKItem1}))
-	vals, err := keys.Values()
-	require.NoError(t, err)
-	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1}, vals)
+	keys[1] = nil
+	assert.EqualError(t, keys.Validate(), "failed at index 1: Nil key in TBBRoTPKItems")
 }
 
 func Test_TBBRoTPKItems_codec_roundtrip(t *testing.T) {
-	keys := TBBRoTPKItems{}
-	require.NoError(t, keys.Add(&testTBBRoTPKItem1, &testTBBRoTPKItem2))
+	keys := TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}
 
 	jsonBytes, err := json.Marshal(keys)
 	require.NoError(t, err)
 
 	var fromJSON TBBRoTPKItems
 	require.NoError(t, json.Unmarshal(jsonBytes, &fromJSON))
-	jsonVals, err := fromJSON.Values()
-	require.NoError(t, err)
-	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, jsonVals)
+	require.NoError(t, fromJSON.Validate())
+	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, fromJSON)
 
 	cborBytes, err := em.Marshal(keys)
 	require.NoError(t, err)
 
 	var fromCBOR TBBRoTPKItems
 	require.NoError(t, dm.Unmarshal(cborBytes, &fromCBOR))
-	cborVals, err := fromCBOR.Values()
-	require.NoError(t, err)
-	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, cborVals)
+	require.NoError(t, fromCBOR.Validate())
+	assert.Equal(t, TBBRoTPKItems{&testTBBRoTPKItem1, &testTBBRoTPKItem2}, fromCBOR)
 }
 
 func Test_TBBRoTPKItems_nil_key(t *testing.T) {
-	keys := TBBRoTPKItems{}
+	keys := TBBRoTPKItems{nil}
 
-	err := keys.Add(nil)
+	err := keys.Validate()
 
 	assert.EqualError(t, err, "failed at index 0: Nil key in TBBRoTPKItems")
 }
