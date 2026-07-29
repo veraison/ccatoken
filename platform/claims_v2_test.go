@@ -187,7 +187,7 @@ func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 		/* 2 */ "validating platform manufacturing config: wrong syntax: manufacturing config",
 		/* 3 */ "validating platform peer signers: wrong syntax: peer signers",
 		/* 4 */ "validating platform TBB ROTPK: failed at index 0: hash: wrong syntax: length 33 (hash MUST be 32, 48 or 64 bytes)",
-		/* 5 */ "validating platform TBB ROTPK: failed at index 0: name: invalid name: Abc123, must be 'CM' or 'DM'",
+		/* 5 */ "validating platform TBB ROTPK: failed at index 0: name: wrong syntax: empty string",
 		/* 6 */ "validating platform TBB ROTPK: failed at index 0: active array index: missing mandatory field",
 	}
 

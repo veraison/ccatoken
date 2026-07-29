@@ -19,14 +19,8 @@ func Test_TBBRoTPKItem_name_setter_and_getter(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "DM", name)
 
-	require.NoError(t, k.SetName("cM"))
-	assert.Equal(t, "cM", *k.Name)
-	name, err = k.GetName()
-	require.NoError(t, err)
-	assert.Equal(t, "cM", name)
-
-	err = k.SetName("ABC")
-	assert.EqualError(t, err, "invalid name: ABC, must be 'CM' or 'DM'")
+	err = k.SetName("")
+	assert.EqualError(t, err, "wrong syntax: empty string")
 }
 
 func Test_TBBRoTPKItem_active_array_index_setter_and_getter(t *testing.T) {

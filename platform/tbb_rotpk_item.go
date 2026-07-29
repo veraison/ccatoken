@@ -5,7 +5,6 @@ package platform
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/veraison/psatoken"
 )
@@ -40,9 +39,8 @@ func (i TBBRoTPKItem) Validate() error {
 }
 
 func ValidateTBBRoTPKItemName(n string) error {
-	uppercaseName := strings.ToUpper(n)
-	if uppercaseName != "CM" && uppercaseName != "DM" {
-		return fmt.Errorf("invalid name: %s, must be 'CM' or 'DM'", n)
+	if n == "" {
+		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
 	}
 	return nil
 }
