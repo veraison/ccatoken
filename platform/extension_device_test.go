@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	testUsesIDE    bool       = true
-	testProtocol   Protocol   = "other-protocol-1.2.3"
-	testDeviceType DeviceType = "other-device-2"
+	testUsesIDE         bool       = true
+	testOtherProtocol   Protocol   = "other-protocol-1.2.3"
+	testOtherDeviceType DeviceType = "other-device-2"
 )
 
 func Test_ExtensionDevice_SetAndGetHashAlgorithm(t *testing.T) {
@@ -101,19 +101,19 @@ func Test_ExtensionDevice_ProtocolMissingVCADigest(t *testing.T) {
 func Test_ExtensionDevice_ProtocolNotRequiringVCADigest(t *testing.T) {
 	d := ExtensionDevice{}
 
-	err := d.SetProtocol(testProtocol)
+	err := d.SetProtocol(testOtherProtocol)
 	require.NoError(t, err)
 
 	err = d.SetVCADigest(testHash1)
-	expectedErr := fmt.Errorf("%w: VCA digest is not expected for protocol %s", psatoken.ErrFieldNotInProfile, testProtocol)
+	expectedErr := fmt.Errorf("%w: VCA digest is not expected for protocol %s", psatoken.ErrFieldNotInProfile, testOtherProtocol)
 	assert.EqualError(t, err, expectedErr.Error())
 
 	p2, err := d.GetProtocol()
 	require.NoError(t, err)
-	assert.Equal(t, testProtocol, p2)
+	assert.Equal(t, testOtherProtocol, p2)
 
 	_, err = d.GetVCADigest()
-	expectedErr = fmt.Errorf("%w: VCA digest not expected for protocol %s", psatoken.ErrFieldNotInProfile, testProtocol)
+	expectedErr = fmt.Errorf("%w: VCA digest not expected for protocol %s", psatoken.ErrFieldNotInProfile, testOtherProtocol)
 	assert.EqualError(t, err, expectedErr.Error())
 }
 
@@ -179,22 +179,22 @@ func Test_ExtensionDevice_DeviceTypeMissingEncryptionType(t *testing.T) {
 
 func Test_ExtensionDevice_DeviceTypeNotRequiringEncryptionType(t *testing.T) {
 	d := ExtensionDevice{}
-	err := d.SetDeviceType(testDeviceType)
+	err := d.SetDeviceType(testOtherDeviceType)
 	require.NoError(t, err)
 
 	_, err = d.GetDeviceType()
 	require.NoError(t, err)
 
 	_, err = d.GetEncryptionType()
-	expectedErr := fmt.Errorf("%w: encryption type not expected for device type %s", psatoken.ErrFieldNotInProfile, testDeviceType)
+	expectedErr := fmt.Errorf("%w: encryption type not expected for device type %s", psatoken.ErrFieldNotInProfile, testOtherDeviceType)
 	assert.EqualError(t, err, expectedErr.Error())
 
 	dt2, err := d.GetDeviceType()
 	require.NoError(t, err)
-	assert.Equal(t, testDeviceType, dt2)
+	assert.Equal(t, testOtherDeviceType, dt2)
 
 	_, err = d.GetEncryptionType()
-	expectedErr = fmt.Errorf("%w: encryption type not expected for device type %s", psatoken.ErrFieldNotInProfile, testDeviceType)
+	expectedErr = fmt.Errorf("%w: encryption type not expected for device type %s", psatoken.ErrFieldNotInProfile, testOtherDeviceType)
 	assert.EqualError(t, err, expectedErr.Error())
 }
 
@@ -204,7 +204,7 @@ func Test_ExtensionDevice_CannotResetDeviceType(t *testing.T) {
 	err := d.SetDeviceType(DeviceTypeCXLType3)
 	require.NoError(t, err)
 
-	err = d.SetDeviceType(testDeviceType)
+	err = d.SetDeviceType(testOtherDeviceType)
 	expectedErr := fmt.Errorf("device type can only be set once and is already set to %s", DeviceTypeCXLType3)
 	assert.EqualError(t, err, expectedErr.Error())
 }
@@ -237,8 +237,8 @@ func mustBuildExtensionDevice6Fields(t *testing.T) ExtensionDevice {
 	require.NoError(t, d.SetDeviceMeasurementsDigest(testHash1))
 	require.NoError(t, d.SetCertificateChainDigest(testHash2))
 	require.NoError(t, d.SetUsesIDE(testUsesIDE))
-	require.NoError(t, d.SetProtocol(testProtocol))
-	require.NoError(t, d.SetDeviceType(testDeviceType))
+	require.NoError(t, d.SetProtocol(testOtherProtocol))
+	require.NoError(t, d.SetDeviceType(testOtherDeviceType))
 
 	require.NoError(t, d.Validate())
 
