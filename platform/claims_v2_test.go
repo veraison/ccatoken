@@ -313,7 +313,7 @@ func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_negatives(t *testing.T) {
 		/* 1 */ "validating client id: missing mandatory claim",
 		/* 2 */ "validating platform manufacturing config: wrong syntax: manufacturing config",
 		/* 3 */ "validating platform TBB ROTPK: failed at index 0: hash: wrong syntax: length 34 (hash MUST be 32, 48 or 64 bytes)",
-		/* 4 */ "validating platform extension: failed at index 0: device measurements digest: wrong syntax: length 34 (hash MUST be 32, 48 or 64 bytes)",
+		/* 4 */ "validating platform extension: failed at index 0: certificate chain digest: wrong syntax: length 56 (hash MUST be 32, 48 or 64 bytes)",
 		/* 5 */ "validating platform extension: failed at index 0: VCA digest: invalid VCA digest: wrong syntax: length 50 (hash MUST be 32, 48 or 64 bytes)",
 		/* 6 */ "validating platform extension: failed at index 0: encryption type: device type cxl-type-3 requires an encryption type",
 		/* 7 */ "validating platform extension: failed at index 0: VCA digest: protocol spdm-1.2.0 requires a VCA digest",

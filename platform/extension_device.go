@@ -36,6 +36,14 @@ type ExtensionDevice struct {
 	EncryptionType *EncryptionType `cbor:"8,keyasint,omitempty" json:"encryption-type,omitempty"`
 }
 
+// Validates that the given string is not empty.
+func ValidateExtensionDeviceHashAlgID(v string) error {
+	if v == "" {
+		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
+	}
+	return nil
+}
+
 // Protocol used to communicate with an extension device.
 type Protocol string
 
@@ -74,6 +82,11 @@ func (p Protocol) RequiresVCADigest() bool {
 func ValidateProtocolAndVCADigest(p *Protocol, v *[]byte) error {
 	if p == nil {
 		return fmt.Errorf("protocol is required")
+	}
+
+	// Disallow empty string as protocol
+	if *p == "" {
+		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
 	}
 
 	if p.RequiresVCADigest() {
@@ -127,12 +140,17 @@ func ValidateDeviceTypeAndEncryption(d *DeviceType, e *EncryptionType) error {
 		return fmt.Errorf("device type is required")
 	}
 
+	// Disallow empty string as device type
+	if *d == "" {
+		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
+	}
+
 	if d.RequiresEncryptionType() {
 		if e == nil {
 			return fmt.Errorf("device type %s requires an encryption type", *d)
 		}
 		if *e != HostSideEncryption && *e != TargetSideEncryption && *e != NoEncryption {
-			return fmt.Errorf("invalid encryption type %s", *d)
+			return fmt.Errorf("invalid encryption type %d", *e)
 		}
 	}
 
@@ -182,6 +200,9 @@ func (d ExtensionDevice) Validate() error {
 func (d ExtensionDevice) GetHashAlgID() (string, error) {
 	if d.HashAlgID == nil {
 		return "", psatoken.ErrOptionalFieldMissing
+	}
+	if err := ValidateExtensionDeviceHashAlgID(*d.HashAlgID); err != nil {
+		return "", err
 	}
 
 	return *d.HashAlgID, nil
@@ -271,6 +292,10 @@ func (d ExtensionDevice) GetEncryptionType() (EncryptionType, error) {
 }
 
 func (d *ExtensionDevice) SetHashAlgID(v string) error {
+	if err := ValidateExtensionDeviceHashAlgID(v); err != nil {
+		return err
+	}
+
 	d.HashAlgID = &v
 	return nil
 }
@@ -302,6 +327,9 @@ func (d *ExtensionDevice) SetUsesIDE(v bool) error {
 func (d *ExtensionDevice) SetProtocol(p Protocol) error {
 	if d.Protocol != nil {
 		return fmt.Errorf("protocol can only be set once and is already set to %s", *d.Protocol)
+	}
+	if p == "" {
+		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
 	}
 	d.Protocol = &p
 
@@ -336,6 +364,9 @@ func (d *ExtensionDevice) SetVCADigest(h []byte) error {
 func (d *ExtensionDevice) SetDeviceType(t DeviceType) error {
 	if d.DeviceType != nil {
 		return fmt.Errorf("device type can only be set once and is already set to %s", *d.DeviceType)
+	}
+	if t == "" {
+		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
 	}
 
 	d.DeviceType = &t

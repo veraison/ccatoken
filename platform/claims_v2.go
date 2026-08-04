@@ -81,7 +81,7 @@ func (c *ClaimsV2) Validate() error {
 
 // Codecs
 
-func (c *ClaimsV2) setArrayFieldsToNilIfEmpty() {
+func (c *ClaimsV2) setSliceFieldsToNilIfEmpty() {
 	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
 		c.SwComponents = nil
 	}
@@ -109,7 +109,7 @@ func (c *ClaimsV2) UnmarshalCBOR(buf []byte) error {
 
 // MarshalCBOR encodes the claims to CBOR
 func (c ClaimsV2) MarshalCBOR() ([]byte, error) {
-	c.setArrayFieldsToNilIfEmpty()
+	c.setSliceFieldsToNilIfEmpty()
 
 	cv2 := toPlainClaimsV2(&c)
 
@@ -131,7 +131,7 @@ func (c *ClaimsV2) UnmarshalJSON(buf []byte) error {
 
 // MarshalJSON encodes the claims into JSON
 func (c ClaimsV2) MarshalJSON() ([]byte, error) {
-	c.setArrayFieldsToNilIfEmpty()
+	c.setSliceFieldsToNilIfEmpty()
 
 	cv2 := toPlainClaimsV2(&c)
 

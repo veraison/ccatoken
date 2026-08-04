@@ -11,8 +11,12 @@ import (
 
 type ExtensionDevices []*ExtensionDevice
 
-// Validates all items in the ExtensionDevices slice.
-// Returns an error if validation fails for any of the items, or if the slice is empty.
+// Validate all items in the ExtensionDevices slice.
+// Returns an error if validation fails for any of the items.
+//
+// Note: if the slice is empty, Validate returns psatoken.ErrOptionalClaimMissing, which is ignored by IClaims.ValidateClaims.
+// An empty slice is regarded as omitting the optional Extension claim.
+// Upon marshaling a ClaimsV2 object, an empty slice is replaced with nil, thus omitting the claim from the resulting CBOR/JSON.
 func (o ExtensionDevices) Validate() error {
 	if len(o) == 0 {
 		return psatoken.ErrOptionalClaimMissing

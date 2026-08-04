@@ -12,7 +12,11 @@ import (
 type TBBRoTPKItems []*TBBRoTPKItem
 
 // Validate all items in the TBBRoTPKItems slice.
-// Returns an error if validation fails for any of the items, or if the slice is empty.
+// Returns an error if validation fails for any of the items.
+//
+// Note: if the slice is empty, Validate returns psatoken.ErrOptionalClaimMissing, which is ignored by IClaims.ValidateClaims.
+// An empty slice is regarded as omitting the optional TBB ROTPK claim.
+// Upon marshaling a ClaimsV2 object, an empty slice is replaced with nil, thus omitting the claim from the resulting CBOR/JSON.
 func (o TBBRoTPKItems) Validate() error {
 	if len(o) == 0 {
 		return psatoken.ErrOptionalClaimMissing
