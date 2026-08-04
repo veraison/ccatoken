@@ -166,7 +166,7 @@ func ValidateDeviceTypeAndEncryption(d *DeviceType, e *EncryptionType) error {
 
 func (d ExtensionDevice) GetHashAlgorithm() (string, error) {
 	if d.HashAlgorithm == nil {
-		return "", psatoken.ErrMandatoryFieldMissing
+		return "", psatoken.ErrOptionalFieldMissing
 	}
 
 	return *d.HashAlgorithm, nil

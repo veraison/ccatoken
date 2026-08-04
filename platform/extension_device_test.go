@@ -215,7 +215,7 @@ func Test_ExtensionDevice_MustSetDeviceTypeBeforeEncryptionType(t *testing.T) {
 	assert.EqualError(t, err, "device type must be set before setting encryption type")
 }
 
-func mustBuildExtensionDevice8Fields(t *testing.T) ExtensionDevice {
+func mustBuildExtensionDeviceAllFields(t *testing.T) ExtensionDevice {
 	d := ExtensionDevice{}
 	require.NoError(t, d.SetHashAlgorithm(testHashAlgID))
 	require.NoError(t, d.SetDeviceMeasurementsDigest(testHash1))
@@ -231,9 +231,8 @@ func mustBuildExtensionDevice8Fields(t *testing.T) ExtensionDevice {
 	return d
 }
 
-func mustBuildExtensionDevice6Fields(t *testing.T) ExtensionDevice {
+func mustBuildExtensionDeviceMinimalFields(t *testing.T) ExtensionDevice {
 	d := ExtensionDevice{}
-	require.NoError(t, d.SetHashAlgorithm(testHashAlgID))
 	require.NoError(t, d.SetDeviceMeasurementsDigest(testHash1))
 	require.NoError(t, d.SetCertificateChainDigest(testHash2))
 	require.NoError(t, d.SetUsesIDE(testUsesIDE))

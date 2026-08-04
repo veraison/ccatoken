@@ -77,8 +77,8 @@ func mustBuildValidClaimsV2(t *testing.T, includeOptional bool) *ClaimsV2 {
 		err = tbbRoTPKItem.SetHash(testTBBRoTPKHash)
 		require.NoError(t, err)
 
-		d1 := mustBuildExtensionDevice8Fields(t)
-		d2 := mustBuildExtensionDevice6Fields(t)
+		d1 := mustBuildExtensionDeviceAllFields(t)
+		d2 := mustBuildExtensionDeviceMinimalFields(t)
 		err = c.SetExtension(ExtensionDevices{&d1, &d2})
 		require.NoError(t, err)
 

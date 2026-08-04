@@ -14,9 +14,9 @@ import (
 
 func Test_ExtensionDevices_Validate(t *testing.T) {
 	ds := ExtensionDevices{}
-	d1 := mustBuildExtensionDevice6Fields(t)
-	d2 := mustBuildExtensionDevice8Fields(t)
-	d3 := mustBuildExtensionDevice8Fields(t)
+	d1 := mustBuildExtensionDeviceMinimalFields(t)
+	d2 := mustBuildExtensionDeviceAllFields(t)
+	d3 := mustBuildExtensionDeviceAllFields(t)
 	require.NoError(t, d1.Validate())
 	require.NoError(t, d2.Validate())
 	require.NoError(t, d3.Validate())
@@ -28,8 +28,8 @@ func Test_ExtensionDevices_Validate(t *testing.T) {
 }
 
 func Test_ExtensionDevices_Copy(t *testing.T) {
-	d1 := mustBuildExtensionDevice6Fields(t)
-	d2 := mustBuildExtensionDevice8Fields(t)
+	d1 := mustBuildExtensionDeviceMinimalFields(t)
+	d2 := mustBuildExtensionDeviceAllFields(t)
 	ds := ExtensionDevices{&d1, &d2}
 
 	vals, err := ds.Copy()
@@ -42,7 +42,7 @@ func Test_ExtensionDevices_Copy(t *testing.T) {
 }
 
 func Test_ExtensionDevices_Validate_invalid_device(t *testing.T) {
-	d := mustBuildExtensionDevice6Fields(t)
+	d := mustBuildExtensionDeviceMinimalFields(t)
 	d.CertificateChainDigest = nil
 
 	ds := ExtensionDevices{&d}
@@ -62,7 +62,7 @@ func Test_ExtensionDevices_Validate_empty_key(t *testing.T) {
 
 	err := keys.Validate()
 
-	assert.EqualError(t, err, "failed at index 0: hash algorithm: missing mandatory field")
+	assert.EqualError(t, err, "failed at index 0: device measurements digest: missing mandatory field")
 }
 
 func Test_ExtensionDevices_Validate_empty_array(t *testing.T) {
@@ -72,8 +72,8 @@ func Test_ExtensionDevices_Validate_empty_array(t *testing.T) {
 }
 
 func Test_ExtensionDevices_codec_roundtrip(t *testing.T) {
-	d1 := mustBuildExtensionDevice6Fields(t)
-	d2 := mustBuildExtensionDevice8Fields(t)
+	d1 := mustBuildExtensionDeviceMinimalFields(t)
+	d2 := mustBuildExtensionDeviceAllFields(t)
 	ds := ExtensionDevices{&d1, &d2}
 
 	jsonBytes, err := json.Marshal(ds)
