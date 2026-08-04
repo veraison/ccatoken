@@ -118,6 +118,7 @@ func Test_ClaimsV2_Validate_all_new_claims(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+// Refactor this claim now that extension device is added
 func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 	c := mustBuildValidClaimsV2(t, false)
 	c.ClientID = nil
@@ -255,36 +256,36 @@ func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_all_claims(t *testing.T) {
 	assertDecodedClaimsV2(t, c, true)
 }
 
-func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_invalid(t *testing.T) {
-	buf := mustHexDecode(t, testNotCBOR)
+func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_negatives(t *testing.T) {
+	tvs := []string{
+		/* 0 */ testNotCBOR,
+		/* 1 */ testEncodedCcaPlatformClaimsV2MissingClientID,
+		/* 2 */ testEncodedCcaPlatformClaimsV2InvalidMfgConfig,
+		/* 3 */ testEncodedCcaPlatformClaimsV2InvalidTbbRotpkHashLength,
+		/* 4 */ testEncodedCcaPlatformClaimsV2InvalidExtensionCertificateChainDigest,
+		/* 5 */ testEncodedCcaPlatformClaimsV2InvalidExtensionVCADigest,
+		/* 6 */ testEncodedCcaPlatformClaimsV2MissingExtensionEncryptionType,
+		/* 7 */ testEncodedCcaPlatformClaimsV2MissingExtensionVCADigest,
+	}
 
-	_, err := DecodeAndValidateClaimsFromCBOR(buf)
+	expectedErrors := []string{
+		/* 0 */ "unexpected EOF",
+		/* 1 */ "validating client id: missing mandatory claim",
+		/* 2 */ "validating platform manufacturing config: wrong syntax: manufacturing config",
+		/* 3 */ "validating platform TBB ROTPK: failed at index 0: hash: wrong syntax: length 34 (hash MUST be 32, 48 or 64 bytes)",
+		/* 4 */ "validating platform extension: failed at index 0: device measurements digest: wrong syntax: length 34 (hash MUST be 32, 48 or 64 bytes)",
+		/* 5 */ "validating platform extension: failed at index 0: VCA digest: invalid VCA digest: wrong syntax: length 50 (hash MUST be 32, 48 or 64 bytes)",
+		/* 6 */ "validating platform extension: failed at index 0: encryption type: device type cxl-type-3 requires an encryption type",
+		/* 7 */ "validating platform extension: failed at index 0: VCA digest: protocol spdm-1.2.0 requires a VCA digest",
+	}
 
-	assert.EqualError(t, err, "unexpected EOF")
-}
+	for i, tv := range tvs {
+		buf := mustHexDecode(t, tv)
 
-func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_missing_client_id(t *testing.T) {
-	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2MissingClientID)
+		_, err := DecodeAndValidateClaimsFromCBOR(buf)
 
-	_, err := DecodeAndValidateClaimsFromCBOR(buf)
-
-	assert.EqualError(t, err, "validating client id: missing mandatory claim")
-}
-
-func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_invalid_manufacturing_config(t *testing.T) {
-	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2InvalidMfgConfig)
-
-	_, err := DecodeAndValidateClaimsFromCBOR(buf)
-
-	assert.EqualError(t, err, "validating platform manufacturing config: wrong syntax: manufacturing config")
-}
-
-func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_invalid_tbb_rotpk_hash_length(t *testing.T) {
-	buf := mustHexDecode(t, testEncodedCcaPlatformClaimsV2InvalidTbbRotpkHashLength)
-
-	_, err := DecodeAndValidateClaimsFromCBOR(buf)
-
-	assert.EqualError(t, err, "validating platform TBB ROTPK: failed at index 0: hash: wrong syntax: length 34 (hash MUST be 32, 48 or 64 bytes)")
+		assert.EqualError(t, err, expectedErrors[i])
+	}
 }
 
 func Test_CCAPlatform_ClaimsV2_MarshalCBOR_all_claims(t *testing.T) {

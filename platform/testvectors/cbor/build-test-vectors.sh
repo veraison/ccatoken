@@ -17,6 +17,10 @@ DIAG_FILES="${DIAG_FILES} v2/CcaPlatformClaimsV2MandatoryOnly"
 DIAG_FILES="${DIAG_FILES} v2/CcaPlatformClaimsV2MissingClientID"
 DIAG_FILES="${DIAG_FILES} v2/CcaPlatformClaimsV2InvalidMfgConfig"
 DIAG_FILES="${DIAG_FILES} v2/CcaPlatformClaimsV2InvalidTbbRotpkHashLength"
+DIAG_FILES="${DIAG_FILES} v2/CcaPlatformClaimsV2InvalidExtensionCertificateChainDigest"
+DIAG_FILES="${DIAG_FILES} v2/CcaPlatformClaimsV2InvalidExtensionVCADigest"
+DIAG_FILES="${DIAG_FILES} v2/CcaPlatformClaimsV2MissingExtensionEncryptionType"
+DIAG_FILES="${DIAG_FILES} v2/CcaPlatformClaimsV2MissingExtensionVCADigest"
 
 TV_DOT_GO=${TV_DOT_GO?must be set in the environment.}
 
