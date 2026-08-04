@@ -91,7 +91,7 @@ func Test_ExtensionDevice_ProtocolMissingVCADigest(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = d.GetProtocol()
-	expectedErr := fmt.Errorf("protocol %s requires a VCA digest", ProtocolSPDM140)
+	expectedErr := fmt.Errorf("%w: protocol %s requires a VCA digest", psatoken.ErrMandatoryFieldMissing, ProtocolSPDM140)
 	assert.EqualError(t, err, expectedErr.Error())
 
 	_, err = d.GetVCADigest()
@@ -170,7 +170,7 @@ func Test_ExtensionDevice_DeviceTypeMissingEncryptionType(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = d.GetDeviceType()
-	expectedErr := fmt.Errorf("device type %s requires an encryption type", DeviceTypeCXLType3)
+	expectedErr := fmt.Errorf("%w: device type %s requires an encryption type", psatoken.ErrMandatoryFieldMissing, DeviceTypeCXLType3)
 	assert.EqualError(t, err, expectedErr.Error())
 
 	_, err = d.GetEncryptionType()

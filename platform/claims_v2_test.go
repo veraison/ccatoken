@@ -147,7 +147,7 @@ func Test_ClaimsV2_SetExtension_failure(t *testing.T) {
 	extensionDevice.VCADigest = nil
 	extensions := ExtensionDevices{&extensionDevice}
 	err = c.SetExtension(extensions)
-	assert.EqualError(t, err, "failed at index 0: VCA digest: protocol spdm-1.2.0 requires a VCA digest")
+	assert.EqualError(t, err, "failed at index 0: VCA digest: missing mandatory field: protocol spdm-1.2.0 requires a VCA digest")
 }
 
 func Test_ClaimsV2_SetClientID_ManufacturingConfig_PeerSigners_failure(t *testing.T) {
@@ -230,14 +230,14 @@ func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 		/* 5 */ "validating platform TBB ROTPK: failed at index 0: name: wrong syntax: empty string",
 		/* 6 */ "validating platform TBB ROTPK: failed at index 0: active array index: missing mandatory field",
 		/* 7 */ "validating platform TBB ROTPK: wrong syntax: TBB RoTPK: is empty slice",
-		/* 8 */ "validating platform extension: failed at index 1: encryption type: encryption type is not expected for device type other-device-2",
-		/* 9 */ "validating platform extension: failed at index 1: VCA digest: VCA digest is not expected for protocol other-protocol-1.2.3",
+		/* 8 */ "validating platform extension: failed at index 1: encryption type: wrong syntax: encryption type is not expected for device type other-device-2",
+		/* 9 */ "validating platform extension: failed at index 1: VCA digest: wrong syntax: VCA digest is not expected for protocol other-protocol-1.2.3",
 		/* 10 */ "validating platform extension: failed at index 0: certificate chain digest: wrong syntax: length 36 (hash MUST be 32, 48 or 64 bytes)",
 		/* 11 */ "validating platform extension: failed at index 0: device measurements digest: wrong syntax: length 0 (hash MUST be 32, 48 or 64 bytes)",
-		/* 12 */ "validating platform extension: failed at index 0: VCA digest: invalid VCA digest: wrong syntax: length 31 (hash MUST be 32, 48 or 64 bytes)",
-		/* 13 */ "validating platform extension: failed at index 0: encryption type: device type cxl-type-3 requires an encryption type",
+		/* 12 */ "validating platform extension: failed at index 0: VCA digest: wrong syntax: length 31 (hash MUST be 32, 48 or 64 bytes)",
+		/* 13 */ "validating platform extension: failed at index 0: encryption type: missing mandatory field: device type cxl-type-3 requires an encryption type",
 		/* 14 */ "validating platform extension: failed at index 0: usesIDE: missing mandatory field",
-		/* 15 */ "validating platform extension: failed at index 0: VCA digest: protocol spdm-1.2.0 requires a VCA digest",
+		/* 15 */ "validating platform extension: failed at index 0: VCA digest: missing mandatory field: protocol spdm-1.2.0 requires a VCA digest",
 		/* 16 */ "validating platform extension: wrong syntax: extension: is empty slice",
 	}
 
@@ -317,9 +317,9 @@ func Test_CCAPlatform_ClaimsV2_UnmarshalCBOR_negatives(t *testing.T) {
 		/* 2 */ "validating platform manufacturing config: wrong syntax: manufacturing config",
 		/* 3 */ "validating platform TBB ROTPK: failed at index 0: hash: wrong syntax: length 34 (hash MUST be 32, 48 or 64 bytes)",
 		/* 4 */ "validating platform extension: failed at index 0: certificate chain digest: wrong syntax: length 56 (hash MUST be 32, 48 or 64 bytes)",
-		/* 5 */ "validating platform extension: failed at index 0: VCA digest: invalid VCA digest: wrong syntax: length 50 (hash MUST be 32, 48 or 64 bytes)",
-		/* 6 */ "validating platform extension: failed at index 0: encryption type: device type cxl-type-3 requires an encryption type",
-		/* 7 */ "validating platform extension: failed at index 0: VCA digest: protocol spdm-1.2.0 requires a VCA digest",
+		/* 5 */ "validating platform extension: failed at index 0: VCA digest: wrong syntax: length 50 (hash MUST be 32, 48 or 64 bytes)",
+		/* 6 */ "validating platform extension: failed at index 0: encryption type: missing mandatory field: device type cxl-type-3 requires an encryption type",
+		/* 7 */ "validating platform extension: failed at index 0: VCA digest: missing mandatory field: protocol spdm-1.2.0 requires a VCA digest",
 	}
 
 	for i, tv := range tvs {

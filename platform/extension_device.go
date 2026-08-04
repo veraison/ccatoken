@@ -95,7 +95,7 @@ func ValidateProtocolAndVCADigest(p *Protocol, v *[]byte) error {
 		}
 		err := psatoken.ValidatePSAHashType(*v)
 		if err != nil {
-			return fmt.Errorf("%w: invalid VCA digest", psatoken.ErrWrongSyntax)
+			return fmt.Errorf("%w", err)
 		}
 	}
 
