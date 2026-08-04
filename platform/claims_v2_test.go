@@ -209,14 +209,16 @@ func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 		/* 4 */ "testvectors/json/v2/test-tbb-rotpk-invalid-bad-hash.json",
 		/* 5 */ "testvectors/json/v2/test-tbb-rotpk-invalid-bad-name.json",
 		/* 6 */ "testvectors/json/v2/test-tbb-rotpk-invalid-no-active-arr.json",
-		/* 7 */ "testvectors/json/v2/test-extension-excess-encryption-type.json",
-		/* 8 */ "testvectors/json/v2/test-extension-excess-vca-digest.json",
-		/* 9 */ "testvectors/json/v2/test-extension-invalid-certificate-chain-digest.json",
-		/* 10 */ "testvectors/json/v2/test-extension-invalid-device-measurements-digest.json",
-		/* 11 */ "testvectors/json/v2/test-extension-invalid-vca-digest.json",
-		/* 12 */ "testvectors/json/v2/test-extension-missing-encryption-type.json",
-		/* 13 */ "testvectors/json/v2/test-extension-missing-uses-ide.json",
-		/* 14 */ "testvectors/json/v2/test-extension-missing-vca-digest.json",
+		/* 7 */ "testvectors/json/v2/test-tbb-rotpk-empty-array.json",
+		/* 8 */ "testvectors/json/v2/test-extension-excess-encryption-type.json",
+		/* 9 */ "testvectors/json/v2/test-extension-excess-vca-digest.json",
+		/* 10 */ "testvectors/json/v2/test-extension-invalid-certificate-chain-digest.json",
+		/* 11 */ "testvectors/json/v2/test-extension-invalid-device-measurements-digest.json",
+		/* 12 */ "testvectors/json/v2/test-extension-invalid-vca-digest.json",
+		/* 13 */ "testvectors/json/v2/test-extension-missing-encryption-type.json",
+		/* 14 */ "testvectors/json/v2/test-extension-missing-uses-ide.json",
+		/* 15 */ "testvectors/json/v2/test-extension-missing-vca-digest.json",
+		/* 16 */ "testvectors/json/v2/test-extension-empty-array.json",
 	}
 
 	expectedErrors := []string{
@@ -227,14 +229,16 @@ func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 		/* 4 */ "validating platform TBB ROTPK: failed at index 0: hash: wrong syntax: length 33 (hash MUST be 32, 48 or 64 bytes)",
 		/* 5 */ "validating platform TBB ROTPK: failed at index 0: name: wrong syntax: empty string",
 		/* 6 */ "validating platform TBB ROTPK: failed at index 0: active array index: missing mandatory field",
-		/* 7 */ "validating platform extension: failed at index 1: encryption type: encryption type is not expected for device type other-device-2",
-		/* 8 */ "validating platform extension: failed at index 1: VCA digest: VCA digest is not expected for protocol other-protocol-1.2.3",
-		/* 9 */ "validating platform extension: failed at index 0: certificate chain digest: wrong syntax: length 36 (hash MUST be 32, 48 or 64 bytes)",
-		/* 10 */ "validating platform extension: failed at index 0: device measurements digest: wrong syntax: length 0 (hash MUST be 32, 48 or 64 bytes)",
-		/* 11 */ "validating platform extension: failed at index 0: VCA digest: invalid VCA digest: wrong syntax: length 31 (hash MUST be 32, 48 or 64 bytes)",
-		/* 12 */ "validating platform extension: failed at index 0: encryption type: device type cxl-type-3 requires an encryption type",
-		/* 13 */ "validating platform extension: failed at index 0: usesIDE: missing mandatory field",
-		/* 14 */ "validating platform extension: failed at index 0: VCA digest: protocol spdm-1.2.0 requires a VCA digest",
+		/* 7 */ "validating platform TBB ROTPK: wrong syntax: TBB RoTPK: is empty slice",
+		/* 8 */ "validating platform extension: failed at index 1: encryption type: encryption type is not expected for device type other-device-2",
+		/* 9 */ "validating platform extension: failed at index 1: VCA digest: VCA digest is not expected for protocol other-protocol-1.2.3",
+		/* 10 */ "validating platform extension: failed at index 0: certificate chain digest: wrong syntax: length 36 (hash MUST be 32, 48 or 64 bytes)",
+		/* 11 */ "validating platform extension: failed at index 0: device measurements digest: wrong syntax: length 0 (hash MUST be 32, 48 or 64 bytes)",
+		/* 12 */ "validating platform extension: failed at index 0: VCA digest: invalid VCA digest: wrong syntax: length 31 (hash MUST be 32, 48 or 64 bytes)",
+		/* 13 */ "validating platform extension: failed at index 0: encryption type: device type cxl-type-3 requires an encryption type",
+		/* 14 */ "validating platform extension: failed at index 0: usesIDE: missing mandatory field",
+		/* 15 */ "validating platform extension: failed at index 0: VCA digest: protocol spdm-1.2.0 requires a VCA digest",
+		/* 16 */ "validating platform extension: wrong syntax: extension: is empty slice",
 	}
 
 	for i, fn := range tvs {
@@ -242,7 +246,6 @@ func Test_ClaimsV2_UnmarshalJSON_negatives(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = DecodeAndValidateClaimsFromJSON(buf)
-
 		assert.EqualError(t, err, expectedErrors[i])
 	}
 }

@@ -223,7 +223,7 @@ func (c *ClaimsV2) GetManufacturingConfig() ([]byte, error) {
 
 // Returns a shallow copy of ExtensionDevices, which is a slice []*ExtensionDevice.
 func (c *ClaimsV2) GetExtension() (ExtensionDevices, error) {
-	if c.Extension == nil || c.Extension.IsEmpty() {
+	if c.Extension == nil {
 		return nil, psatoken.ErrOptionalClaimMissing
 	}
 
@@ -232,7 +232,7 @@ func (c *ClaimsV2) GetExtension() (ExtensionDevices, error) {
 
 // Returns a shallow copy of TBBRoTPKItems, which is a slice []*TBBRoTPKItem.
 func (c *ClaimsV2) GetTBBRoTPK() (TBBRoTPKItems, error) {
-	if c.TBBRoTPK == nil || c.TBBRoTPK.IsEmpty() {
+	if c.TBBRoTPK == nil {
 		return nil, psatoken.ErrOptionalClaimMissing
 	}
 

@@ -5,6 +5,7 @@ package platform
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -68,7 +69,7 @@ func Test_ExtensionDevices_Validate_empty_key(t *testing.T) {
 func Test_ExtensionDevices_Validate_empty_array(t *testing.T) {
 	ds := ExtensionDevices{}
 	err := ds.Validate()
-	assert.EqualError(t, err, psatoken.ErrOptionalClaimMissing.Error())
+	assert.EqualError(t, err, fmt.Errorf("%w: extension: is empty slice", psatoken.ErrWrongSyntax).Error())
 }
 
 func Test_ExtensionDevices_codec_roundtrip(t *testing.T) {

@@ -12,14 +12,10 @@ import (
 type TBBRoTPKItems []*TBBRoTPKItem
 
 // Validate all items in the TBBRoTPKItems slice.
-// Returns an error if validation fails for any of the items.
-//
-// Note: if the slice is empty, Validate returns psatoken.ErrOptionalClaimMissing, which is ignored by IClaims.ValidateClaims.
-// An empty slice is regarded as omitting the optional TBB ROTPK claim.
-// Upon marshaling a ClaimsV2 object, an empty slice is replaced with nil, thus omitting the claim from the resulting CBOR/JSON.
+// Returns an error if validation fails for any of the items, or if the slice is empty.
 func (o TBBRoTPKItems) Validate() error {
 	if len(o) == 0 {
-		return psatoken.ErrOptionalClaimMissing
+		return fmt.Errorf("%w: TBB RoTPK: is empty slice", psatoken.ErrWrongSyntax)
 	}
 
 	return validateTBBRoTPKItems(o)
@@ -28,7 +24,7 @@ func (o TBBRoTPKItems) Validate() error {
 // Copy returns a shallow copy of the TBBRoTPKItems slice.
 // It validates the items before copying, and returns an error if validation fails.
 func (o TBBRoTPKItems) Copy() (TBBRoTPKItems, error) {
-	err := validateTBBRoTPKItems(o)
+	err := o.Validate()
 	if err != nil {
 		return nil, err
 	}
