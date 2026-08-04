@@ -17,7 +17,7 @@ type ExtensionDevice struct {
 	// DeviceMeasurementsDigest is the extension's device measurements exchange digest.
 	DeviceMeasurementsDigest *[]byte `cbor:"2,keyasint" json:"device-measurements-digest"`
 
-	// CertificateChainDigest is the extension'scertificate chain digest.
+	// CertificateChainDigest is the extension device's certificate chain digest.
 	CertificateChainDigest *[]byte `cbor:"3,keyasint" json:"certificate-chain-digest"`
 
 	// UsesIDE indicates whether this extension device uses Integrity & Data Encryption.
@@ -51,7 +51,7 @@ const (
 	ProtocolSPDM140 Protocol = "spdm-1.4.0"
 )
 
-// Returns true is Protocol is one of the strings specified in https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
+// RequiresVCADigest returns true if Protocol is one of the strings specified in https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
 // meaning an extension device specifying this protocol must have a VCA digest.
 func (p Protocol) RequiresVCADigest() bool {
 	switch p {
@@ -100,7 +100,7 @@ const (
 	DeviceTypeCXLType3 DeviceType = "cxl-type-3"
 )
 
-// Returns true if DeviceType is one of the strings specified in https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
+// RequiresEncryptionType returns true if DeviceType is one of the strings specified in https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
 // meaning an extension device specifying this device type must have an encryption type.
 func (t DeviceType) RequiresEncryptionType() bool {
 	switch t {
@@ -219,6 +219,8 @@ func (d ExtensionDevice) GetUsesIDE() (bool, error) {
 	return *d.UsesIDE, nil
 }
 
+// GetProtocol validates the protocol and VCA digest fields of an extension device,
+// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension, and returns the protocol if valid.
 func (d ExtensionDevice) GetProtocol() (Protocol, error) {
 	err := ValidateProtocolAndVCADigest(d.Protocol, d.VCADigest)
 	if err != nil {
@@ -228,6 +230,7 @@ func (d ExtensionDevice) GetProtocol() (Protocol, error) {
 	return *d.Protocol, nil
 }
 
+// GetEncryptionType validates the device type and encryption type fields of an extension device,
 func (d ExtensionDevice) GetVCADigest() ([]byte, error) {
 	err := ValidateProtocolAndVCADigest(d.Protocol, d.VCADigest)
 	if err != nil {
@@ -241,6 +244,8 @@ func (d ExtensionDevice) GetVCADigest() ([]byte, error) {
 	return *d.VCADigest, nil
 }
 
+// GetDeviceType validates the device type and encryption type fields of an extension device,
+// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension, and returns the device type if valid.
 func (d ExtensionDevice) GetDeviceType() (DeviceType, error) {
 	err := ValidateDeviceTypeAndEncryption(d.DeviceType, d.EncryptionType)
 	if err != nil {
@@ -250,6 +255,8 @@ func (d ExtensionDevice) GetDeviceType() (DeviceType, error) {
 	return *d.DeviceType, nil
 }
 
+// GetEncryptionType validates the device type and encryption type fields of an extension device,
+// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension, and returns the encryption type if valid.
 func (d ExtensionDevice) GetEncryptionType() (EncryptionType, error) {
 	err := ValidateDeviceTypeAndEncryption(d.DeviceType, d.EncryptionType)
 	if err != nil {
@@ -289,8 +296,9 @@ func (d *ExtensionDevice) SetUsesIDE(v bool) error {
 	return nil
 }
 
-// Protocol can only be set once. If it is already set, an error is returned.
+// SetProtocol can only be called once. If the protocol is already set, an error is returned.
 // This prevents changes in whether a VCA digest is required or not.
+// See https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension for which protocols require a VCA digest.
 func (d *ExtensionDevice) SetProtocol(p Protocol) error {
 	if d.Protocol != nil {
 		return fmt.Errorf("protocol can only be set once and is already set to %s", *d.Protocol)
@@ -300,8 +308,9 @@ func (d *ExtensionDevice) SetProtocol(p Protocol) error {
 	return nil
 }
 
-// VCA digest can only be set after the protocol has been set, and only if the protocol requires a VCA digest.
+// SetVCADigest can only be set after the protocol has been set, and only if the protocol requires a VCA digest.
 // If the protocol does not require a VCA digest, an error is returned.
+// See https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension for which protocols require a VCA digest.
 func (d *ExtensionDevice) SetVCADigest(h []byte) error {
 	if d.Protocol == nil {
 		return fmt.Errorf("protocol must be set before setting VCA digest")
@@ -321,8 +330,9 @@ func (d *ExtensionDevice) SetVCADigest(h []byte) error {
 	return nil
 }
 
-// Device type can only be set once. If it is already set, an error is returned.
+// SetDeviceType can only be called once. If the device type is already set, an error is returned.
 // This prevents changes in whether an encryption type is required or not.
+// See https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension for which device types require encryption type.
 func (d *ExtensionDevice) SetDeviceType(t DeviceType) error {
 	if d.DeviceType != nil {
 		return fmt.Errorf("device type can only be set once and is already set to %s", *d.DeviceType)
@@ -333,8 +343,9 @@ func (d *ExtensionDevice) SetDeviceType(t DeviceType) error {
 	return nil
 }
 
-// Encryption type can only be set after the device type has been set, and only if the device type requires an encryption type.
+// SetEncryptionType can only be called after the device type has been set, and only if the device type requires an encryption type.
 // If the device type does not require an encryption type, an error is returned.
+// See https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension for which device types require encryption type.
 func (d *ExtensionDevice) SetEncryptionType(t EncryptionType) error {
 	if d.DeviceType == nil {
 		return fmt.Errorf("device type must be set before setting encryption type")
