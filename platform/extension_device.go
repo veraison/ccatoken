@@ -10,12 +10,16 @@ import (
 )
 
 type ExtensionDevice struct {
-	// HashAlgorithm identifies the hash algorithm used for the digest fields
-	HashAlgorithm            *string `cbor:"1,keyasint,omitempty" json:"hash-algorithm,omitempty"`
-	DeviceMeasurementsDigest *[]byte `cbor:"2,keyasint" json:"device-measurements-digest"`
-	CertificateChainDigest   *[]byte `cbor:"3,keyasint" json:"certificate-chain-digest"`
+	// HashAlgorithm (optional) identifies the hash algorithm used for the digest fields
+	HashAlgorithm *string `cbor:"1,keyasint,omitempty" json:"hash-algorithm,omitempty"`
 
-	// UsesIDE indicates whether the platform device uses Integrity & Data Encryption.
+	// DeviceMeasurementsDigest is the device measurements exchange digest.
+	DeviceMeasurementsDigest *[]byte `cbor:"2,keyasint" json:"device-measurements-digest"`
+
+	// CertificateChainDigest is the certificate chain digest.
+	CertificateChainDigest *[]byte `cbor:"3,keyasint" json:"certificate-chain-digest"`
+
+	// UsesIDE indicates whether this platform device uses Integrity & Data Encryption.
 	UsesIDE *bool `cbor:"4,keyasint" json:"uses-ide"`
 
 	// Protocol identifies the protocol used to communicate with the device.

@@ -28,7 +28,7 @@ func (o ProfileV2) GetClaims() psatoken.IClaims {
 type addedClaimsV2 struct {
 	ClientID            *int32            `cbor:"2394,keyasint" json:"cca-platform-client-id"`
 	ManufacturingConfig *[]byte           `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
-	Extension           *ExtensionDevices `cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"` // to find out the type
+	Extension           *ExtensionDevices `cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"`
 	TBBRoTPK            *TBBRoTPKItems    `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
 	PeerSigners         *[]byte           `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
 }
@@ -159,7 +159,7 @@ func (c *ClaimsV2) SetManufacturingConfig(v []byte) error {
 	return nil
 }
 
-// Sets Extension claim to a shallow copy of the provided slice.
+// Sets Extension claim to a shallow copy of the provided ExtensionDevices, which is a slice []*ExtensionDevice.
 func (c *ClaimsV2) SetExtension(vals ExtensionDevices) error {
 	if len(vals) == 0 {
 		return fmt.Errorf("%w: extension: should not set empty value", psatoken.ErrWrongSyntax)
@@ -173,7 +173,7 @@ func (c *ClaimsV2) SetExtension(vals ExtensionDevices) error {
 	return nil
 }
 
-// Sets TBB RoTPK claim to a shallow copy of the provided slice.
+// Sets TBB RoTPK claim to a shallow copy of the provided TBBRoTPKItems, which is a slice []*TBBRoTPKItem.
 func (c *ClaimsV2) SetTBBRoTPK(vals TBBRoTPKItems) error {
 	if len(vals) == 0 {
 		return fmt.Errorf("%w: TBB RoTPK: should not set empty value", psatoken.ErrWrongSyntax)
@@ -221,6 +221,7 @@ func (c *ClaimsV2) GetManufacturingConfig() ([]byte, error) {
 	return *c.ManufacturingConfig, nil
 }
 
+// Returns a shallow copy of ExtensionDevices, which is a slice []*ExtensionDevice.
 func (c *ClaimsV2) GetExtension() (ExtensionDevices, error) {
 	if c.Extension == nil || c.Extension.IsEmpty() {
 		return nil, psatoken.ErrOptionalClaimMissing
@@ -229,7 +230,7 @@ func (c *ClaimsV2) GetExtension() (ExtensionDevices, error) {
 	return c.Extension.Copy()
 }
 
-// Returns a shallow copy of the TBBRoTPKItems slice.
+// Returns a shallow copy of TBBRoTPKItems, which is a slice []*TBBRoTPKItem.
 func (c *ClaimsV2) GetTBBRoTPK() (TBBRoTPKItems, error) {
 	if c.TBBRoTPK == nil || c.TBBRoTPK.IsEmpty() {
 		return nil, psatoken.ErrOptionalClaimMissing
