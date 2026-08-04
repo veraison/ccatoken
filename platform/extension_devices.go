@@ -19,6 +19,8 @@ func (o ExtensionDevices) Validate() error {
 	return validateExtensionDevices(o)
 }
 
+// Return a shallow copy of the ExtensionDevices slice.
+// Validates the items before copying. Returns an error if validation fails.
 func (o ExtensionDevices) Copy() (ExtensionDevices, error) {
 	err := validateExtensionDevices(o)
 	if err != nil {

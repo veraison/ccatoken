@@ -9,32 +9,34 @@ import (
 	"github.com/veraison/psatoken"
 )
 
+// ExtensionDevice represents a single platform extension device in the CCA platform extension claim.
 type ExtensionDevice struct {
-	// HashAlgID (optional) identifies the hash algorithm used for the digest fields
+	// HashAlgID (optional) identifies the hash algorithm used for the extension device's digest fields.
 	HashAlgID *string `cbor:"1,keyasint,omitempty" json:"hash-algo-id,omitempty"`
 
-	// DeviceMeasurementsDigest is the device measurements exchange digest.
+	// DeviceMeasurementsDigest is the extension's device measurements exchange digest.
 	DeviceMeasurementsDigest *[]byte `cbor:"2,keyasint" json:"device-measurements-digest"`
 
-	// CertificateChainDigest is the certificate chain digest.
+	// CertificateChainDigest is the extension'scertificate chain digest.
 	CertificateChainDigest *[]byte `cbor:"3,keyasint" json:"certificate-chain-digest"`
 
-	// UsesIDE indicates whether this platform device uses Integrity & Data Encryption.
+	// UsesIDE indicates whether this extension device uses Integrity & Data Encryption.
 	UsesIDE *bool `cbor:"4,keyasint" json:"uses-ide"`
 
-	// Protocol identifies the protocol used to communicate with the device.
+	// Protocol identifies the protocol used to communicate with the extension device.
 	Protocol *Protocol `cbor:"5,keyasint" json:"protocol"`
 
-	// VCADigest is required when Protocol is one of the protocols-support-vca, otherwise no VCADigest field is expected
+	// VCADigest is required when this extension device's Protocol is one of the protocols-support-vca, otherwise no VCADigest field is expected
 	VCADigest *[]byte `cbor:"6,keyasint,omitempty" json:"vca-digest,omitempty"`
 
-	// DeviceType identifies the type of platform extension device.
+	// DeviceType identifies the type of this extension device.
 	DeviceType *DeviceType `cbor:"7,keyasint" json:"device-type"`
 
-	// EncryptionType is required for cxl-type-3, otherwise no EncryptionType field is expected
+	// EncryptionType is required when this extension device's DeviceType is cxl-type-3, otherwise no EncryptionType field is expected
 	EncryptionType *EncryptionType `cbor:"8,keyasint,omitempty" json:"encryption-type,omitempty"`
 }
 
+// Protocol used to communicate with an extension device.
 type Protocol string
 
 // Protocols supporting VCA
@@ -49,7 +51,8 @@ const (
 	ProtocolSPDM140 Protocol = "spdm-1.4.0"
 )
 
-// Protocols supporting VCA require a VCA digest.
+// Returns true is Protocol is one of the strings specified in https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
+// meaning an extension device specifying this protocol must have a VCA digest.
 func (p Protocol) RequiresVCADigest() bool {
 	switch p {
 	case ProtocolSPDM120,
@@ -66,6 +69,8 @@ func (p Protocol) RequiresVCADigest() bool {
 	}
 }
 
+// ValidateProtocolAndVCADigest validates the protocol and VCA digest fields of an extension device,
+// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension.
 func ValidateProtocolAndVCADigest(p *Protocol, v *[]byte) error {
 	if p == nil {
 		return fmt.Errorf("protocol is required")
@@ -88,13 +93,15 @@ func ValidateProtocolAndVCADigest(p *Protocol, v *[]byte) error {
 	return nil
 }
 
-// DeviceType identifies the type of platform extension device.
+// DeviceType identifies the type of this extension device.
 type DeviceType string
 
 const (
 	DeviceTypeCXLType3 DeviceType = "cxl-type-3"
 )
 
+// Returns true if DeviceType is one of the strings specified in https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
+// meaning an extension device specifying this device type must have an encryption type.
 func (t DeviceType) RequiresEncryptionType() bool {
 	switch t {
 	case DeviceTypeCXLType3:
@@ -104,6 +111,7 @@ func (t DeviceType) RequiresEncryptionType() bool {
 	}
 }
 
+// EncryptionType identifies the type of encryption used with an extension device.
 type EncryptionType int32
 
 const (
@@ -112,6 +120,30 @@ const (
 	NoEncryption
 )
 
+// ValidateDeviceTypeAndEncryption validates the device type and encryption type fields of an extension device,
+// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension.
+func ValidateDeviceTypeAndEncryption(d *DeviceType, e *EncryptionType) error {
+	if d == nil {
+		return fmt.Errorf("device type is required")
+	}
+
+	if d.RequiresEncryptionType() {
+		if e == nil {
+			return fmt.Errorf("device type %s requires an encryption type", *d)
+		}
+		if *e != HostSideEncryption && *e != TargetSideEncryption && *e != NoEncryption {
+			return fmt.Errorf("invalid encryption type %s", *d)
+		}
+	}
+
+	if !d.RequiresEncryptionType() && e != nil {
+		return fmt.Errorf("encryption type is not expected for device type %s", *d)
+	}
+
+	return nil
+}
+
+// Validate returns an error if validation fails for any of the fields.
 func (d ExtensionDevice) Validate() error {
 	if err := psatoken.FilterError(d.GetHashAlgID()); err != nil {
 		return fmt.Errorf("hash algorithm: %w", err)
@@ -144,27 +176,6 @@ func (d ExtensionDevice) Validate() error {
 	if err := psatoken.FilterError(d.GetDeviceType()); err != nil {
 		return fmt.Errorf("device type: %w", err)
 	}
-	return nil
-}
-
-func ValidateDeviceTypeAndEncryption(d *DeviceType, e *EncryptionType) error {
-	if d == nil {
-		return fmt.Errorf("device type is required")
-	}
-
-	if d.RequiresEncryptionType() {
-		if e == nil {
-			return fmt.Errorf("device type %s requires an encryption type", *d)
-		}
-		if *e != HostSideEncryption && *e != TargetSideEncryption && *e != NoEncryption {
-			return fmt.Errorf("invalid encryption type %s", *d)
-		}
-	}
-
-	if !d.RequiresEncryptionType() && e != nil {
-		return fmt.Errorf("encryption type is not expected for device type %s", *d)
-	}
-
 	return nil
 }
 
@@ -278,8 +289,8 @@ func (d *ExtensionDevice) SetUsesIDE(v bool) error {
 	return nil
 }
 
-// Protocol can only be set once. If it is already set, return an error.
-// This is to keep the validation logic for protocol and VCA digest simple.
+// Protocol can only be set once. If it is already set, an error is returned.
+// This prevents changes in whether a VCA digest is required or not.
 func (d *ExtensionDevice) SetProtocol(p Protocol) error {
 	if d.Protocol != nil {
 		return fmt.Errorf("protocol can only be set once and is already set to %s", *d.Protocol)
@@ -289,6 +300,8 @@ func (d *ExtensionDevice) SetProtocol(p Protocol) error {
 	return nil
 }
 
+// VCA digest can only be set after the protocol has been set, and only if the protocol requires a VCA digest.
+// If the protocol does not require a VCA digest, an error is returned.
 func (d *ExtensionDevice) SetVCADigest(h []byte) error {
 	if d.Protocol == nil {
 		return fmt.Errorf("protocol must be set before setting VCA digest")
@@ -308,8 +321,8 @@ func (d *ExtensionDevice) SetVCADigest(h []byte) error {
 	return nil
 }
 
-// Device type can only be set once. If it is already set, return an error.
-// This is to keep the validation logic for device type and encryption type simple.
+// Device type can only be set once. If it is already set, an error is returned.
+// This prevents changes in whether an encryption type is required or not.
 func (d *ExtensionDevice) SetDeviceType(t DeviceType) error {
 	if d.DeviceType != nil {
 		return fmt.Errorf("device type can only be set once and is already set to %s", *d.DeviceType)
@@ -320,6 +333,8 @@ func (d *ExtensionDevice) SetDeviceType(t DeviceType) error {
 	return nil
 }
 
+// Encryption type can only be set after the device type has been set, and only if the device type requires an encryption type.
+// If the device type does not require an encryption type, an error is returned.
 func (d *ExtensionDevice) SetEncryptionType(t EncryptionType) error {
 	if d.DeviceType == nil {
 		return fmt.Errorf("device type must be set before setting encryption type")
