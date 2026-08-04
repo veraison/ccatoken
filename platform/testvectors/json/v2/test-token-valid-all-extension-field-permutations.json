@@ -1,0 +1,97 @@
+{
+    "cca-platform-profile": "tag:arm.com,2024:cca_platform#2.0.0",
+    "cca-platform-challenge":  "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+    "cca-platform-implementation-id":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "cca-platform-instance-id": "AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+    "cca-platform-config": "AQID",
+    "cca-platform-lifecycle": 12288,
+    "cca-platform-sw-components": [
+          {
+            "measurement-value": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM=",
+            "signer-id": "BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ="
+          }
+        ],
+    "cca-platform-service-indicator" : "https://veraison.example/v1/challenge-response",
+    "cca-platform-hash-algo-id": "sha-256",
+    "cca-platform-client-id": 1,
+    "cca-platform-manufacturing-config": "AQID",
+    "cca-platform-peer-signers": "BQUFBQU=",
+    "cca-platform-extension": [
+      {
+        "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
+        "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
+        "uses-ide": true,
+        "protocol": "other-protocol-1.2.3",
+        "device-type": "other-device-2"
+      },
+      {
+        "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
+        "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
+        "uses-ide": true,
+        "protocol": "other-protocol-1.2.3",
+        "device-type": "cxl-type-3",
+        "encryption-type": 0
+      },
+      {
+        "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
+        "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
+        "uses-ide": true,
+        "protocol": "spdm-1.2.0",
+        "vca-digest": "AAECAwQFBgcICQoLDA0ODwABAgMEBQYHCAkKCwwNDg8AAQIDBAUGBwgJCgsMDQ4P",
+        "device-type": "other-device-2"
+      },
+      {
+        "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
+        "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
+        "uses-ide": true,
+        "protocol": "spdm-1.2.0",
+        "vca-digest": "AAECAwQFBgcICQoLDA0ODwABAgMEBQYHCAkKCwwNDg8AAQIDBAUGBwgJCgsMDQ4P",
+        "device-type": "cxl-type-3",
+        "encryption-type": 0
+      },
+      {
+        "hash-algorithm": "sha-256",
+        "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
+        "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
+        "uses-ide": true,
+        "protocol": "other-protocol-1.2.3",
+        "device-type": "other-device-2"
+      },
+      {
+        "hash-algorithm": "sha-256",
+        "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
+        "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
+        "uses-ide": true,
+        "protocol": "other-protocol-1.2.3",
+        "device-type": "cxl-type-3",
+        "encryption-type": 0
+      },
+      {
+        "hash-algorithm": "sha-256",
+        "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
+        "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
+        "uses-ide": true,
+        "protocol": "spdm-1.2.0",
+        "vca-digest": "AAECAwQFBgcICQoLDA0ODwABAgMEBQYHCAkKCwwNDg8AAQIDBAUGBwgJCgsMDQ4P",
+        "device-type": "other-device-2"
+      },
+      {
+        "hash-algorithm": "sha-256",
+        "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
+        "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
+        "uses-ide": true,
+        "protocol": "spdm-1.2.0",
+        "vca-digest": "AAECAwQFBgcICQoLDA0ODwABAgMEBQYHCAkKCwwNDg8AAQIDBAUGBwgJCgsMDQ4P",
+        "device-type": "cxl-type-3",
+        "encryption-type": 0
+      }
+    ],
+    "cca-platform-tbb-rotpk": [
+            {
+            "name": "DM",
+            "active-array-index": 0,
+            "index": 0,
+            "hash": "BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc="
+            }
+        ]
+    }
