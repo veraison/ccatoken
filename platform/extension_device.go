@@ -1,4 +1,4 @@
-// Copyright 2021-2026 Contributors to the Veraison project.
+// Copyright 2026 Contributors to the Veraison project.
 // SPDX-License-Identifier: Apache-2.0
 
 package platform
@@ -81,7 +81,7 @@ func (p Protocol) RequiresVCADigest() bool {
 // as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension.
 func ValidateProtocolAndVCADigest(p *Protocol, v *[]byte) error {
 	if p == nil {
-		return fmt.Errorf("protocol is required")
+		return fmt.Errorf("%w: protocol is required", psatoken.ErrMandatoryFieldMissing)
 	}
 
 	// Disallow empty string as protocol
@@ -91,16 +91,16 @@ func ValidateProtocolAndVCADigest(p *Protocol, v *[]byte) error {
 
 	if p.RequiresVCADigest() {
 		if v == nil {
-			return fmt.Errorf("protocol %s requires a VCA digest", *p)
+			return fmt.Errorf("%w: protocol %s requires a VCA digest", psatoken.ErrMandatoryFieldMissing, *p)
 		}
 		err := psatoken.ValidatePSAHashType(*v)
 		if err != nil {
-			return fmt.Errorf("invalid VCA digest: %w", err)
+			return fmt.Errorf("%w: invalid VCA digest", psatoken.ErrWrongSyntax)
 		}
 	}
 
 	if !p.RequiresVCADigest() && v != nil {
-		return fmt.Errorf("VCA digest is not expected for protocol %s", *p)
+		return fmt.Errorf("%w: VCA digest is not expected for protocol %s", psatoken.ErrWrongSyntax, *p)
 	}
 
 	return nil
@@ -137,7 +137,7 @@ const (
 // as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension.
 func ValidateDeviceTypeAndEncryption(d *DeviceType, e *EncryptionType) error {
 	if d == nil {
-		return fmt.Errorf("device type is required")
+		return fmt.Errorf("%w: device type is required", psatoken.ErrMandatoryFieldMissing)
 	}
 
 	// Disallow empty string as device type
@@ -147,15 +147,15 @@ func ValidateDeviceTypeAndEncryption(d *DeviceType, e *EncryptionType) error {
 
 	if d.RequiresEncryptionType() {
 		if e == nil {
-			return fmt.Errorf("device type %s requires an encryption type", *d)
+			return fmt.Errorf("%w: device type %s requires an encryption type", psatoken.ErrMandatoryFieldMissing, *d)
 		}
 		if *e != HostSideEncryption && *e != TargetSideEncryption && *e != NoEncryption {
-			return fmt.Errorf("invalid encryption type %d", *e)
+			return fmt.Errorf("%w: invalid encryption type %d", psatoken.ErrWrongSyntax, *e)
 		}
 	}
 
 	if !d.RequiresEncryptionType() && e != nil {
-		return fmt.Errorf("encryption type is not expected for device type %s", *d)
+		return fmt.Errorf("%w: encryption type is not expected for device type %s", psatoken.ErrWrongSyntax, *d)
 	}
 
 	return nil
@@ -251,7 +251,8 @@ func (d ExtensionDevice) GetProtocol() (Protocol, error) {
 	return *d.Protocol, nil
 }
 
-// GetEncryptionType validates the device type and encryption type fields of an extension device,
+// GetVCADigest validates the protocol and VCA digest fields of an extension device,
+// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension, and returns the VCA digest if valid.
 func (d ExtensionDevice) GetVCADigest() ([]byte, error) {
 	err := ValidateProtocolAndVCADigest(d.Protocol, d.VCADigest)
 	if err != nil {
