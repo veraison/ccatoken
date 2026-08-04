@@ -10,8 +10,8 @@ import (
 )
 
 type ExtensionDevice struct {
-	// HashAlgorithm (optional) identifies the hash algorithm used for the digest fields
-	HashAlgorithm *string `cbor:"1,keyasint,omitempty" json:"hash-algorithm,omitempty"`
+	// HashAlgID (optional) identifies the hash algorithm used for the digest fields
+	HashAlgID *string `cbor:"1,keyasint,omitempty" json:"hash-algo-id,omitempty"`
 
 	// DeviceMeasurementsDigest is the device measurements exchange digest.
 	DeviceMeasurementsDigest *[]byte `cbor:"2,keyasint" json:"device-measurements-digest"`
@@ -113,7 +113,7 @@ const (
 )
 
 func (d ExtensionDevice) Validate() error {
-	if err := psatoken.FilterError(d.GetHashAlgorithm()); err != nil {
+	if err := psatoken.FilterError(d.GetHashAlgID()); err != nil {
 		return fmt.Errorf("hash algorithm: %w", err)
 	}
 
@@ -168,12 +168,12 @@ func ValidateDeviceTypeAndEncryption(d *DeviceType, e *EncryptionType) error {
 	return nil
 }
 
-func (d ExtensionDevice) GetHashAlgorithm() (string, error) {
-	if d.HashAlgorithm == nil {
+func (d ExtensionDevice) GetHashAlgID() (string, error) {
+	if d.HashAlgID == nil {
 		return "", psatoken.ErrOptionalFieldMissing
 	}
 
-	return *d.HashAlgorithm, nil
+	return *d.HashAlgID, nil
 }
 
 func (d ExtensionDevice) GetDeviceMeasurementsDigest() ([]byte, error) {
@@ -252,8 +252,8 @@ func (d ExtensionDevice) GetEncryptionType() (EncryptionType, error) {
 	return *d.EncryptionType, nil
 }
 
-func (d *ExtensionDevice) SetHashAlgorithm(v string) error {
-	d.HashAlgorithm = &v
+func (d *ExtensionDevice) SetHashAlgID(v string) error {
+	d.HashAlgID = &v
 	return nil
 }
 

@@ -50,7 +50,7 @@
         "encryption-type": 0
       },
       {
-        "hash-algorithm": "sha-256",
+        "hash-algo-id": "sha-256",
         "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
         "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
         "uses-ide": true,
@@ -58,7 +58,7 @@
         "device-type": "other-device-2"
       },
       {
-        "hash-algorithm": "sha-256",
+        "hash-algo-id": "sha-256",
         "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
         "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
         "uses-ide": true,
@@ -67,7 +67,7 @@
         "encryption-type": 0
       },
       {
-        "hash-algorithm": "sha-256",
+        "hash-algo-id": "sha-256",
         "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
         "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
         "uses-ide": true,
@@ -76,7 +76,7 @@
         "device-type": "other-device-2"
       },
       {
-        "hash-algorithm": "sha-256",
+        "hash-algo-id": "sha-256",
         "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
         "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
         "uses-ide": true,

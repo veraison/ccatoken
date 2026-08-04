@@ -18,12 +18,12 @@ const (
 	testOtherDeviceType DeviceType = "other-device-2"
 )
 
-func Test_ExtensionDevice_SetAndGetHashAlgorithm(t *testing.T) {
+func Test_ExtensionDevice_SetAndGetHashAlgID(t *testing.T) {
 	d := ExtensionDevice{}
 
-	require.NoError(t, d.SetHashAlgorithm(testHashAlgID))
-	assert.Equal(t, testHashAlgID, *d.HashAlgorithm)
-	ha, err := d.GetHashAlgorithm()
+	require.NoError(t, d.SetHashAlgID(testHashAlgID))
+	assert.Equal(t, testHashAlgID, *d.HashAlgID)
+	ha, err := d.GetHashAlgID()
 	require.NoError(t, err)
 	assert.Equal(t, testHashAlgID, ha)
 }
@@ -217,7 +217,7 @@ func Test_ExtensionDevice_MustSetDeviceTypeBeforeEncryptionType(t *testing.T) {
 
 func mustBuildExtensionDeviceAllFields(t *testing.T) ExtensionDevice {
 	d := ExtensionDevice{}
-	require.NoError(t, d.SetHashAlgorithm(testHashAlgID))
+	require.NoError(t, d.SetHashAlgID(testHashAlgID))
 	require.NoError(t, d.SetDeviceMeasurementsDigest(testHash1))
 	require.NoError(t, d.SetCertificateChainDigest(testHash2))
 	require.NoError(t, d.SetUsesIDE(testUsesIDE))
