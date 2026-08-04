@@ -118,28 +118,10 @@ func Test_ClaimsV2_Validate_all_new_claims(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// Refactor this claim now that extension device is added
-func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
+func Test_ClaimsV2_SetTBBRoTPK_failure(t *testing.T) {
 	c := mustBuildValidClaimsV2(t, false)
-	c.ClientID = nil
-	assert.EqualError(t, c.Validate(), "validating client id: missing mandatory claim")
-
-	err := c.SetClientID(testBadClientID)
-	assert.EqualError(t, err, "wrong syntax: client id MUST be 1")
-
-	err = c.SetTBBRoTPK(TBBRoTPKItems{})
+	err := c.SetTBBRoTPK(TBBRoTPKItems{})
 	assert.EqualError(t, err, "wrong syntax: TBB RoTPK: should not set empty value")
-
-	c = mustBuildValidClaimsV2(t, true)
-	emptyManufacturingConfig := []byte{}
-	c.ManufacturingConfig = &emptyManufacturingConfig
-	assert.EqualError(t, c.Validate(), "validating platform manufacturing config: wrong syntax: manufacturing config")
-
-	c = mustBuildValidClaimsV2(t, true)
-	var tbbRotPk TBBRoTPKItems
-	tbbRotPk = TBBRoTPKItems{{}}
-	c.TBBRoTPK = &tbbRotPk
-	assert.EqualError(t, c.Validate(), "validating platform TBB ROTPK: failed at index 0: name: missing mandatory field")
 
 	c = mustBuildValidClaimsV2(t, true)
 	partialTBBRoTPKItem := TBBRoTPKItem{}
@@ -150,9 +132,36 @@ func Test_ClaimsV2_Validate_new_claim_failures(t *testing.T) {
 	err = partialTBBRoTPKItem.SetIndex(testTBBRoTPKIndex)
 	require.NoError(t, err)
 
-	tbbRotPk = TBBRoTPKItems{&partialTBBRoTPKItem}
-	c.TBBRoTPK = &tbbRotPk
-	assert.EqualError(t, c.Validate(), "validating platform TBB ROTPK: failed at index 0: hash: missing mandatory field")
+	tbbRoTPK := TBBRoTPKItems{&partialTBBRoTPKItem}
+	err = c.SetTBBRoTPK(tbbRoTPK)
+	assert.EqualError(t, err, "failed at index 0: hash: missing mandatory field")
+}
+
+func Test_ClaimsV2_SetExtension_failure(t *testing.T) {
+	c := mustBuildValidClaimsV2(t, false)
+	err := c.SetExtension(ExtensionDevices{})
+	assert.EqualError(t, err, "wrong syntax: extension: should not set empty value")
+
+	c = mustBuildValidClaimsV2(t, true)
+	extensionDevice := mustBuildExtensionDeviceAllFields(t)
+	extensionDevice.VCADigest = nil
+	extensions := ExtensionDevices{&extensionDevice}
+	err = c.SetExtension(extensions)
+	assert.EqualError(t, err, "failed at index 0: VCA digest: protocol spdm-1.2.0 requires a VCA digest")
+}
+
+func Test_ClaimsV2_SetClientID_ManufacturingConfig_PeerSigners_failure(t *testing.T) {
+	c := mustBuildValidClaimsV2(t, false)
+	c.ClientID = nil
+	assert.EqualError(t, c.Validate(), "validating client id: missing mandatory claim")
+
+	err := c.SetClientID(testBadClientID)
+	assert.EqualError(t, err, "wrong syntax: client id MUST be 1")
+
+	c = mustBuildValidClaimsV2(t, true)
+	emptyManufacturingConfig := []byte{}
+	c.ManufacturingConfig = &emptyManufacturingConfig
+	assert.EqualError(t, c.Validate(), "validating platform manufacturing config: wrong syntax: manufacturing config")
 
 	c = mustBuildValidClaimsV2(t, true)
 	badPeerSigners := []byte{}
@@ -177,7 +186,12 @@ func Test_ClaimsV2_UnmarshalJSON_all_field_permutations(t *testing.T) {
 	c, err := DecodeAndValidateClaimsFromJSON(buf)
 
 	require.NoError(t, err)
-	assertDecodedClaimsV2(t, c, true)
+	extension, err := c.GetExtension()
+	require.NoError(t, err)
+	require.Len(t, extension, 8)
+
+	err = extension.Validate()
+	assert.NoError(t, err)
 }
 
 func Test_ClaimsV2_UnmarshalJSON_invalid(t *testing.T) {
@@ -367,6 +381,40 @@ func Test_ClaimsV2_Codec_roundtrip(t *testing.T) {
 	}
 }
 
+func Test_ClaimsV2_Codec_roundtrip_all_extension_field_permutations(t *testing.T) {
+	buf, err := os.ReadFile("testvectors/json/v2/test-token-valid-all-extension-field-permutations.json")
+	require.NoError(t, err)
+
+	c, err := DecodeAndValidateClaimsFromJSON(buf)
+	require.NoError(t, err)
+
+	t.Run("CBOR", func(t *testing.T) {
+		encoded, err := ValidateAndEncodeClaimsToCBOR(c)
+		require.NoError(t, err)
+
+		decoded, err := DecodeAndValidateClaimsFromCBOR(encoded)
+		require.NoError(t, err)
+		assert.Equal(t, c, decoded)
+
+		extension, err := c.GetExtension()
+		require.NoError(t, err)
+		assert.Len(t, extension, 8)
+	})
+
+	t.Run("JSON", func(t *testing.T) {
+		encoded, err := ValidateAndEncodeClaimsToJSON(c)
+		require.NoError(t, err)
+
+		decoded, err := DecodeAndValidateClaimsFromJSON(encoded)
+		require.NoError(t, err)
+		assert.Equal(t, c, decoded)
+
+		extension, err := c.GetExtension()
+		require.NoError(t, err)
+		assert.Len(t, extension, 8)
+	})
+}
+
 func assertDecodedClaimsV2(t *testing.T, c IClaims, includeOptional bool) {
 	t.Helper()
 
@@ -414,6 +462,8 @@ func assertDecodedClaimsV2(t *testing.T, c IClaims, includeOptional bool) {
 		assert.Error(t, err)
 		_, err = c.GetManufacturingConfig()
 		assert.Error(t, err)
+		_, err = c.GetExtension()
+		assert.Error(t, err)
 		_, err = c.GetTBBRoTPK()
 		assert.Error(t, err)
 		_, err = c.GetPeerSigners()
@@ -432,6 +482,14 @@ func assertDecodedClaimsV2(t *testing.T, c IClaims, includeOptional bool) {
 	peerSigners, err := c.GetPeerSigners()
 	require.NoError(t, err)
 	assert.Equal(t, testPeerSigners, peerSigners)
+
+	extension, err := c.GetExtension()
+	require.NoError(t, err)
+	require.Len(t, extension, 2)
+
+	d1 := mustBuildExtensionDeviceAllFields(t)
+	d2 := mustBuildExtensionDeviceMinimalFields(t)
+	assert.Equal(t, ExtensionDevices{&d1, &d2}, extension)
 
 	tbbRoTPK, err := c.GetTBBRoTPK()
 	require.NoError(t, err)
