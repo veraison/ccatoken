@@ -11,6 +11,8 @@ import (
 
 type ExtensionDevices []*ExtensionDevice
 
+// Validates all items in the ExtensionDevices slice.
+// Returns an error if validation fails for any of the items, or if the slice is empty.
 func (o ExtensionDevices) Validate() error {
 	if len(o) == 0 {
 		return psatoken.ErrOptionalClaimMissing
@@ -19,8 +21,8 @@ func (o ExtensionDevices) Validate() error {
 	return validateExtensionDevices(o)
 }
 
-// Return a shallow copy of the ExtensionDevices slice.
-// Validates the items before copying. Returns an error if validation fails.
+// Copy returns a shallow copy of the ExtensionDevices slice.
+// It validates the items before copying, and returns an error if validation fails.
 func (o ExtensionDevices) Copy() (ExtensionDevices, error) {
 	err := validateExtensionDevices(o)
 	if err != nil {
@@ -33,6 +35,7 @@ func (o ExtensionDevices) Copy() (ExtensionDevices, error) {
 	return ret, nil
 }
 
+// IsEmpty returns true if the ExtensionDevices slice is empty.
 func (o ExtensionDevices) IsEmpty() bool {
 	return len(o) == 0
 }
