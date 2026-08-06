@@ -159,7 +159,7 @@ func (c *ClaimsV2) SetManufacturingConfig(v []byte) error {
 	return nil
 }
 
-// Sets Extension claim to a shallow copy of the provided ExtensionDevices, which is a slice []*ExtensionDevice.
+// SetExtension sets the Extension claim to a shallow copy of the provided ExtensionDevices, which is a slice []*ExtensionDevice.
 func (c *ClaimsV2) SetExtension(vals ExtensionDevices) error {
 	if len(vals) == 0 {
 		return fmt.Errorf("%w: extension: should not set empty value", psatoken.ErrWrongSyntax)
@@ -173,7 +173,7 @@ func (c *ClaimsV2) SetExtension(vals ExtensionDevices) error {
 	return nil
 }
 
-// Sets TBB RoTPK claim to a shallow copy of the provided TBBRoTPKItems, which is a slice []*TBBRoTPKItem.
+// SetTBBRoTPK sets the TBB RoTPK claim to a shallow copy of the provided TBBRoTPKItems, which is a slice []*TBBRoTPKItem.
 func (c *ClaimsV2) SetTBBRoTPK(vals TBBRoTPKItems) error {
 	if len(vals) == 0 {
 		return fmt.Errorf("%w: TBB RoTPK: should not set empty value", psatoken.ErrWrongSyntax)
@@ -221,7 +221,7 @@ func (c *ClaimsV2) GetManufacturingConfig() ([]byte, error) {
 	return *c.ManufacturingConfig, nil
 }
 
-// Returns a shallow copy of ExtensionDevices, which is a slice []*ExtensionDevice.
+// GetExtension returns a shallow copy of ExtensionDevices, which is a slice []*ExtensionDevice.
 func (c *ClaimsV2) GetExtension() (ExtensionDevices, error) {
 	if c.Extension == nil {
 		return nil, psatoken.ErrOptionalClaimMissing
@@ -230,7 +230,7 @@ func (c *ClaimsV2) GetExtension() (ExtensionDevices, error) {
 	return c.Extension.Copy()
 }
 
-// Returns a shallow copy of TBBRoTPKItems, which is a slice []*TBBRoTPKItem.
+// GetTBBRoTPK returns a shallow copy of TBBRoTPKItems, which is a slice []*TBBRoTPKItem.
 func (c *ClaimsV2) GetTBBRoTPK() (TBBRoTPKItems, error) {
 	if c.TBBRoTPK == nil {
 		return nil, psatoken.ErrOptionalClaimMissing

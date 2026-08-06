@@ -59,7 +59,8 @@ const (
 	ProtocolSPDM140 Protocol = "spdm-1.4.0"
 )
 
-// RequiresVCADigest returns true if Protocol is one of the strings specified in https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
+// RequiresVCADigest returns true if Protocol is one of the strings specified in
+// https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
 // meaning an extension device specifying this protocol must have a VCA digest.
 func (p Protocol) RequiresVCADigest() bool {
 	switch p {
@@ -113,7 +114,8 @@ const (
 	DeviceTypeCXLType3 DeviceType = "cxl-type-3"
 )
 
-// RequiresEncryptionType returns true if DeviceType is one of the strings specified in https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
+// RequiresEncryptionType returns true if DeviceType is one of the strings specified in
+// https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
 // meaning an extension device specifying this device type must have an encryption type.
 func (t DeviceType) RequiresEncryptionType() bool {
 	switch t {
