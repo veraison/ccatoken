@@ -59,10 +59,10 @@ const (
 	ProtocolSPDM140 Protocol = "spdm-1.4.0"
 )
 
-// RequiresVCADigest returns true if Protocol is one of the strings specified in
+// IsVCASupported returns true if Protocol is one of the strings specified in
 // https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
 // meaning an extension device specifying this protocol must have a VCA digest.
-func (p Protocol) RequiresVCADigest() bool {
+func (p Protocol) IsVCASupported() bool {
 	switch p {
 	case ProtocolSPDM120,
 		ProtocolSPDM121,
@@ -78,33 +78,17 @@ func (p Protocol) RequiresVCADigest() bool {
 	}
 }
 
-// ValidateProtocolAndVCADigest validates the protocol and VCA digest fields of an extension device,
-// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension.
-func ValidateProtocolAndVCADigest(p *Protocol, v *[]byte) error {
-	if p == nil {
-		return fmt.Errorf("%w: protocol is required", psatoken.ErrMandatoryFieldMissing)
-	}
-
-	// Disallow empty string as protocol
-	if *p == "" {
+// ValidateProtocol checks that the given protocol string is not empty.
+func ValidateProtocol(p Protocol) error {
+	if p == "" {
 		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
 	}
-
-	if p.RequiresVCADigest() {
-		if v == nil {
-			return fmt.Errorf("%w: protocol %s requires a VCA digest", psatoken.ErrMandatoryFieldMissing, *p)
-		}
-		err := psatoken.ValidatePSAHashType(*v)
-		if err != nil {
-			return fmt.Errorf("%w", err)
-		}
-	}
-
-	if !p.RequiresVCADigest() && v != nil {
-		return fmt.Errorf("%w: VCA digest is not expected for protocol %s", psatoken.ErrWrongSyntax, *p)
-	}
-
 	return nil
+}
+
+// ValidateVCADigest checks that the given VCA digest is an arm-platform-hash-type (32, 48 or 64 bytes)
+func ValidateVCADigest(v []byte) error {
+	return psatoken.ValidatePSAHashType(v)
 }
 
 // DeviceType identifies the type of this extension device.
@@ -114,10 +98,10 @@ const (
 	DeviceTypeCXLType3 DeviceType = "cxl-type-3"
 )
 
-// RequiresEncryptionType returns true if DeviceType is one of the strings specified in
+// IsTypeWithEncryption returns true if DeviceType is one of the strings specified in
 // https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
 // meaning an extension device specifying this device type must have an encryption type.
-func (t DeviceType) RequiresEncryptionType() bool {
+func (t DeviceType) IsTypeWithEncryption() bool {
 	switch t {
 	case DeviceTypeCXLType3:
 		return true
@@ -135,31 +119,19 @@ const (
 	NoEncryption
 )
 
-// ValidateDeviceTypeAndEncryption validates the device type and encryption type fields of an extension device,
-// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension.
-func ValidateDeviceTypeAndEncryption(d *DeviceType, e *EncryptionType) error {
-	if d == nil {
-		return fmt.Errorf("%w: device type is required", psatoken.ErrMandatoryFieldMissing)
-	}
-
-	// Disallow empty string as device type
-	if *d == "" {
+// ValidateDeviceType checks that the given device type string is not empty.
+func ValidateDeviceType(d DeviceType) error {
+	if d == "" {
 		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
 	}
+	return nil
+}
 
-	if d.RequiresEncryptionType() {
-		if e == nil {
-			return fmt.Errorf("%w: device type %s requires an encryption type", psatoken.ErrMandatoryFieldMissing, *d)
-		}
-		if *e != HostSideEncryption && *e != TargetSideEncryption && *e != NoEncryption {
-			return fmt.Errorf("%w: invalid encryption type %d", psatoken.ErrWrongSyntax, *e)
-		}
+// ValidateEncryptionType checks that the given encryption type is a valid EncryptionTypeenum value.
+func ValidateEncryptionType(e EncryptionType) error {
+	if e != HostSideEncryption && e != TargetSideEncryption && e != NoEncryption {
+		return fmt.Errorf("%w: invalid encryption type %d", psatoken.ErrWrongSyntax, e)
 	}
-
-	if !d.RequiresEncryptionType() && e != nil {
-		return fmt.Errorf("%w: encryption type is not expected for device type %s", psatoken.ErrWrongSyntax, *d)
-	}
-
 	return nil
 }
 
@@ -243,35 +215,73 @@ func (d ExtensionDevice) GetUsesIDE() (bool, error) {
 }
 
 // GetProtocol validates the protocol and VCA digest fields of an extension device,
-// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension, and returns the protocol if valid.
+// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
+// and returns the protocol if valid.
 func (d ExtensionDevice) GetProtocol() (Protocol, error) {
-	err := ValidateProtocolAndVCADigest(d.Protocol, d.VCADigest)
+	if d.Protocol == nil {
+		return "", psatoken.ErrMandatoryFieldMissing
+	}
+	err := ValidateProtocol(*d.Protocol)
 	if err != nil {
 		return "", err
 	}
+	if !d.Protocol.IsVCASupported() {
+		return *d.Protocol, nil
+	}
 
+	if d.VCADigest == nil {
+		return "", fmt.Errorf("%w: protocol %s requires a VCA digest", psatoken.ErrMandatoryFieldMissing, *d.Protocol)
+	}
+	err = ValidateVCADigest(*d.VCADigest)
+	if err != nil {
+		return "", err
+	}
 	return *d.Protocol, nil
 }
 
 // GetVCADigest validates the protocol and VCA digest fields of an extension device,
-// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension, and returns the VCA digest if valid.
+// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
+// and returns the VCA digest if valid.
 func (d ExtensionDevice) GetVCADigest() ([]byte, error) {
-	err := ValidateProtocolAndVCADigest(d.Protocol, d.VCADigest)
-	if err != nil {
-		return nil, err
+	if d.Protocol == nil {
+		return nil, fmt.Errorf("%w: protocol must be set before getting VCA digest", psatoken.ErrMandatoryFieldMissing)
 	}
-
-	if !d.Protocol.RequiresVCADigest() {
+	if !d.Protocol.IsVCASupported() {
+		if d.VCADigest != nil {
+			return nil, fmt.Errorf("%w: VCA digest is set but not expected for protocol %s", psatoken.ErrWrongSyntax, *d.Protocol)
+		}
 		return nil, fmt.Errorf("%w: VCA digest not expected for protocol %s", psatoken.ErrFieldNotInProfile, *d.Protocol)
 	}
 
+	if d.VCADigest == nil {
+		return nil, fmt.Errorf("%w: protocol %s requires a VCA digest", psatoken.ErrMandatoryFieldMissing, *d.Protocol)
+	}
+	err := ValidateVCADigest(*d.VCADigest)
+	if err != nil {
+		return nil, err
+	}
 	return *d.VCADigest, nil
 }
 
 // GetDeviceType validates the device type and encryption type fields of an extension device,
-// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension, and returns the device type if valid.
+// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
+// and returns the device type if valid.
 func (d ExtensionDevice) GetDeviceType() (DeviceType, error) {
-	err := ValidateDeviceTypeAndEncryption(d.DeviceType, d.EncryptionType)
+	if d.DeviceType == nil {
+		return "", psatoken.ErrMandatoryFieldMissing
+	}
+	err := ValidateDeviceType(*d.DeviceType)
+	if err != nil {
+		return "", err
+	}
+
+	if !d.DeviceType.IsTypeWithEncryption() {
+		return *d.DeviceType, nil
+	}
+	if d.EncryptionType == nil {
+		return "", fmt.Errorf("%w: device type %s requires an encryption type", psatoken.ErrMandatoryFieldMissing, *d.DeviceType)
+	}
+	err = ValidateEncryptionType(*d.EncryptionType)
 	if err != nil {
 		return "", err
 	}
@@ -280,17 +290,26 @@ func (d ExtensionDevice) GetDeviceType() (DeviceType, error) {
 }
 
 // GetEncryptionType validates the device type and encryption type fields of an extension device,
-// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension, and returns the encryption type if valid.
+// as per https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension,
+// and returns the encryption type if valid.
 func (d ExtensionDevice) GetEncryptionType() (EncryptionType, error) {
-	err := ValidateDeviceTypeAndEncryption(d.DeviceType, d.EncryptionType)
-	if err != nil {
-		return 0, err
+	if d.DeviceType == nil {
+		return 0, fmt.Errorf("%w: device type must be set before getting encryption type", psatoken.ErrMandatoryFieldMissing)
 	}
-
-	if !d.DeviceType.RequiresEncryptionType() {
+	if !d.DeviceType.IsTypeWithEncryption() {
+		if d.EncryptionType != nil {
+			return 0, fmt.Errorf("%w: encryption type is set but not expected for device type %s", psatoken.ErrWrongSyntax, *d.DeviceType)
+		}
 		return 0, fmt.Errorf("%w: encryption type not expected for device type %s", psatoken.ErrFieldNotInProfile, *d.DeviceType)
 	}
 
+	if d.EncryptionType == nil {
+		return 0, fmt.Errorf("%w: device type %s requires an encryption type", psatoken.ErrMandatoryFieldMissing, *d.DeviceType)
+	}
+	err := ValidateEncryptionType(*d.EncryptionType)
+	if err != nil {
+		return 0, err
+	}
 	return *d.EncryptionType, nil
 }
 
@@ -326,13 +345,14 @@ func (d *ExtensionDevice) SetUsesIDE(v bool) error {
 
 // SetProtocol can only be called once. If the protocol is already set, an error is returned.
 // This prevents changes in whether a VCA digest is required or not.
-// See https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension for which protocols require a VCA digest.
+// See IsVCASupported for which protocols require a VCA digest.
 func (d *ExtensionDevice) SetProtocol(p Protocol) error {
 	if d.Protocol != nil {
 		return fmt.Errorf("protocol can only be set once and is already set to %s", *d.Protocol)
 	}
-	if p == "" {
-		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
+	err := ValidateProtocol(p)
+	if err != nil {
+		return err
 	}
 	d.Protocol = &p
 
@@ -341,21 +361,18 @@ func (d *ExtensionDevice) SetProtocol(p Protocol) error {
 
 // SetVCADigest can only be set after the protocol has been set, and only if the protocol requires a VCA digest.
 // If the protocol does not require a VCA digest, an error is returned.
-// See https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension for which protocols require a VCA digest.
+// See IsVCASupported for which protocols require a VCA digest.
 func (d *ExtensionDevice) SetVCADigest(h []byte) error {
 	if d.Protocol == nil {
 		return fmt.Errorf("protocol must be set before setting VCA digest")
 	}
-
-	if !d.Protocol.RequiresVCADigest() {
+	if !d.Protocol.IsVCASupported() {
 		return fmt.Errorf("%w: VCA digest is not expected for protocol %s", psatoken.ErrFieldNotInProfile, *d.Protocol)
 	}
-
-	err := ValidateProtocolAndVCADigest(d.Protocol, &h)
+	err := ValidateVCADigest(h)
 	if err != nil {
 		return err
 	}
-
 	d.VCADigest = &h
 
 	return nil
@@ -363,15 +380,15 @@ func (d *ExtensionDevice) SetVCADigest(h []byte) error {
 
 // SetDeviceType can only be called once. If the device type is already set, an error is returned.
 // This prevents changes in whether an encryption type is required or not.
-// See https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension for which device types require encryption type.
+// See IsTypeWithEncryption for which device types require encryption type.
 func (d *ExtensionDevice) SetDeviceType(t DeviceType) error {
 	if d.DeviceType != nil {
 		return fmt.Errorf("device type can only be set once and is already set to %s", *d.DeviceType)
 	}
-	if t == "" {
-		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
+	err := ValidateDeviceType(t)
+	if err != nil {
+		return err
 	}
-
 	d.DeviceType = &t
 
 	return nil
@@ -379,20 +396,18 @@ func (d *ExtensionDevice) SetDeviceType(t DeviceType) error {
 
 // SetEncryptionType can only be called after the device type has been set, and only if the device type requires an encryption type.
 // If the device type does not require an encryption type, an error is returned.
-// See https://datatracker.ietf.org/doc/html/draft-ffm-rats-cca-token-03#name-cca-platform-extension for which device types require encryption type.
+// See IsTypeWithEncryption for which device types require encryption type.
 func (d *ExtensionDevice) SetEncryptionType(t EncryptionType) error {
 	if d.DeviceType == nil {
 		return fmt.Errorf("device type must be set before setting encryption type")
 	}
-
-	if !d.DeviceType.RequiresEncryptionType() {
+	if !d.DeviceType.IsTypeWithEncryption() {
 		return fmt.Errorf("%w: encryption type is not expected for device type %s", psatoken.ErrFieldNotInProfile, *d.DeviceType)
 	}
-
-	if t != HostSideEncryption && t != TargetSideEncryption && t != NoEncryption {
-		return fmt.Errorf("invalid encryption type: %d", t)
+	err := ValidateEncryptionType(t)
+	if err != nil {
+		return err
 	}
-
 	d.EncryptionType = &t
 
 	return nil
