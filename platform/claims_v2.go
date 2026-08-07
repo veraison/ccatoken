@@ -26,11 +26,11 @@ func (o ProfileV2) GetClaims() psatoken.IClaims {
 }
 
 type addedClaimsV2 struct {
-	ClientID            *int32         `cbor:"2394,keyasint" json:"cca-platform-client-id"`
-	ManufacturingConfig *[]byte        `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
-	TBBRoTPK            *TBBRoTPKItems `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
-	PeerSigners         *[]byte        `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
-	// Extension  *TODO		`cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"` // to find out the type
+	ClientID            *int32            `cbor:"2394,keyasint" json:"cca-platform-client-id"`
+	ManufacturingConfig *[]byte           `cbor:"2403,keyasint,omitempty" json:"cca-platform-manufacturing-config,omitempty"`
+	Extension           *ExtensionDevices `cbor:"2404,keyasint,omitempty" json:"cca-platform-extension,omitempty"`
+	TBBRoTPK            *TBBRoTPKItems    `cbor:"2405,keyasint,omitempty" json:"cca-platform-tbb-rotpk,omitempty"`
+	PeerSigners         *[]byte           `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
 }
 
 // ClaimsV2 contains the CCA platform claims for tag:arm.com,2024:cca_platform#2.0.0.
@@ -81,6 +81,18 @@ func (c *ClaimsV2) Validate() error {
 
 // Codecs
 
+func (c *ClaimsV2) setSliceFieldsToNilIfEmpty() {
+	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
+		c.SwComponents = nil
+	}
+	if c.Extension != nil && c.Extension.IsEmpty() {
+		c.Extension = nil
+	}
+	if c.TBBRoTPK != nil && c.TBBRoTPK.IsEmpty() {
+		c.TBBRoTPK = nil
+	}
+}
+
 // UnmarshalCBOR decodes the claims from CBOR
 func (c *ClaimsV2) UnmarshalCBOR(buf []byte) error {
 	c.Profile = nil // clear profile to make sure we took it from buf
@@ -97,12 +109,7 @@ func (c *ClaimsV2) UnmarshalCBOR(buf []byte) error {
 
 // MarshalCBOR encodes the claims to CBOR
 func (c ClaimsV2) MarshalCBOR() ([]byte, error) {
-	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
-		c.SwComponents = nil
-	}
-	if c.TBBRoTPK != nil && c.TBBRoTPK.IsEmpty() {
-		c.TBBRoTPK = nil
-	}
+	c.setSliceFieldsToNilIfEmpty()
 
 	cv2 := toPlainClaimsV2(&c)
 
@@ -124,12 +131,7 @@ func (c *ClaimsV2) UnmarshalJSON(buf []byte) error {
 
 // MarshalJSON encodes the claims into JSON
 func (c ClaimsV2) MarshalJSON() ([]byte, error) {
-	if c.SwComponents != nil && c.SwComponents.IsEmpty() {
-		c.SwComponents = nil
-	}
-	if c.TBBRoTPK != nil && c.TBBRoTPK.IsEmpty() {
-		c.TBBRoTPK = nil
-	}
+	c.setSliceFieldsToNilIfEmpty()
 
 	cv2 := toPlainClaimsV2(&c)
 
@@ -157,6 +159,21 @@ func (c *ClaimsV2) SetManufacturingConfig(v []byte) error {
 	return nil
 }
 
+// SetExtension sets the Extension claim to a shallow copy of the provided ExtensionDevices, which is a slice []*ExtensionDevice.
+func (c *ClaimsV2) SetExtension(vals ExtensionDevices) error {
+	if len(vals) == 0 {
+		return fmt.Errorf("%w: extension: should not set empty value", psatoken.ErrWrongSyntax)
+	}
+
+	copiedVals, err := vals.Copy()
+	if err != nil {
+		return err
+	}
+	c.Extension = &copiedVals
+	return nil
+}
+
+// SetTBBRoTPK sets the TBB RoTPK claim to a shallow copy of the provided TBBRoTPKItems, which is a slice []*TBBRoTPKItem.
 func (c *ClaimsV2) SetTBBRoTPK(vals TBBRoTPKItems) error {
 	if len(vals) == 0 {
 		return fmt.Errorf("%w: TBB RoTPK: should not set empty value", psatoken.ErrWrongSyntax)
@@ -204,9 +221,18 @@ func (c *ClaimsV2) GetManufacturingConfig() ([]byte, error) {
 	return *c.ManufacturingConfig, nil
 }
 
-// Returns a shallow copy of the TBBRoTPKItems slice.
+// GetExtension returns a shallow copy of ExtensionDevices, which is a slice []*ExtensionDevice.
+func (c *ClaimsV2) GetExtension() (ExtensionDevices, error) {
+	if c.Extension == nil {
+		return nil, psatoken.ErrOptionalClaimMissing
+	}
+
+	return c.Extension.Copy()
+}
+
+// GetTBBRoTPK returns a shallow copy of TBBRoTPKItems, which is a slice []*TBBRoTPKItem.
 func (c *ClaimsV2) GetTBBRoTPK() (TBBRoTPKItems, error) {
-	if c.TBBRoTPK == nil || c.TBBRoTPK.IsEmpty() {
+	if c.TBBRoTPK == nil {
 		return nil, psatoken.ErrOptionalClaimMissing
 	}
 

@@ -14,33 +14,26 @@
     "cca-platform-service-indicator" : "https://veraison.example/v1/challenge-response",
     "cca-platform-hash-algo-id": "sha-256",
     "cca-platform-client-id": 1,
-    "cca-platform-manufacturing-config": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDBAQ=",
+    "cca-platform-manufacturing-config": "AQID",
     "cca-platform-peer-signers": "BQUFBQU=",
     "cca-platform-extension": [
       {
         "hash-algo-id": "sha-256",
-        "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
+        "device-measurements-digest": "",
         "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
         "uses-ide": true,
         "protocol": "spdm-1.2.0",
         "vca-digest": "AAECAwQFBgcICQoLDA0ODwABAgMEBQYHCAkKCwwNDg8AAQIDBAUGBwgJCgsMDQ4P",
         "device-type": "cxl-type-3",
         "encryption-type": 0
-      },
-      {
-        "device-measurements-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu8=",
-        "certificate-chain-digest": "3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+796tvu/erb7v3q2+7w==",
-        "uses-ide": true,
-        "protocol": "other-protocol-1.2.3",
-        "device-type": "other-device-2"
       }
     ],
     "cca-platform-tbb-rotpk": [
             {
-            "name": "",
+            "name": "DM",
             "active-array-index": 0,
             "index": 0,
             "hash": "BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc="
             }
-      ]
+        ]
     }

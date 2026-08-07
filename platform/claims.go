@@ -364,6 +364,10 @@ func (c *Claims) GetPeerSigners() ([]byte, error) {
 	return nil, fmt.Errorf("%w: peer signers", psatoken.ErrClaimNotInProfile)
 }
 
+func (c *Claims) GetExtension() (ExtensionDevices, error) {
+	return nil, fmt.Errorf("%w: extension", psatoken.ErrClaimNotInProfile)
+}
+
 func (c *Claims) GetTBBRoTPK() (TBBRoTPKItems, error) {
 	return nil, fmt.Errorf("%w: TBB RoTPK", psatoken.ErrClaimNotInProfile)
 }
@@ -374,6 +378,10 @@ func (c *Claims) SetManufacturingConfig([]byte) error {
 
 func (c *Claims) SetPeerSigners([]byte) error {
 	return fmt.Errorf("%w: peer signers", psatoken.ErrClaimNotInProfile)
+}
+
+func (c *Claims) SetExtension(ExtensionDevices) error {
+	return fmt.Errorf("%w: extension", psatoken.ErrClaimNotInProfile)
 }
 
 func (c *Claims) SetTBBRoTPK(TBBRoTPKItems) error {
