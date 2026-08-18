@@ -289,19 +289,19 @@ func Test_CcaRealmClaims_UnmarshalJSON_negatives(t *testing.T) {
 }
 
 func Test_SetPubKey_legacy_ok(t *testing.T) {
-	c := newClaimsForDecoding()
+	c := &Claims{}
 	err := c.SetPubKey(TestRAKPubRaw)
 	assert.NoError(t, err)
 }
 
 func Test_SetPubKey_legacy_bad(t *testing.T) {
-	c := newClaimsForDecoding()
+	c := &Claims{}
 	err := c.SetPubKey(TestAltRAKPubCOSE)
 	assert.ErrorContains(t, err, "wrong syntax")
 }
 
 func Test_GetProfile_legacy(t *testing.T) {
-	c := newClaimsForDecoding()
+	c := &Claims{}
 	_, err := c.GetProfile()
 	assert.ErrorIs(t, err, psatoken.ErrOptionalClaimMissing)
 }

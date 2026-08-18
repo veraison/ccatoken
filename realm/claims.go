@@ -1,3 +1,6 @@
+// Copyright 2022-2026 Contributors to the Veraison project.
+// SPDX-License-Identifier: Apache-2.0
+
 // CCA Realm Claims
 package realm
 
@@ -10,8 +13,26 @@ import (
 
 const ProfileName = "tag:arm.com,2023:realm#1.0.0"
 
-// Claims contains the CCA realm claims. It implements IClaims, which is an
-// extension of psatoken.IClaimBase.
+// Profile is the IProfile implementation for CCA realm claims
+// for "tag:arm.com,2023:realm#1.0.0".
+// It is registered to associate the claims with the profile name,
+// so that it can be automatically used during unmarshaling.
+type Profile struct{}
+
+func (o Profile) GetName() string {
+	return ProfileName
+}
+
+func (o Profile) GetClaims() IClaims {
+	return newClaimsV1(ProfileName)
+}
+
+func (o Profile) GetUninitializedClaims() IClaims {
+	return &Claims{}
+}
+
+// Claims contains the CCA realm claims for "tag:arm.com,2023:realm#1.0.0".
+// It implements IClaims, which is an extension of psatoken.IClaimBase.
 type Claims struct {
 	Profile                *eat.Profile `cbor:"265,keyasint" json:"cca-realm-profile,omitempty"`
 	Challenge              *eat.Nonce   `cbor:"10,keyasint" json:"cca-realm-challenge"`
@@ -38,10 +59,6 @@ func newClaimsV1(profileName string) IClaims {
 	}
 
 	return &Claims{Profile: &p}
-}
-
-func newClaimsForDecoding() IClaims {
-	return &Claims{}
 }
 
 // Setters
@@ -120,6 +137,10 @@ func (c *Claims) SetPubKeyHashAlgID(v string) error {
 	return nil
 }
 
+func (c *Claims) SetMECPolicy(v MECPolicy) error {
+	return fmt.Errorf("%w: MEC policy", psatoken.ErrClaimNotInProfile)
+}
+
 // Getters
 func (c Claims) GetChallenge() ([]byte, error) {
 	v := c.Challenge
@@ -156,7 +177,7 @@ func (c *Claims) GetProfile() (string, error) {
 			psatoken.ErrWrongProfile, ProfileName, profileString)
 	}
 
-	return c.Profile.Get()
+	return profileString, nil
 }
 
 func (c Claims) GetPersonalizationValue() ([]byte, error) {
@@ -238,6 +259,10 @@ func (c Claims) GetPubKeyHashAlgID() (string, error) {
 	}
 
 	return *v, nil
+}
+
+func (c Claims) GetMECPolicy() (MECPolicy, error) {
+	return "", fmt.Errorf("%w: MEC policy", psatoken.ErrClaimNotInProfile)
 }
 
 // Semantic validation
