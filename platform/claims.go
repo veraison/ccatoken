@@ -14,9 +14,10 @@ import (
 const LegacyProfileName = "http://arm.com/CCA-SSD/1.0.0"
 const ProfileName = "tag:arm.com,2023:cca_platform#1.0.0"
 
-// Profile is the psatoken.IProfile implementation for CCA claims (2023/1.0.0). It is
-// registered to associate the claims with the profile name, so that it can be
-// automatically used during unmarshaling.
+// Profile is the psatoken.IProfile implementation for CCA platform claims
+// for "tag:arm.com,2023:cca_platform#1.0.0".
+// It is registered to associate the claims with the profile name,
+// so that it can be automatically used during unmarshaling.
 type Profile struct{}
 
 func (o Profile) GetName() string {
@@ -37,8 +38,8 @@ func (o LegacyProfile) GetClaims() psatoken.IClaims {
 	return newClaimsV1(LegacyProfileName)
 }
 
-// Claims contains the CCA platform claims. It implements IClaims, which is an
-// extension of psatoken.IClaims.
+// Claims contains the CCA platform claims for "tag:arm.com,2023:cca_platform#1.0.0".
+// It implements IClaims, which is an extension of psatoken.IClaims.
 type Claims struct {
 	Profile           *eat.Profile           `cbor:"265,keyasint" json:"cca-platform-profile"`
 	Challenge         *eat.Nonce             `cbor:"10,keyasint" json:"cca-platform-challenge"`

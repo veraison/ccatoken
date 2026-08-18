@@ -32,6 +32,8 @@ type IClaims interface {
 	SetPeerSigners([]byte) error
 }
 
+// NewClaimsWithProfile returns a new IClaims instance for the specified profile name.
+// If this name does not match a registered profile, an error is returned.
 func NewClaimsWithProfile(profileName string) (IClaims, error) {
 	icPsa, err := psatoken.NewClaims(profileName)
 	if err != nil {
@@ -61,23 +63,21 @@ func ValidateClaims(c IClaims) error {
 		return fmt.Errorf("validating platform hash algo id: %w", err)
 	}
 
-	if _, ok := c.(*ClaimsV2); ok {
-		if err := psatoken.FilterError(c.GetManufacturingConfig()); err != nil {
-			return fmt.Errorf("validating platform manufacturing config: %w", err)
-		}
+	// New claims in V2. V1 Claims returns ErrClaimNotInProfile, which is ignored by FilterError.
+	if err := psatoken.FilterError(c.GetManufacturingConfig()); err != nil {
+		return fmt.Errorf("validating platform manufacturing config: %w", err)
+	}
 
-		if err := psatoken.FilterError(c.GetExtension()); err != nil {
-			return fmt.Errorf("validating platform extension: %w", err)
-		}
+	if err := psatoken.FilterError(c.GetExtension()); err != nil {
+		return fmt.Errorf("validating platform extension: %w", err)
+	}
 
-		if err := psatoken.FilterError(c.GetTBBRoTPK()); err != nil {
-			return fmt.Errorf("validating platform TBB ROTPK: %w", err)
-		}
+	if err := psatoken.FilterError(c.GetTBBRoTPK()); err != nil {
+		return fmt.Errorf("validating platform TBB ROTPK: %w", err)
+	}
 
-		if err := psatoken.FilterError(c.GetPeerSigners()); err != nil {
-			return fmt.Errorf("validating platform peer signers: %w", err)
-		}
-
+	if err := psatoken.FilterError(c.GetPeerSigners()); err != nil {
+		return fmt.Errorf("validating platform peer signers: %w", err)
 	}
 
 	return nil
