@@ -20,8 +20,10 @@ var (
 		testInitMeas,
 		testInitMeas,
 	}
-	testHashAlgID       = "sha-256"
-	testPubKeyHashAlgID = "sha-512"
+	testHashAlgID                 = "sha-256"
+	testPubKeyHashAlgID           = "sha-512"
+	testMECPolicy       MECPolicy = "private"
+	testNotMECPolicy    MECPolicy = "hello"
 
 	// TestRAKPubRaw needs to be public because it is used also by tests in the
 	// ccatoken package.

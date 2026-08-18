@@ -1,3 +1,6 @@
+// Copyright 2022-2026 Contributors to the Veraison project.
+// SPDX-License-Identifier: Apache-2.0
+
 package realm
 
 import (
@@ -10,9 +13,10 @@ import (
 )
 
 func mustBuildValidCcaRealmClaims(t *testing.T) IClaims {
-	c := NewClaims()
+	c, err := NewClaimsWithProfile(ProfileName)
+	require.NoError(t, err)
 
-	err := c.SetChallenge(testChallenge)
+	err = c.SetChallenge(testChallenge)
 	require.NoError(t, err)
 
 	err = c.SetPersonalizationValue(testPersonalizationVal)
@@ -44,9 +48,10 @@ func Test_NewCcaRealmClaims_ok(t *testing.T) {
 }
 
 func Test_CcaRealmClaims_Set_nok(t *testing.T) {
-	c := NewClaims()
+	c, err := NewClaimsWithProfile(ProfileName)
+	require.NoError(t, err)
 
-	err := c.SetChallenge([]byte("123"))
+	err = c.SetChallenge([]byte("123"))
 	expectedErr := "wrong syntax: length 3 (hash MUST be 64 bytes)"
 	assert.EqualError(t, err, expectedErr)
 
@@ -100,10 +105,12 @@ func Test_CcaRealmClaims_Set_nok(t *testing.T) {
 }
 
 func Test_CcaRealmClaims_MarshalCBOR_invalid(t *testing.T) {
-	c := NewClaims()
+	c, err := NewClaimsWithProfile(ProfileName)
+	require.NoError(t, err)
+
 	expectedErr := `validating realm challenge claim: missing mandatory claim`
 
-	_, err := ValidateAndEncodeClaimsToCBOR(c)
+	_, err = ValidateAndEncodeClaimsToCBOR(c)
 
 	assert.EqualError(t, err, expectedErr)
 }
@@ -135,6 +142,11 @@ func Test_CcaRealmClaims_UnmarshalCBOR_ok(t *testing.T) {
 	c, err := DecodeAndValidateClaimsFromCBOR(buf)
 
 	assert.NoError(t, err)
+
+	expectedProfile := ProfileName
+	actualProfile, err := c.GetProfile()
+	assert.NoError(t, err)
+	assert.Equal(t, expectedProfile, actualProfile)
 
 	// mandatory
 	expectedChallenge := testChallenge
@@ -246,6 +258,28 @@ func Test_CcaRealmClaims_UnmarshalJSON_ok(t *testing.T) {
   ]
   ,
   "cca-realm-hash-algo-id": "sha-256",
+  "cca-realm-public-key": "BIEZWICiIH+5VgMqPLl/XaWvcm/8txXuFkeEp/sWwGCWvdlGKjJlCykSqFUVcNbqHzstH32oonX6ADMPAHhhi8PhSVScgXDTLsVYkKf57HifHxiukusV0iKvlx2XHJZa8Q==",
+  "cca-realm-public-key-hash-algo-id": "sha-512"
+}`
+	_, err := DecodeAndValidateClaimsFromJSON([]byte(tv))
+
+	assert.NoError(t, err)
+}
+
+func Test_CcaRealmClaims_UnmarshalJSON_with_profile_ok(t *testing.T) {
+	tv := `{
+  "cca-realm-profile": "tag:arm.com,2023:realm#1.0.0",
+  "cca-realm-challenge": "QUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQkFCQUJBQg==",
+  "cca-realm-personalization-value": "QURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBREFEQURBRA==",
+  "cca-realm-initial-measurement": "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw==",
+  "cca-realm-extensible-measurements": [
+    "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw==",
+    "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw==",
+    "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw==",
+    "Q0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQw=="
+  ]
+  ,
+  "cca-realm-hash-algo-id": "sha-256",
   "cca-realm-public-key": "pAECIAIhWDB2+YgJG+WF7UGAGuz6uFhUjGMFfhaw5nYSC70NL5wp4FbF1BoBMOucIVF4mdwjFGsiWDAo4bBivT6ksxX9IZ8cu1KMtudMpJvhZ3NzT2GhymEDGyu/PZGPL5T/xCKOUJGVRK4=",
   "cca-realm-public-key-hash-algo-id": "sha-512"
 }`
@@ -307,7 +341,9 @@ func Test_GetProfile_legacy(t *testing.T) {
 }
 
 func Test_GetProfile_ok(t *testing.T) {
-	c := NewClaims()
+	c, err := NewClaimsWithProfile(ProfileName)
+	require.NoError(t, err)
+
 	profile, err := c.GetProfile()
 	assert.NoError(t, err)
 	assert.Equal(t, ProfileName, profile)
