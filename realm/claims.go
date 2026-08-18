@@ -23,10 +23,16 @@ type Claims struct {
 	PublicKeyHashAlgID     *string      `cbor:"44240,keyasint" json:"cca-realm-public-key-hash-algo-id"`
 }
 
-// NewClaims claims returns a new instance of Claims.
+// NewClaims returns a Claims object with the profile name "tag:arm.com,2023:realm#1.0.0".
+//
+// Deprecated: use NewClaimsWithProfile instead.
 func NewClaims() IClaims {
+	return newClaimsV1(ProfileName)
+}
+
+func newClaimsV1(profileName string) IClaims {
 	p := eat.Profile{}
-	if err := p.Set(ProfileName); err != nil {
+	if err := p.Set(profileName); err != nil {
 		// should never get here as using known good constant as input
 		panic(err)
 	}
