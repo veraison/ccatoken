@@ -15,9 +15,10 @@ import (
 )
 
 func mustBuildValidCcaRealmClaims(t *testing.T) realm.IClaims {
-	c := realm.NewClaims()
+	c, err := realm.NewClaimsWithProfile(realm.ProfileName)
+	require.NoError(t, err)
 
-	err := c.SetChallenge(testChallenge)
+	err = c.SetChallenge(testChallenge)
 	require.NoError(t, err)
 
 	err = c.SetPersonalizationValue(testPersonalizationVal)

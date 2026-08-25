@@ -12,9 +12,10 @@ import (
 
 const ProfileNameV2 = "tag:arm.com,2024:cca_platform#2.0.0"
 
-// ProfileV2 is the psatoken.IProfile implementation for CCA claims (2024/2.0.0; draft-ffm-rats-cca-token/03).
-// It is registered to associate the claims with the profile name, so that it can be
-// automatically used during unmarshaling.
+// ProfileV2 is the psatoken.IProfile implementation for CCA platform claims
+// for "tag:arm.com,2024:cca_platform#2.0.0".
+// It is registered to associate the claims with the profile name,
+// so that it can be automatically used during unmarshaling.
 type ProfileV2 struct{}
 
 func (o ProfileV2) GetName() string {
@@ -33,7 +34,7 @@ type addedClaimsV2 struct {
 	PeerSigners         *[]byte           `cbor:"2406,keyasint,omitempty" json:"cca-platform-peer-signers,omitempty"`
 }
 
-// ClaimsV2 contains the CCA platform claims for tag:arm.com,2024:cca_platform#2.0.0.
+// ClaimsV2 contains the CCA platform claims for "tag:arm.com,2024:cca_platform#2.0.0".
 // It implements IClaims, which is an extension of psatoken.IClaims.
 type ClaimsV2 struct {
 	Claims
