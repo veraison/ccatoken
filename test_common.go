@@ -35,14 +35,14 @@ var (
 		0x58, 0x90, 0xa7, 0xf9, 0xec, 0x78, 0x9f, 0x1f, 0x18, 0xae, 0x92, 0xeb,
 		0x15, 0xd2, 0x22, 0xaf, 0x97, 0x1d, 0x97, 0x1c, 0x96, 0x5a, 0xf1,
 	}
-	testIAK = `{
+	testCPAK = `{
 		"kty": "EC",
 		"crv": "P-256",
 		"x": "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
 		"y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
 		"d": "870MB6gfuTJ4HtUnUvYMyJpr5eUZNP4Bk43bVdj3eAE"
 	}`
-	testAltIAK = `{
+	testAltCPAL = `{
 		"kty": "EC",
 		"crv": "P-256",
 		"x": "AtIf5xiADwKXrfB8-EPysL5zGNAGe15mP1bd9v72PcU",

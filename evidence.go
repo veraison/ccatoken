@@ -339,7 +339,7 @@ func (e *Evidence) Sign(pSigner cose.Signer, rSigner cose.Signer) ([]byte, error
 // The integrity of the realm token is checked by extracting the inlined realm
 // public key.  This also checks the correctness of the chaining between
 // platform and realm tokens.
-func (e *Evidence) Verify(iak crypto.PublicKey) error {
+func (e *Evidence) Verify(cpak crypto.PublicKey) error {
 
 	if e.platformTokenRaw == nil && e.realmTokenRaw == nil {
 		return fmt.Errorf("no message found")
@@ -351,7 +351,7 @@ func (e *Evidence) Verify(iak crypto.PublicKey) error {
 	}
 
 	// First verify the platform token
-	if err := e.verifyCOSEToken(*e.platformTokenRaw, iak); err != nil {
+	if err := e.verifyCOSEToken(*e.platformTokenRaw, cpak); err != nil {
 		return fmt.Errorf("unable to verify platform token: %w", err)
 	}
 
