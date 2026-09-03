@@ -142,7 +142,7 @@ func TestEvidence_sign_and_verify_platform_key_mismatch(t *testing.T) {
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
 
-	mismatchedVerifier := pubKeyFromJWK(t, testAltCPAL)
+	mismatchedVerifier := pubKeyFromJWK(t, testAltCPAK)
 
 	err = EvidenceOut.Verify(mismatchedVerifier)
 	assert.EqualError(t, err, "unable to verify platform token: verification error")
