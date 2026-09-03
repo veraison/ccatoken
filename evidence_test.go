@@ -74,7 +74,7 @@ func mustBuildValidPlatformClaims(t *testing.T, includeOptional bool) platform.I
 
 func TestEvidence_sign_and_verify_ok(t *testing.T) {
 	rSigner := signerFromJWK(t, testRAK)
-	pSigner := signerFromJWK(t, testIAK)
+	pSigner := signerFromJWK(t, testCPAK)
 
 	var EvidenceIn Evidence
 
@@ -90,7 +90,7 @@ func TestEvidence_sign_and_verify_ok(t *testing.T) {
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
 
-	verifier := pubKeyFromJWK(t, testIAK)
+	verifier := pubKeyFromJWK(t, testCPAK)
 
 	err = EvidenceOut.Verify(verifier)
 	assert.NoError(t, err)
@@ -98,7 +98,7 @@ func TestEvidence_sign_and_verify_ok(t *testing.T) {
 
 func TestEvidence_sign_and_verify_bad_binder(t *testing.T) {
 	rSigner := signerFromJWK(t, testRAK)
-	pSigner := signerFromJWK(t, testIAK)
+	pSigner := signerFromJWK(t, testCPAK)
 
 	var EvidenceIn Evidence
 
@@ -118,7 +118,7 @@ func TestEvidence_sign_and_verify_bad_binder(t *testing.T) {
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
 
-	verifier := pubKeyFromJWK(t, testIAK)
+	verifier := pubKeyFromJWK(t, testCPAK)
 
 	err = EvidenceOut.Verify(verifier)
 	assert.EqualError(t, err, "binding verification failed: platform nonce does not match RAK hash")
@@ -126,7 +126,7 @@ func TestEvidence_sign_and_verify_bad_binder(t *testing.T) {
 
 func TestEvidence_sign_and_verify_platform_key_mismatch(t *testing.T) {
 	rSigner := signerFromJWK(t, testRAK)
-	pSigner := signerFromJWK(t, testIAK)
+	pSigner := signerFromJWK(t, testCPAK)
 
 	var EvidenceIn Evidence
 
@@ -142,7 +142,7 @@ func TestEvidence_sign_and_verify_platform_key_mismatch(t *testing.T) {
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
 
-	mismatchedVerifier := pubKeyFromJWK(t, testAltIAK)
+	mismatchedVerifier := pubKeyFromJWK(t, testAltCPAK)
 
 	err = EvidenceOut.Verify(mismatchedVerifier)
 	assert.EqualError(t, err, "unable to verify platform token: verification error")
@@ -150,7 +150,7 @@ func TestEvidence_sign_and_verify_platform_key_mismatch(t *testing.T) {
 
 func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 	rSigner := signerFromJWK(t, testRAK)
-	pSigner := signerFromJWK(t, testIAK)
+	pSigner := signerFromJWK(t, testCPAK)
 
 	var EvidenceIn Evidence
 
@@ -171,7 +171,7 @@ func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 	EvidenceOut, err := DecodeAndValidateEvidenceFromCBOR(ccaToken)
 	assert.NoError(t, err, "CCA token decoding failed")
 
-	mismatchedVerifier := pubKeyFromJWK(t, testIAK)
+	mismatchedVerifier := pubKeyFromJWK(t, testCPAK)
 
 	err = EvidenceOut.Verify(mismatchedVerifier)
 	assert.EqualError(t, err, "unable to verify realm token: verification error")
@@ -179,7 +179,7 @@ func TestEvidence_sign_and_verify_realm_key_mismatch(t *testing.T) {
 
 func TestEvidence_sign_unvalidated(t *testing.T) {
 	rSigner := signerFromJWK(t, testRAK)
-	pSigner := signerFromJWK(t, testIAK)
+	pSigner := signerFromJWK(t, testCPAK)
 
 	testVectors := []struct {
 		Platform platform.IClaims
