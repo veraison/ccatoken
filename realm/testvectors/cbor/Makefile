@@ -5,7 +5,7 @@
 
 OUTPUT := ../../pretty_test_vectors.go
 
-DEPS := $(wildcard *.diag)
+DEPS := $(wildcard *.diag v2/*.diag profile-registry/*.diag)
 
 all: $(OUTPUT)
 
