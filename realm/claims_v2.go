@@ -6,6 +6,7 @@ package realm
 import (
 	"fmt"
 
+	"github.com/veraison/eat"
 	"github.com/veraison/psatoken"
 )
 
@@ -34,6 +35,7 @@ func (o ProfileV2) GetUninitializedClaims() IClaims {
 type ClaimsV2 struct {
 	Claims
 	MECPolicy *MECPolicy `cbor:"44243,keyasint" json:"cca-realm-mec-policy"`
+	InstID    *eat.UEID  `cbor:"256,keyasint" json:"cca-realm-instance-id"`
 }
 
 type MECPolicy uint8
@@ -75,6 +77,32 @@ func (c *ClaimsV2) GetMECPolicy() (MECPolicy, error) {
 	err := ValidateMECPolicy(*v)
 	if err != nil {
 		return MECPolicyInvalid, err
+	}
+
+	return *v, nil
+}
+
+func (c *ClaimsV2) SetInstID(v []byte) error {
+	if err := psatoken.ValidateInstID(v); err != nil {
+		return err
+	}
+
+	ueid := eat.UEID(v)
+
+	c.InstID = &ueid
+
+	return nil
+}
+
+func (c *ClaimsV2) GetInstID() ([]byte, error) {
+	v := c.InstID
+
+	if v == nil {
+		return nil, psatoken.ErrMandatoryClaimMissing
+	}
+
+	if err := psatoken.ValidateInstID(*v); err != nil {
+		return nil, err
 	}
 
 	return *v, nil

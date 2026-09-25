@@ -141,6 +141,10 @@ func (c *Claims) SetMECPolicy(v MECPolicy) error {
 	return fmt.Errorf("%w: MEC policy", psatoken.ErrClaimNotInProfile)
 }
 
+func (c *Claims) SetInstID(v []byte) error {
+	return fmt.Errorf("%w: Instance ID", psatoken.ErrClaimNotInProfile)
+}
+
 // Getters
 func (c Claims) GetChallenge() ([]byte, error) {
 	v := c.Challenge
@@ -263,6 +267,10 @@ func (c Claims) GetPubKeyHashAlgID() (string, error) {
 
 func (c Claims) GetMECPolicy() (MECPolicy, error) {
 	return MECPolicyInvalid, fmt.Errorf("%w: MEC policy", psatoken.ErrClaimNotInProfile)
+}
+
+func (c Claims) GetInstID() ([]byte, error) {
+	return nil, fmt.Errorf("%w: Instance ID", psatoken.ErrClaimNotInProfile)
 }
 
 // Semantic validation

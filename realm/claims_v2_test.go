@@ -40,6 +40,9 @@ func mustBuildValidCcaRealmClaimsV2(t *testing.T) IClaims {
 	err = c.SetMECPolicy(testMECPolicy)
 	require.NoError(t, err)
 
+	err = c.SetInstID(testInstID)
+	require.NoError(t, err)
+
 	return c
 }
 
