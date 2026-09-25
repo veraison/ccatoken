@@ -42,6 +42,9 @@ func mustBuildValidRealmClaimsV2(t *testing.T) realm.IClaims {
 	err = c.SetMECPolicy(testMECPolicy)
 	require.NoError(t, err)
 
+	err = c.SetInstID(testInstID)
+	require.NoError(t, err)
+
 	return c
 }
 
@@ -168,6 +171,7 @@ func requireEvidenceV2Claims(t *testing.T, e *Evidence) {
 }
 
 func TestEvidenceV2_DecodeDraftRev03_ok(t *testing.T) {
+
 	// This token's hex encoding was directly copied from
 	// draft-ffm-rats-cca-token-03, section A.1.5
 	rev03Token := mustHexDecode(t, testGoodCCATokenRev03)
