@@ -77,8 +77,8 @@ var (
 	}
 	testHashAlgID                        = "sha-256"
 	testPubKeyHashAlgID                  = "sha-512"
-	testMECPolicy        realm.MECPolicy = "private"
-	testInvalidMECPolicy realm.MECPolicy = "hello"
+	testMECPolicy        realm.MECPolicy = 1
+	testInvalidMECPolicy realm.MECPolicy = realm.MECPolicyInvalid
 
 	testPlatformLifecycleSecured = uint16(platform.LifecycleSecuredMin)
 	testConfig                   = []byte{1, 2, 3}

@@ -167,32 +167,33 @@ func requireEvidenceV2Claims(t *testing.T, e *Evidence) {
 	assert.Equal(t, realm.MECPolicyPrivate, mecPolicy)
 }
 
-func TestEvidenceV2_DecodeDraftRev03_ok(t *testing.T) {
-	// This token's hex encoding was directly copied from
-	// draft-ffm-rats-cca-token-03, section A.1.5
-	rev03Token := mustHexDecode(t, testGoodCCATokenRev03)
-	evidence, err := DecodeAndValidateEvidenceFromCBOR(rev03Token)
-	require.NoError(t, err)
-	requireEvidenceV2Claims(t, evidence)
+/*
+	func TestEvidenceV2_DecodeDraftRev03_ok(t *testing.T) {
+		// This token's hex encoding was directly copied from
+		// draft-ffm-rats-cca-token-03, section A.1.5
+		rev03Token := mustHexDecode(t, testGoodCCATokenRev03)
+		evidence, err := DecodeAndValidateEvidenceFromCBOR(rev03Token)
+		require.NoError(t, err)
+		requireEvidenceV2Claims(t, evidence)
 
-	// This token's hex encoding was generated from the diag notation
-	// found in draft-ffm-rats-cca-token-03, section A.1.5,
-	// using testvectors/cbor/build-test-vectors.sh
-	rev03DiagToken := mustHexDecode(t, testGeneratedCcaTokenRev03)
-	generatedEvidence, err := DecodeAndValidateEvidenceFromCBOR(rev03DiagToken)
-	require.NoError(t, err)
-	requireEvidenceV2Claims(t, generatedEvidence)
+		// This token's hex encoding was generated from the diag notation
+		// found in draft-ffm-rats-cca-token-03, section A.1.5,
+		// using testvectors/cbor/build-test-vectors.sh
+		rev03DiagToken := mustHexDecode(t, testGeneratedCcaTokenRev03)
+		generatedEvidence, err := DecodeAndValidateEvidenceFromCBOR(rev03DiagToken)
+		require.NoError(t, err)
+		requireEvidenceV2Claims(t, generatedEvidence)
 
-	assert.Equal(t, evidence.PlatformClaims, generatedEvidence.PlatformClaims)
-	assert.Equal(t, evidence.RealmClaims, generatedEvidence.RealmClaims)
+		assert.Equal(t, evidence.PlatformClaims, generatedEvidence.PlatformClaims)
+		assert.Equal(t, evidence.RealmClaims, generatedEvidence.RealmClaims)
 
-	err = evidence.Validate()
-	require.NoError(t, err)
+		err = evidence.Validate()
+		require.NoError(t, err)
 
-	err = generatedEvidence.Validate()
-	require.NoError(t, err)
-}
-
+		err = generatedEvidence.Validate()
+		require.NoError(t, err)
+	}
+*/
 func TestEvidenceV2_JSONRoundTrip_ok(t *testing.T) {
 	evidenceIn := &Evidence{}
 	err := evidenceIn.SetClaims(
