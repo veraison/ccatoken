@@ -262,7 +262,7 @@ func (c Claims) GetPubKeyHashAlgID() (string, error) {
 }
 
 func (c Claims) GetMECPolicy() (MECPolicy, error) {
-	return "", fmt.Errorf("%w: MEC policy", psatoken.ErrClaimNotInProfile)
+	return MECPolicyInvalid, fmt.Errorf("%w: MEC policy", psatoken.ErrClaimNotInProfile)
 }
 
 // Semantic validation

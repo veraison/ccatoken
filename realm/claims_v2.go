@@ -33,14 +33,15 @@ func (o ProfileV2) GetUninitializedClaims() IClaims {
 // It implements IClaims, which is an extension of psatoken.IClaims.
 type ClaimsV2 struct {
 	Claims
-	MECPolicy *MECPolicy `cbor:"44243,keyasint" json:"cca-realm-mec-policy,omitempty"`
+	MECPolicy *MECPolicy `cbor:"44243,keyasint" json:"cca-realm-mec-policy"`
 }
 
-type MECPolicy string
+type MECPolicy uint8
 
 const (
-	MECPolicyPrivate MECPolicy = "private"
-	MECPolicyShared  MECPolicy = "shared"
+	MECPolicyShared  MECPolicy = 0
+	MECPolicyPrivate MECPolicy = 1
+	MECPolicyInvalid MECPolicy = 255
 )
 
 // ValidateMECPolicy checks if the provided MEC policy is valid (either "private" or "shared").
@@ -68,12 +69,12 @@ func (c *ClaimsV2) SetMECPolicy(v MECPolicy) error {
 func (c *ClaimsV2) GetMECPolicy() (MECPolicy, error) {
 	v := c.MECPolicy
 	if v == nil {
-		return "", psatoken.ErrMandatoryClaimMissing
+		return MECPolicyInvalid, psatoken.ErrMandatoryClaimMissing
 	}
 
 	err := ValidateMECPolicy(*v)
 	if err != nil {
-		return "", err
+		return MECPolicyInvalid, err
 	}
 
 	return *v, nil
