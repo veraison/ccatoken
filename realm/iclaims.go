@@ -24,6 +24,7 @@ type IClaims interface {
 	GetPubKey() ([]byte, error)
 	GetPubKeyHashAlgID() (string, error)
 	GetMECPolicy() (MECPolicy, error)
+	GetInstID() ([]byte, error)
 	GetProfile() (string, error)
 
 	// Setters
@@ -35,6 +36,7 @@ type IClaims interface {
 	SetPubKey([]byte) error
 	SetPubKeyHashAlgID(string) error
 	SetMECPolicy(MECPolicy) error
+	SetInstID([]byte) error
 }
 
 // NewClaimsWithProfile returns a new IClaims instance for the specified profile name.
@@ -254,6 +256,12 @@ func ValidateClaims(c IClaims) error {
 	if err := psatoken.FilterError(c.GetMECPolicy()); err != nil {
 		return fmt.Errorf("validating realm MEC policy claim: %w", err)
 	}
+
+	// New claim in V2. V1 Claims returns ErrClaimNotInProfile, which is ignored by FilterError.
+	if err := psatoken.FilterError(c.GetInstID()); err != nil {
+		return fmt.Errorf("validating realm instance ID claim: %w", err)
+	}
+
 	return nil
 }
 
