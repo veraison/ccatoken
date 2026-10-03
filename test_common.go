@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 	"github.com/veraison/ccatoken/platform"
 	"github.com/veraison/ccatoken/realm"
@@ -477,7 +477,7 @@ func getAlgAndKeyFromJWK(t *testing.T, j []byte) (cose.Algorithm, crypto.Signer)
 		alg cose.Algorithm
 	)
 
-	err = k.Raw(&key)
+	err = jwk.Export(k, &key)
 	require.NoError(t, err)
 
 	switch v := key.(type) {
