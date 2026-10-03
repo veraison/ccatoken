@@ -1,6 +1,6 @@
 module github.com/veraison/ccatoken
 
-go 1.21
+go 1.26
 
 require (
 	github.com/fxamacker/cbor/v2 v2.5.0
