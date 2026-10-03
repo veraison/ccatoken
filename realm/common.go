@@ -129,16 +129,12 @@ func ValidateExtendedMeas(v [][]byte) error {
 }
 
 func ECDSAPublicKeyFromRaw(data []byte) (*ecdsa.PublicKey, error) {
-	x, y := elliptic.Unmarshal(elliptic.P384(), data) // nolint:staticcheck
-	if x == nil {
+	k, err := ecdsa.ParseUncompressedPublicKey(elliptic.P384(), data)
+	if err != nil {
 		return nil, errors.New("failed to unmarshal elliptic curve point")
 	}
 
-	return &ecdsa.PublicKey{
-		Curve: elliptic.P384(),
-		X:     x,
-		Y:     y,
-	}, nil
+	return k, nil
 }
 
 func ECDSAPublicKeyFromCOSEKey(buf []byte) (*ecdsa.PublicKey, error) {
