@@ -26,7 +26,8 @@ type ExtensionDevice struct {
 	// Protocol identifies the protocol used to communicate with the extension device.
 	Protocol *Protocol `cbor:"5,keyasint" json:"protocol"`
 
-	// VCADigest is required when this extension device's Protocol is one of the protocols-support-vca, otherwise no VCADigest field is expected
+	// VCADigest is required when this extension device's Protocol is one of the
+	// protocols-support-vca, otherwise no VCADigest field is expected
 	VCADigest *[]byte `cbor:"6,keyasint,omitempty" json:"vca-digest,omitempty"`
 
 	// DeviceType identifies the type of this extension device.
@@ -225,16 +226,10 @@ func (d ExtensionDevice) GetProtocol() (Protocol, error) {
 	if err != nil {
 		return "", err
 	}
-	if !d.Protocol.IsVCASupported() {
-		return *d.Protocol, nil
-	}
-
-	if d.VCADigest == nil {
-		return "", fmt.Errorf("%w: protocol %s requires a VCA digest", psatoken.ErrMandatoryFieldMissing, *d.Protocol)
-	}
-	err = ValidateVCADigest(*d.VCADigest)
-	if err != nil {
-		return "", err
+	if d.Protocol.IsVCASupported() {
+		if _, err := d.GetVCADigest(); err != nil {
+			return "", err
+		}
 	}
 	return *d.Protocol, nil
 }
@@ -275,15 +270,10 @@ func (d ExtensionDevice) GetDeviceType() (DeviceType, error) {
 		return "", err
 	}
 
-	if !d.DeviceType.IsTypeWithEncryption() {
-		return *d.DeviceType, nil
-	}
-	if d.EncryptionType == nil {
-		return "", fmt.Errorf("%w: device type %s requires an encryption type", psatoken.ErrMandatoryFieldMissing, *d.DeviceType)
-	}
-	err = ValidateEncryptionType(*d.EncryptionType)
-	if err != nil {
-		return "", err
+	if d.DeviceType.IsTypeWithEncryption() {
+		if _, err := d.GetEncryptionType(); err != nil {
+			return "", err
+		}
 	}
 
 	return *d.DeviceType, nil

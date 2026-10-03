@@ -33,7 +33,7 @@ var (
 )
 
 func Test_TBBRoTPKItems_Copy(t *testing.T) {
-	keys := TBBRoTPKItems{}
+	keys := make(TBBRoTPKItems, 0, 2)
 	keys = append(keys, &testTBBRoTPKItem1, &testTBBRoTPKItem2)
 
 	vals, err := keys.Copy()

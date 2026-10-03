@@ -579,6 +579,7 @@ func TestEvidence_Validate_nagative(t *testing.T) {
 }
 
 func Test_UnmarshalCBOR_InvalidEntries_MissingSign1Tag(t *testing.T) {
+	//nolint:gocritic // comments are CBOR diagnostic notation, not code
 	tv := []byte{
 		0xd9, 0x03, 0x8b, // tag(907)
 		0xa2,             // map(2)
