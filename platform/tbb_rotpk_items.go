@@ -3,53 +3,21 @@
 
 package platform
 
-import (
-	"fmt"
-
-	"github.com/veraison/psatoken"
-)
-
 type TBBRoTPKItems []*TBBRoTPKItem
 
 // Validate all items in the TBBRoTPKItems slice.
 // Returns an error if validation fails for any of the items, or if the slice is empty.
 func (o TBBRoTPKItems) Validate() error {
-	if len(o) == 0 {
-		return fmt.Errorf("%w: TBB RoTPK: is empty slice", psatoken.ErrWrongSyntax)
-	}
-
-	return validateTBBRoTPKItems(o)
+	return validateItems(o, "TBB RoTPK", "TBBRoTPKItems")
 }
 
 // Copy returns a shallow copy of the TBBRoTPKItems slice.
 // It validates the items before copying, and returns an error if validation fails.
 func (o TBBRoTPKItems) Copy() (TBBRoTPKItems, error) {
-	err := o.Validate()
-	if err != nil {
-		return nil, err
-	}
-
-	ret := make(TBBRoTPKItems, len(o))
-	copy(ret, o)
-
-	return ret, nil
+	return copyItems(o, "TBB RoTPK", "TBBRoTPKItems")
 }
 
 // IsEmpty returns true if the TBBRoTPKItems slice is empty.
 func (o TBBRoTPKItems) IsEmpty() bool {
 	return len(o) == 0
-}
-
-func validateTBBRoTPKItems(vals TBBRoTPKItems) error {
-	for i, k := range vals {
-		if k == nil {
-			return fmt.Errorf("failed at index %d: %s", i, "nil key in TBBRoTPKItems")
-		}
-
-		if err := k.Validate(); err != nil {
-			return fmt.Errorf("failed at index %d: %w", i, err)
-		}
-	}
-
-	return nil
 }

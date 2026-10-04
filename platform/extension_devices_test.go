@@ -14,7 +14,7 @@ import (
 )
 
 func Test_ExtensionDevices_Validate(t *testing.T) {
-	ds := ExtensionDevices{}
+	ds := make(ExtensionDevices, 0, 3)
 	d1 := mustBuildExtensionDeviceMinimalFields(t)
 	d2 := mustBuildExtensionDeviceAllFields(t)
 	d3 := mustBuildExtensionDeviceAllFields(t)
