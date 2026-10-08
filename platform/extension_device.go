@@ -36,14 +36,6 @@ type ExtensionDevice struct {
 	EncryptionType *EncryptionType `cbor:"8,keyasint,omitempty" json:"encryption-type,omitempty"`
 }
 
-// Validates that the given string is not empty.
-func ValidateExtensionDeviceHashAlgID(v string) error {
-	if v == "" {
-		return fmt.Errorf("%w: empty string", psatoken.ErrWrongSyntax)
-	}
-	return nil
-}
-
 // Protocol used to communicate with an extension device.
 type Protocol string
 
@@ -174,9 +166,6 @@ func (d ExtensionDevice) Validate() error {
 func (d ExtensionDevice) GetHashAlgID() (string, error) {
 	if d.HashAlgID == nil {
 		return "", psatoken.ErrOptionalFieldMissing
-	}
-	if err := ValidateExtensionDeviceHashAlgID(*d.HashAlgID); err != nil {
-		return "", err
 	}
 
 	return *d.HashAlgID, nil
@@ -314,7 +303,7 @@ func (d ExtensionDevice) GetEncryptionType() (EncryptionType, error) {
 }
 
 func (d *ExtensionDevice) SetHashAlgID(v string) error {
-	if err := ValidateExtensionDeviceHashAlgID(v); err != nil {
+	if err := psatoken.ValidateHashAlgID(v); err != nil {
 		return err
 	}
 
