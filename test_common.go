@@ -126,15 +126,14 @@ var (
 	testHash3 = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
 		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
 		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
-	testClientID                                 = int32(1)
-	testTBBRoTPKName1                            = "CM"
-	testTBBRoTPKActiveArray1                     = int32(1)
-	testTBBRoTPKIndex1                           = int32(0)
-	testPeerSigners                              = []byte{5, 5, 5, 5, 5}
-	testUsesIDE              bool                = true
-	testOtherProtocol        platform.Protocol   = "other-protocol-1.2.3"
-	testOtherDeviceType      platform.DeviceType = "other-device-2"
-	testCombinedClaimsJSON                       = `
+	testClientID                               = int32(1)
+	testTBBRoTPKName1                          = "CM"
+	testTBBRoTPKIndex1                         = int32(0)
+	testPeerSigners                            = []byte{5, 5, 5, 5, 5}
+	testUsesIDE            bool                = true
+	testOtherProtocol      platform.Protocol   = "other-protocol-1.2.3"
+	testOtherDeviceType    platform.DeviceType = "other-device-2"
+	testCombinedClaimsJSON                     = `
 	{
 	  "cca-platform-token": {
 		"cca-platform-profile": "tag:arm.com,2023:cca_platform#1.0.0",

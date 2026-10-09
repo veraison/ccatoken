@@ -31,16 +31,15 @@
       3: h'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
       4: true,
       5: "other-protocol-1.2.3",
-      7: "other-device-2",
+      7: "other-device-2"
     }
   ]
   2405: [
     {
       1: "DM",
       2: 0,
-      3: 0,
-      4: h'0707070707070707070707070707070707070707070707070707070707070707'
+      3: h'0707070707070707070707070707070707070707070707070707070707070707'
     }
   ],
-  2406: h'0505050505',
+  2406: h'0505050505'
 }

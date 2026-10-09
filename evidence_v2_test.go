@@ -90,9 +90,6 @@ func mustBuildValidPlatformClaimsV2(t *testing.T, includeOptional bool) platform
 		err = tbbRoTPKItem.SetName(testTBBRoTPKName1)
 		require.NoError(t, err)
 
-		err = tbbRoTPKItem.SetActiveRoTPKArray(testTBBRoTPKActiveArray1)
-		require.NoError(t, err)
-
 		err = tbbRoTPKItem.SetIndex(testTBBRoTPKIndex1)
 		require.NoError(t, err)
 
