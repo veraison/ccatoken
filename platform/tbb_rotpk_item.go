@@ -11,20 +11,15 @@ import (
 
 // TBBRoTPKItem represents a single item in the CCA platform TBB ROTPK claim.
 type TBBRoTPKItem struct {
-	Name             *string `cbor:"1,keyasint" json:"name"`               // "CM" or "DM"
-	ActiveArrayIndex *int32  `cbor:"2,keyasint" json:"active-array-index"` // active ROTPK array
-	Index            *int32  `cbor:"3,keyasint" json:"index"`              // index in the active array
-	Hash             *[]byte `cbor:"4,keyasint" json:"hash"`               // hash object
+	Name  *string `cbor:"1,keyasint" json:"name"`  // "CM" or "DM"
+	Index *int32  `cbor:"2,keyasint" json:"index"` // index in the currently active array
+	Hash  *[]byte `cbor:"3,keyasint" json:"hash"`  // hash object
 }
 
 // Validate returns an error if validation fails for any of the fields.
 func (i TBBRoTPKItem) Validate() error {
 	if err := psatoken.FilterError(i.GetName()); err != nil {
 		return fmt.Errorf("name: %w", err)
-	}
-
-	if err := psatoken.FilterError(i.GetActiveRoTPKArray()); err != nil {
-		return fmt.Errorf("active array index: %w", err)
 	}
 
 	if err := psatoken.FilterError(i.GetIndex()); err != nil {
@@ -57,14 +52,6 @@ func (i TBBRoTPKItem) GetName() (string, error) {
 	return *i.Name, nil
 }
 
-func (i TBBRoTPKItem) GetActiveRoTPKArray() (int32, error) {
-	if i.ActiveArrayIndex == nil {
-		return 0, psatoken.ErrMandatoryFieldMissing
-	}
-
-	return *i.ActiveArrayIndex, nil
-}
-
 func (i TBBRoTPKItem) GetIndex() (int32, error) {
 	if i.Index == nil {
 		return 0, psatoken.ErrMandatoryFieldMissing
@@ -91,11 +78,6 @@ func (i *TBBRoTPKItem) SetName(v string) error {
 	}
 
 	i.Name = &v
-	return nil
-}
-
-func (i *TBBRoTPKItem) SetActiveRoTPKArray(v int32) error {
-	i.ActiveArrayIndex = &v
 	return nil
 }
 
