@@ -12,23 +12,19 @@ import (
 )
 
 var (
-	testName1             = "CM"
-	testActiveRoTPKArray1 = int32(1)
-	testIndex1            = int32(0)
-	testTBBRoTPKItem1     = TBBRoTPKItem{
-		Name:             &testName1,
-		ActiveArrayIndex: &testActiveRoTPKArray1,
-		Index:            &testIndex1,
-		Hash:             &testHash1,
+	testName1         = "CM"
+	testIndex1        = int32(0)
+	testTBBRoTPKItem1 = TBBRoTPKItem{
+		Name:  &testName1,
+		Index: &testIndex1,
+		Hash:  &testHash1,
 	}
-	testName2             = "DM"
-	testActiveRoTPKArray2 = int32(0)
-	testIndex2            = int32(3)
-	testTBBRoTPKItem2     = TBBRoTPKItem{
-		Name:             &testName2,
-		ActiveArrayIndex: &testActiveRoTPKArray2,
-		Index:            &testIndex2,
-		Hash:             &testHash2,
+	testName2         = "DM"
+	testIndex2        = int32(3)
+	testTBBRoTPKItem2 = TBBRoTPKItem{
+		Name:  &testName2,
+		Index: &testIndex2,
+		Hash:  &testHash2,
 	}
 )
 

@@ -23,22 +23,6 @@ func Test_TBBRoTPKItem_name_setter_and_getter(t *testing.T) {
 	assert.EqualError(t, err, "wrong syntax: empty string")
 }
 
-func Test_TBBRoTPKItem_active_array_index_setter_and_getter(t *testing.T) {
-	k := TBBRoTPKItem{}
-
-	require.NoError(t, k.SetActiveRoTPKArray(0))
-	assert.Equal(t, int32(0), *k.ActiveArrayIndex)
-	aa, err := k.GetActiveRoTPKArray()
-	require.NoError(t, err)
-	assert.Equal(t, int32(0), aa)
-
-	require.NoError(t, k.SetActiveRoTPKArray(7))
-	assert.Equal(t, int32(7), *k.ActiveArrayIndex)
-	aa, err = k.GetActiveRoTPKArray()
-	require.NoError(t, err)
-	assert.Equal(t, int32(7), aa)
-}
-
 func Test_TBBRoTPKItem_index_setter_and_getter(t *testing.T) {
 	k := TBBRoTPKItem{}
 
