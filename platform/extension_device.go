@@ -163,6 +163,11 @@ func (d ExtensionDevice) Validate() error {
 	return nil
 }
 
+// Getters return a validated value or an error
+// After successful call to Validate(), getters of mandatory claims are assured
+// to never fail.  Getters of optional claim may still fail with
+// ErrOptionalClaimMissing in case the claim is not present.
+
 func (d ExtensionDevice) GetHashAlgID() (string, error) {
 	if d.HashAlgID == nil {
 		return "", psatoken.ErrOptionalFieldMissing
