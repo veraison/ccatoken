@@ -31,7 +31,7 @@ type CMWCollectionEntry struct {
 }
 
 // CBORCMWCollection is a wrapper containing the CBOR data for both platform and
-// realm tokens. This follows CMW format (draft-ietf-rats-msg-wrap)
+// realm tokens. This follows CMW format (RFC 9999)
 type CBORCMWCollection struct {
 	PlatformTokenColl CMWCollectionEntry `cbor:"44234,keyasint"`
 	RealmTokenColl    CMWCollectionEntry `cbor:"44241,keyasint"`
